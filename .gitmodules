@@ -1,0 +1,3 @@
+[submodule "pyLMUSharedMemory"]
+	path = pyLMUSharedMemory
+	url = https://github.com/s-victor/pyLMUSharedMemory

@@ -1,0 +1,10 @@
+def get_tire_index(tire):
+    match tire:
+        case "fl":
+            return 0
+        case "fr":
+            return 1
+        case "rl":
+            return 2
+        case "rr":
+            return 3
