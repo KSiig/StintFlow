@@ -1,5 +1,5 @@
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QPalette
+from PyQt6.QtGui import QPalette, QIcon, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -15,25 +15,24 @@ class TitleBar(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.setAutoFillBackground(True)
-        self.setBackgroundRole(QPalette.ColorRole.Highlight)
+        self.setBackgroundRole(QPalette.ColorRole.Dark)
         self.initial_pos = None
 
         title_bar_layout = QHBoxLayout(self)
-        title_bar_layout.setContentsMargins(1, 1, 1, 1)
+        title_bar_layout.setContentsMargins(5, 5, 5, 5)
         title_bar_layout.setSpacing(2)
 
-        self.title = QLabel(f"{self.__class__.__name__}", self)
-        self.title.setStyleSheet(
-            """font-weight: bold;
-               border: 2px solid black;
-               border-radius: 12px;
-               margin: 2px;
-            """
-        )
-        self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        if title := parent.windowTitle():
-            self.title.setText(title)
-        title_bar_layout.addWidget(self.title)
+        self.favicon = QLabel()
+        # self.title.setStyleSheet(
+        #     """font-weight: bold;
+        #        border: 2px solid black;
+        #        border-radius: 12px;
+        #        margin: 2px;
+        #     """
+        # )
+        self.favicon.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.favicon.setPixmap(QPixmap("_internal/favicon/favicon-32x32.png"))
+        title_bar_layout.addWidget(self.favicon)
 
         # Min button
         self.min_button = QToolButton(self)
@@ -78,9 +77,37 @@ class TitleBar(QWidget):
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             button.setFixedSize(QSize(28, 28))
             button.setStyleSheet(
-                """QToolButton { border: 2px solid white;
-                                 border-radius: 12px;
-                                }
+                """QToolButton { 
+                }
                 """
             )
             title_bar_layout.addWidget(button)
+
+    def window_state_changed(self, state):
+        if state == Qt.WindowState.WindowMaximized:
+            self.normal_button.setVisible(True)
+            self.max_button.setVisible(False)
+        else:
+            self.normal_button.setVisible(False)
+            self.max_button.setVisible(True)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.initial_pos = event.position().toPoint()
+        super().mousePressEvent(event)
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        if self.initial_pos is not None:
+            delta = event.position().toPoint() - self.initial_pos
+            self.window().move(
+                self.window().x() + delta.x(),
+                self.window().y() + delta.y(),
+            )
+        super().mouseMoveEvent(event)
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self.initial_pos = None
+        super().mouseReleaseEvent(event)
+        event.accept()

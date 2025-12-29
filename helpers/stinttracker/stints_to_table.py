@@ -32,35 +32,38 @@ def stints_to_table(stints, starting_tires):
 
     avg_stint_time = '0:42:30'
 
-    while not is_last_stint(prev_stint.get('pit_end_time'), avg_stint_time):
-        t1 = datetime.strptime(prev_stint.get('pit_end_time'), "%H:%M:%S").time()
-        t2 = datetime.strptime(avg_stint_time, "%H:%M:%S").time()
+    if prev_stint:
+        while not is_last_stint(prev_stint.get('pit_end_time'), avg_stint_time):
+            t1 = datetime.strptime(prev_stint.get('pit_end_time'), "%H:%M:%S").time()
+            t2 = datetime.strptime(avg_stint_time, "%H:%M:%S").time()
 
-        # Convert t1 to a datetime
-        dt = datetime.combine(datetime.today(), t1)
+            # Convert t1 to a datetime
+            dt = datetime.combine(datetime.today(), t1)
 
-        # Convert t2 to a timedelta
-        delta = timedelta(hours=t2.hour, minutes=t2.minute, seconds=t2.second)
+            # Convert t2 to a timedelta
+            delta = timedelta(hours=t2.hour, minutes=t2.minute, seconds=t2.second)
 
-        # Subtract the timedelta
-        dt_minus = dt - delta
+            # Subtract the timedelta
+            dt_minus = dt - delta
 
-        # Get the time part again
-        t1_minus = dt_minus.time()
-        prev_stint['pit_end_time'] = str(t1_minus)
-        tires_changed = int(stint.get("tires_changed"))
-        tires_left = tires_left - tires_changed
-    
+            # Get the time part again
+            t1_minus = dt_minus.time()
+            prev_stint['pit_end_time'] = str(t1_minus)
+            tires_changed = int(stint.get("tires_changed"))
+            tires_left = tires_left - tires_changed
+        
 
-        rows.append([
-            stint.get("driver"),
-            "❌",
-            stint.get("pit_end_time"),
-            tires_changed,
-            tires_left,
-            stint_time
-        ])
-        prev_stint = stint
+            rows.append([
+                stint.get("driver"),
+                "❌",
+                stint.get("pit_end_time"),
+                tires_changed,
+                tires_left,
+                stint_time
+            ])
+            prev_stint = stint
+    else:
+        print("No stint exists")
 
     return rows
 
