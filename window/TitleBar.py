@@ -14,25 +14,20 @@ from PyQt6.QtWidgets import (
 class TitleBar(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        self.setAutoFillBackground(True)
-        self.setBackgroundRole(QPalette.ColorRole.Dark)
+        # self.setAutoFillBackground(True)
+        # self.setBackgroundRole(QPalette.ColorRole.Dark)
         self.initial_pos = None
 
         title_bar_layout = QHBoxLayout(self)
-        title_bar_layout.setContentsMargins(5, 5, 5, 5)
-        title_bar_layout.setSpacing(2)
+        title_bar_layout.setContentsMargins(8, 8, 8, 8)
+        title_bar_layout.setSpacing(8)
+        title_bar_layout.setAlignment(Qt.AlignmentFlag.AlignBottom)
 
         self.favicon = QLabel()
-        # self.title.setStyleSheet(
-        #     """font-weight: bold;
-        #        border: 2px solid black;
-        #        border-radius: 12px;
-        #        margin: 2px;
-        #     """
-        # )
         self.favicon.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.favicon.setPixmap(QPixmap("_internal/favicon/favicon-32x32.png"))
         title_bar_layout.addWidget(self.favicon)
+        title_bar_layout.addStretch()
 
         # Min button
         self.min_button = QToolButton(self)
@@ -78,6 +73,7 @@ class TitleBar(QWidget):
             button.setFixedSize(QSize(28, 28))
             button.setStyleSheet(
                 """QToolButton { 
+                   border: 0px;
                 }
                 """
             )

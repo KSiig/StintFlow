@@ -25,7 +25,6 @@ class StintTracker(QWidget):
         container = QHBoxLayout(self)
 
         self.table = QTableView()
-        self.table.setAlternatingRowColors(True)
         self.table.headers = [
             "Driver",
             "Driven",

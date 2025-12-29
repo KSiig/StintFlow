@@ -1,0 +1,5 @@
+QMainWindow, QWidget {
+  background-color: #FFFAFA;
+  color: #000;
+  font-family: Inter;
+}
