@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QProcess, QTimer, Qt, QSize, Qt, QEvent
 from .TitleBar import TitleBar
 from .StintTracker import StintTracker
+from .NavigationMenu import NavigationMenu
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -24,9 +25,11 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.title_bar = TitleBar(self)
 
-        work_space_layout = QVBoxLayout()
+        work_space_layout = QHBoxLayout()
         work_space_layout.setContentsMargins(11, 11, 11, 11)
         main_window = StintTracker()
+        nav_menu = NavigationMenu(self)
+        work_space_layout.addWidget(nav_menu)
         work_space_layout.addWidget(main_window)
 
         centra_widget_layout = QVBoxLayout()

@@ -14,8 +14,6 @@ from PyQt6.QtWidgets import (
 class TitleBar(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        # self.setAutoFillBackground(True)
-        # self.setBackgroundRole(QPalette.ColorRole.Dark)
         self.initial_pos = None
 
         title_bar_layout = QHBoxLayout(self)
