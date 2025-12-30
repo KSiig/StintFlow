@@ -10,22 +10,18 @@ from PyQt6.QtCore import QSize
 from window import MainWindow, FONT, get_fonts
 
 from pyLMUSharedMemory import lmu_data
+from helpers import resource_path
 
 app = QApplication(sys.argv)
 
 app.setStyle('Fusion')
 
-try:
-    base_path = sys._MEIPASS
-except Exception:
-    base_path = os.path.abspath(".")
-
 app_icon = QIcon()
-app_icon.addFile(os.path.join(base_path, 'favicon/favicon-16x16.png'), QSize(16,16))
-app_icon.addFile(os.path.join(base_path, 'favicon/favicon-24x24.png'), QSize(24,24))
-app_icon.addFile(os.path.join(base_path, 'favicon/favicon-32x32.png'), QSize(32,32))
-app_icon.addFile(os.path.join(base_path, 'favicon/favicon-48x48.png'), QSize(48,48))
-app_icon.addFile(os.path.join(base_path, 'favicon/favicon-256x256.png'), QSize(256,256))
+app_icon.addFile(resource_path('favicon/favicon-16x16.png'), QSize(16,16))
+app_icon.addFile(resource_path('favicon/favicon-24x24.png'), QSize(24,24))
+app_icon.addFile(resource_path('favicon/favicon-32x32.png'), QSize(32,32))
+app_icon.addFile(resource_path('favicon/favicon-48x48.png'), QSize(48,48))
+app_icon.addFile(resource_path('favicon/favicon-256x256.png'), QSize(256,256))
 app.setWindowIcon(app_icon)
 
 window = MainWindow()
@@ -38,7 +34,7 @@ font = get_fonts(FONT.small_text)
 app.setFont(font)
 
 # Open the qss styles file and read in the CSS-like styling code
-with open(os.path.join(base_path, 'styles.qss'), 'r') as f:
+with open(resource_path('styles/main.qss'), 'r') as f:
     style = f.read()
 
     # Set the stylesheet of the application

@@ -1,0 +1,34 @@
+QWidget#StintSelection {
+  background: white;
+}
+
+QFrame#InputCard {
+  border-radius: 16px;        /* rounded-xl */
+  background-color: #F2F0EF;
+}
+
+QLabel#CardLabel {
+  background-color: #F2F0EF;
+}
+
+QLineEdit#CardInput {
+  background-color: white;
+  border: 1px solid #e5e7eb;  /* subtle border */
+  border-radius: 8px;         /* rounded-lg */
+  padding: 6px 10px;
+  color: #9ca3af;             /* text-gray-400 */
+}
+
+QLineEdit#CardInput:focus {
+  border: 1px solid #d1d5db;
+  outline: none;
+}
+
+QComboBox#ComboBox {
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+QComboBox#ComboBox::drop-down:button{
+  border: none;
+}

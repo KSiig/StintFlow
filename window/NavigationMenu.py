@@ -23,7 +23,7 @@ class NavigationMenu(QWidget):
         super().__init__(parent)
 
         # self.setContentsMargins(8, 8, 8, 8)
-        self.setMaximumWidth(200)
+        self.setFixedWidth(200)
 
         font_small_text = get_fonts(FONT.small_text)
 
@@ -33,16 +33,14 @@ class NavigationMenu(QWidget):
         stint_tracking_layout = create_layout_box("Stint tracking")
         # stint_tracking_layout = create_layout_box("Stint tracking")
         stint_tracking_layout.addWidget(create_row('fa6s.chart-bar', 'Tracking', font_small_text))
-        # stint_tracking_layout.addLayout(create_row('fa6s.chart-line', 'ing', font_small_text))
-        # stint_tracking_layout.addLayout(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
+        # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'ing', font_small_text))
+        # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
 
         # test_tracking_layout = create_layout_box("Stint tracking")
-        # test_tracking_layout.addLayout(create_row('fa6s.chart-bar', 'Tracking', font_small_text))
-        # test_tracking_layout.addLayout(create_row('fa6s.chart-line', 'ing', font_small_text))
-        # test_tracking_layout.addLayout(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
+        # test_tracking_layout.addWidget(create_row('fa6s.chart-bar', 'Tracking', font_small_text))
+        # test_tracking_layout.addWidget(create_row('fa6s.chart-line', 'ing', font_small_text))
+        # test_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
 
-
-        # nav_box.addWidget(container)
         nav_box.addLayout(stint_tracking_layout)
         # nav_box.addLayout(test_tracking_layout)
         nav_box.addStretch()
