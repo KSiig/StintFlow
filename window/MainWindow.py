@@ -11,9 +11,12 @@ from PyQt6.QtWidgets import (
         QLabel
     )
 from PyQt6.QtCore import QProcess, QTimer, Qt, QSize, Qt, QEvent
+from PyQt6.QtGui import QFont
 from .TitleBar import TitleBar
 from .StintTracker import StintTracker
 from .NavigationMenu import NavigationMenu
+import os
+import sys
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -46,3 +49,11 @@ class MainWindow(QMainWindow):
             self.title_bar.window_state_changed(self.windowState())
         super().changeEvent(event)
         event.accept()
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)

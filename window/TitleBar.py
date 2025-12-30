@@ -10,6 +10,9 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+import os
+import sys
+from .Fonts import FONT, get_fonts
 
 class TitleBar(QWidget):
     def __init__(self, parent):
@@ -23,8 +26,14 @@ class TitleBar(QWidget):
 
         self.favicon = QLabel()
         self.favicon.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.favicon.setPixmap(QPixmap("_internal/favicon/favicon-32x32.png"))
+        self.favicon.setPixmap(QPixmap(resource_path("_internal/favicon/favicon-32x32.png")))
+
+        self.title = QLabel("StintFlow")
+        self.title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.setFont(get_fonts(FONT.title))
+
         title_bar_layout.addWidget(self.favicon)
+        title_bar_layout.addWidget(self.title)
         title_bar_layout.addStretch()
 
         # Min button
@@ -105,3 +114,11 @@ class TitleBar(QWidget):
         self.initial_pos = None
         super().mouseReleaseEvent(event)
         event.accept()
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
