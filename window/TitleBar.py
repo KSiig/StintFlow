@@ -26,7 +26,7 @@ class TitleBar(QWidget):
 
         self.favicon = QLabel()
         self.favicon.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.favicon.setPixmap(QPixmap(resource_path("_internal/favicon/favicon-32x32.png")))
+        self.favicon.setPixmap(QPixmap(resource_path("favicon/favicon-32x32.png")))
 
         self.title = QLabel("StintFlow")
         self.title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
