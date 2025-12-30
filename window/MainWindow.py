@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         work_space_layout.setContentsMargins(11, 11, 11, 11)
         main_window = StintTracker()
         nav_menu = NavigationMenu(self)
-        work_space_layout.addWidget(nav_menu)
+        work_space_layout.addWidget(nav_menu, alignment=Qt.AlignmentFlag.AlignLeft)
         work_space_layout.addWidget(main_window)
 
         centra_widget_layout = QVBoxLayout()

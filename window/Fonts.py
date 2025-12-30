@@ -7,9 +7,13 @@ class FONT(Enum):
     "point_size": 16,
     "weight": QFont.Weight.DemiBold
   }
+  nav_header = {
+    "point_size": 14,
+    "weight": QFont.Weight.DemiBold
+  }
   small_text = {
     "point_size": 12,
-    "weight": QFont.Weight.DemiBold
+    "weight": QFont.Weight.Medium
   }
 
 def get_fonts(typography):

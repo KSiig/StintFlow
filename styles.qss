@@ -2,4 +2,5 @@ QMainWindow, QWidget {
   background-color: #FFFAFA;
   color: #000;
   font-family: Segoe UI;
+  /* border: 1px solid black; */
 }
