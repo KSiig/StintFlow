@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QMainWindow,
     QStyle,
+    QFrame,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -22,12 +23,22 @@ class NavigationMenu(QWidget):
       def __init__(self, parent):
         super().__init__(parent)
 
+        with open(resource_path('styles/navigation_menu.qss'), 'r') as f:
+            style = f.read()
+
+        self.setStyleSheet(style)
         # self.setContentsMargins(8, 8, 8, 8)
         self.setFixedWidth(200)
 
-        font_small_text = get_fonts(FONT.small_text)
+        font_small_text = get_fonts(FONT.text_small)
 
-        nav_box = QVBoxLayout(self)
+        frame = QFrame()
+        frame.setObjectName("NavMenu")
+
+        root_widget_layout = QVBoxLayout(self)   
+        root_widget_layout.addWidget(frame)
+
+        nav_box = QVBoxLayout(frame)
         nav_box.setSpacing(24)
 
         stint_tracking_layout = create_layout_box("Stint tracking")
@@ -66,7 +77,7 @@ def create_row(icon, label, font):
     return container
 
 def create_layout_box(label):
-    font = get_fonts(FONT.nav_header)
+    font = get_fonts(FONT.header_nav)
     label = QLabel(label)
     label.setAlignment(Qt.AlignmentFlag.AlignTop)
     label.setFont(font)

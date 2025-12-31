@@ -15,7 +15,7 @@ from PyQt6.QtGui import QFont
 from .TitleBar import TitleBar
 from .StintTracker import StintTracker
 from .NavigationMenu import NavigationMenu
-from .SessionPicker import SessionPicker
+from .stint_tracking import SessionPicker, SelectionModel
 import os
 import sys
 
@@ -26,17 +26,21 @@ class MainWindow(QMainWindow):
         self.setGeometry(200, 100, 1400, 800)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
+        self.selection_model = SelectionModel()
+
         central_widget = QWidget()
         self.title_bar = TitleBar(self)
 
         work_space_layout = QHBoxLayout()
         work_space_layout.setContentsMargins(11, 11, 11, 11)
         main_window = QVBoxLayout()
-        stint_tracker = StintTracker()
-        session_picker = SessionPicker()
+
+        session_picker = SessionPicker(selection_model=self.selection_model)
+        stint_tracker = StintTracker(selection_model=self.selection_model)
         main_window.addWidget(session_picker)
         main_window.addWidget(stint_tracker)
         nav_menu = NavigationMenu(self)
+
         work_space_layout.addWidget(nav_menu, alignment=Qt.AlignmentFlag.AlignLeft)
         work_space_layout.addLayout(main_window)
 

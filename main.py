@@ -28,7 +28,7 @@ window = MainWindow()
 window.show()
 
 
-font = get_fonts(FONT.small_text)
+font = get_fonts(FONT.text_small)
 
 # Set as default font for the app
 app.setFont(font)

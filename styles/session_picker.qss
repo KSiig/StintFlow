@@ -1,14 +1,13 @@
-QWidget#StintSelection {
-  background: white;
+QWidget {
 }
 
 QFrame#InputCard {
   border-radius: 16px;        /* rounded-xl */
-  background-color: #F2F0EF;
+  background-color: white;
 }
 
 QLabel#CardLabel {
-  background-color: #F2F0EF;
+  background-color: white;
 }
 
 QLineEdit#CardInput {
@@ -25,10 +24,15 @@ QLineEdit#CardInput:focus {
 }
 
 QComboBox#ComboBox {
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 4px 8px;
+  border: 1px solid #E0E0E0;
 }
 
 QComboBox#ComboBox::drop-down:button{
   border: none;
+}
+
+QFrame#ComboBoxes {
+  border-bottom: 3px solid #E0E0E0;
 }

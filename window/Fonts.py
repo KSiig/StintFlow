@@ -7,11 +7,19 @@ class FONT(Enum):
     "point_size": 16,
     "weight": QFont.Weight.DemiBold
   }
-  nav_header = {
+  header_nav = {
     "point_size": 14,
     "weight": QFont.Weight.DemiBold
   }
-  small_text = {
+  header_table = {
+    "point_size": 12,
+    "weight": QFont.Weight.DemiBold
+  }
+  header_input = {
+    "point_size": 8,
+    "weight": QFont.Weight.Normal
+  }
+  text_small = {
     "point_size": 12,
     "weight": QFont.Weight.Medium
   }

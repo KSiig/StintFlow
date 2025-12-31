@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QAbstractTableModel, Qt
+from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from helpers.stinttracker import get_stints
 
 class TableModel(QAbstractTableModel):
@@ -20,21 +20,19 @@ class TableModel(QAbstractTableModel):
             return self._data[index.row()][index.column()]
         
         if role == Qt.ItemDataRole.TextAlignmentRole:
-          if index.column() == 1:
-              return Qt.AlignmentFlag.AlignHCenter + Qt.AlignmentFlag.AlignVCenter
+        #   if index.column() == 1:
+            return Qt.AlignmentFlag.AlignHCenter + Qt.AlignmentFlag.AlignVCenter
 
     def rowCount(self, index):
         # The `index` argument is not used for table models.
         # The length of the outer list.
         return len(self._data)
 
-    def columnCount(self, index):
+    def columnCount(self, parent=QModelIndex()):
         # The `index` argument is not used for table models.
         # The following takes the first sub-list, and returns
         # the length (only works if all rows are an equal length)
-        if not self._data:
-            return 0
-        return len(self._data[0])
+        return len(self._data[0]) if self._data else 0
 
     def headerData(self, section, orientation, role):
         # section is the index of the column/row.
@@ -43,4 +41,4 @@ class TableModel(QAbstractTableModel):
               return self.headers[section]
 
             if orientation == Qt.Orientation.Vertical:
-                    return section
+                    return section + 1
