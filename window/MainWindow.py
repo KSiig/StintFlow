@@ -13,9 +13,10 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QProcess, QTimer, Qt, QSize, Qt, QEvent
 from PyQt6.QtGui import QFont
 from .TitleBar import TitleBar
-from .StintTracker import StintTracker
 from .NavigationMenu import NavigationMenu
-from .stint_tracking import SessionPicker, SelectionModel
+from .stint_tracking import SessionPicker, SelectionModel, TrackingMainWindow, StintTracker
+from .NavigationModel import NavigationModel
+
 import os
 import sys
 
@@ -27,31 +28,56 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
         self.selection_model = SelectionModel()
+        self.navigation_model = NavigationModel()
+
+        main_window = TrackingMainWindow(self.selection_model)
+        self.navigation_model.set_active_widget(main_window)
 
         central_widget = QWidget()
         self.title_bar = TitleBar(self)
 
-        work_space_layout = QHBoxLayout()
-        work_space_layout.setContentsMargins(11, 11, 11, 11)
-        main_window = QVBoxLayout()
+        self.work_space_layout = QHBoxLayout()
+        self.work_space_layout.setContentsMargins(11, 11, 11, 11)
+        self.central_work_space_layout = QHBoxLayout()
 
-        session_picker = SessionPicker(selection_model=self.selection_model)
-        stint_tracker = StintTracker(selection_model=self.selection_model)
-        main_window.addWidget(session_picker)
-        main_window.addWidget(stint_tracker)
-        nav_menu = NavigationMenu(self)
+        nav_menu = NavigationMenu(self, self.selection_model, self.navigation_model)
 
-        work_space_layout.addWidget(nav_menu, alignment=Qt.AlignmentFlag.AlignLeft)
-        work_space_layout.addLayout(main_window)
+        self.work_space_layout.addWidget(nav_menu, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.work_space_layout.addLayout(self.central_work_space_layout)
+        self.active_widget = self.navigation_model.active_widget
+        self.central_work_space_layout.addWidget(self.active_widget)
+        self.navigation_model.activeWidgetChanged.connect(self.change_workspace_widget)
 
         centra_widget_layout = QVBoxLayout()
         centra_widget_layout.setContentsMargins(0, 0, 0, 0)
         centra_widget_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         centra_widget_layout.addWidget(self.title_bar)
-        centra_widget_layout.addLayout(work_space_layout)
+        centra_widget_layout.addLayout(self.work_space_layout)
 
         central_widget.setLayout(centra_widget_layout)
         self.setCentralWidget(central_widget)
+
+    def change_workspace_widget(self):
+        # self.work_space_layout.replaceWidget(self.work_space_layout.)
+        self.clear_layout(self.central_work_space_layout)
+        new_widget = self.navigation_model.active_widget
+        self.central_work_space_layout.addWidget(new_widget)
+        self.active_widget = new_widget
+
+    def clear_layout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
+
+            # Handle nested layouts
+            sub_layout = item.layout()
+            if sub_layout is not None:
+                self.clear_layout(sub_layout)
+
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:

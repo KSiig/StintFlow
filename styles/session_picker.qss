@@ -3,19 +3,19 @@ QWidget {
 
 QFrame#InputCard {
   border-radius: 16px;        /* rounded-xl */
-  background-color: white;
+  background-color: #FFFAFA;
 }
 
 QLabel#CardLabel {
-  background-color: white;
+  background-color: #FFFAFA;
 }
 
 QLineEdit#CardInput {
-  background-color: white;
-  border: 1px solid #e5e7eb;  /* subtle border */
-  border-radius: 8px;         /* rounded-lg */
+  background-color: #FFFAFA;
+  border: 1px solid #e5e7eb;  
+  border-radius: 8px;         
   padding: 6px 10px;
-  color: #9ca3af;             /* text-gray-400 */
+  color: #9ca3af;             
 }
 
 QLineEdit#CardInput:focus {

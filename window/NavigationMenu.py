@@ -17,11 +17,16 @@ import sys
 from helpers import resource_path
 from .Fonts import FONT, get_fonts
 from .ClickableWidget import ClickableWidget
+from .stint_tracking import StintTracker, SessionPicker, TrackingMainWindow
 import qtawesome as qta
 
+
 class NavigationMenu(QWidget):
-      def __init__(self, parent):
+    def __init__(self, parent, selection_model, navigation_model):
         super().__init__(parent)
+
+        self.selection_model = selection_model
+        self.navigation_model = navigation_model
 
         with open(resource_path('styles/navigation_menu.qss'), 'r') as f:
             style = f.read()
@@ -41,10 +46,10 @@ class NavigationMenu(QWidget):
         nav_box = QVBoxLayout(frame)
         nav_box.setSpacing(24)
 
-        stint_tracking_layout = create_layout_box("Stint tracking")
+        stint_tracking_layout = self.create_layout_box("Stint tracking")
         # stint_tracking_layout = create_layout_box("Stint tracking")
-        stint_tracking_layout.addWidget(create_row('fa6s.chart-bar', 'Tracking', font_small_text))
-        # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'ing', font_small_text))
+        stint_tracking_layout.addWidget(self.create_row('fa6s.chart-bar', 'Tracking', font_small_text, StintTracker))
+        stint_tracking_layout.addWidget(self.create_row('fa6s.chart-line', 'Overview', font_small_text, TrackingMainWindow))
         # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
 
         # test_tracking_layout = create_layout_box("Stint tracking")
@@ -56,38 +61,39 @@ class NavigationMenu(QWidget):
         # nav_box.addLayout(test_tracking_layout)
         nav_box.addStretch()
 
-def create_row(icon, label, font):
-    container = ClickableWidget()
-    fa6s_icon = qta.icon(icon, color='#000')
-    icon_label = QLabel()
-    icon_label.setMaximumSize(24, 24)
-    icon_label.setPixmap(fa6s_icon.pixmap(QSize(24, 24)))
+    def create_row(self, icon, label, font, widget):
+        container = ClickableWidget()
+        fa6s_icon = qta.icon(icon, color='#000')
+        icon_label = QLabel()
+        icon_label.setMaximumSize(24, 24)
+        icon_label.setPixmap(fa6s_icon.pixmap(QSize(24, 24)))
 
-    text_label = QLabel(label)
-    text_label.setFont(font)
+        text_label = QLabel(label)
+        text_label.setFont(font)
 
-    row_layout = QHBoxLayout(container)
-    row_layout.addWidget(icon_label)
-    row_layout.addWidget(text_label)
-    row_layout.setSpacing(16)
-    row_layout.setContentsMargins(8,0,0,0)
+        row_layout = QHBoxLayout(container)
+        row_layout.addWidget(icon_label)
+        row_layout.addWidget(text_label)
+        row_layout.setSpacing(16)
+        row_layout.setContentsMargins(8,0,0,0)
 
-    container.clicked.connect(test)
+        container.clicked.connect(lambda: self.test(widget))
 
-    return container
+        return container
 
-def create_layout_box(label):
-    font = get_fonts(FONT.header_nav)
-    label = QLabel(label)
-    label.setAlignment(Qt.AlignmentFlag.AlignTop)
-    label.setFont(font)
-    label.setContentsMargins(0,0,0,8)
+    def create_layout_box(self, label):
+        font = get_fonts(FONT.header_nav)
+        label = QLabel(label)
+        label.setAlignment(Qt.AlignmentFlag.AlignTop)
+        label.setFont(font)
+        label.setContentsMargins(0,0,0,8)
 
-    layout = QVBoxLayout()
-    layout.setSpacing(8)
-    layout.addWidget(label)
+        layout = QVBoxLayout()
+        layout.setSpacing(8)
+        layout.addWidget(label)
 
-    return layout
+        return layout
 
-def test():
-    print(('it clicked'))
+    def test(self, widget):
+        window = widget(self.selection_model)
+        self.navigation_model.set_active_widget(window)

@@ -18,8 +18,8 @@ from PyQt6.QtGui import QIcon
 from helpers.stinttracker import get_stints, get_event
 from helpers import stints_to_table, resource_path
 from window.stint_tracking import TableModel
-from .TitleBar import TitleBar
-from .Fonts import FONT, get_fonts
+from ..TitleBar import TitleBar
+from ..Fonts import FONT, get_fonts
 
 class StintTracker(QWidget):
 
