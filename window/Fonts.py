@@ -2,6 +2,8 @@ from enum import Enum
 from PyQt6.QtGui import QIcon, QFontDatabase, QFont
 from helpers import resource_path
 
+font_family = None
+
 class FONT(Enum):
   title = {
     "point_size": 16,
@@ -25,23 +27,30 @@ class FONT(Enum):
   }
 
 def get_fonts(typography):
-  font_id = QFontDatabase.addApplicationFont(resource_path('fonts\\Inter-VariableFont_opsz,wght.ttf'))
-  if font_id == -1:
-      print("Failed to load font Inter")
-  else:
-      # Get the family name
-      font_settings = typography.value
-      font_families = QFontDatabase.applicationFontFamilies(font_id)
-      print("Loaded font families:", font_families)
-      font_family = font_families[0]
+    global font_family
 
-      font = QFont(font_family)
-      font.setPointSize(font_settings['point_size'])
-      font.setWeight(font_settings['weight'])
-      font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
-      font.setStyleStrategy(
-          QFont.StyleStrategy.PreferAntialias |
-          QFont.StyleStrategy.NoSubpixelAntialias
-      )
+    load_fonts()
 
-      return font
+    font_settings = typography.value
+    font = QFont(font_family)
+    font.setPointSize(font_settings['point_size'])
+    font.setWeight(font_settings['weight'])
+    font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+    font.setStyleStrategy(
+        QFont.StyleStrategy.PreferAntialias |
+        QFont.StyleStrategy.NoSubpixelAntialias
+    )
+
+    return font
+
+def load_fonts():
+  global font_family
+  if not font_family:
+    font_id = QFontDatabase.addApplicationFont(resource_path('fonts\\Inter-VariableFont_opsz,wght.ttf'))
+    if font_id == -1:
+        print("Failed to load font Inter")
+    else:
+        # Get the family name
+        font_families = QFontDatabase.applicationFontFamilies(font_id)
+        print("Loaded font families:", font_families)
+        font_family = font_families[0]
