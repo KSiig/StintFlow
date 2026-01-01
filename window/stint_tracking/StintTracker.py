@@ -11,22 +11,24 @@ from PyQt6.QtWidgets import (
         QLabel,
         QHeaderView,
         QAbstractButton,
-        QAbstractItemView
+        QAbstractItemView,
+        QSizePolicy
     )
 from PyQt6.QtCore import QProcess, QTimer, Qt, QSize
 from PyQt6.QtGui import QIcon
 from helpers.stinttracker import get_stints, get_event
 from helpers import stints_to_table, resource_path
-from window.stint_tracking import TableModel
+from window.models import TableModel
 from ..TitleBar import TitleBar
 from ..Fonts import FONT, get_fonts
+from ..models import NavigationModel, SelectionModel
 
 class StintTracker(QWidget):
 
-    def __init__(self, selection_model, focus = False):
+    def __init__(self, models = {"selection_model": SelectionModel()}, focus = False):
         super().__init__()
 
-        self.selection_model = selection_model
+        self.selection_model = models['selection_model']
 
         with open(resource_path('styles/stint_tracker.qss'), 'r') as f:
             style = f.read()
@@ -35,10 +37,12 @@ class StintTracker(QWidget):
 
         container = QHBoxLayout(self)
 
-        font_small_text = get_fonts(FONT.text_small)
+        font_text_table_cell = get_fonts(FONT.text_table_cell)
         font_table_header = get_fonts(FONT.header_table)
+
         self.table = QTableView(self)
         self.table.setShowGrid(False)
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.table.headers = [
             "Driver",
             "Driven",
@@ -47,18 +51,27 @@ class StintTracker(QWidget):
             "Tires left",
             "Stint time"
         ]
+        self.table.setSizePolicy(
+            QSizePolicy.Policy.Minimum,
+            QSizePolicy.Policy.Expanding
+        )
+        # self.table.setMinimumWidth(self.table.horizontalHeader().length())
         if not focus:
             self.table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
             self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.refresh_table()      # initial load
 
         vh = self.table.verticalHeader()
+        self.table.verticalHeader().setStyleSheet(
+            f"QHeaderView::section {{ font-family: {font_text_table_cell.family()}; font-size: {font_text_table_cell.pointSize()}pt; }}"
+        )
         vh.setFixedWidth(80)
         vh.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        vh.setFont(font_small_text)
+        # vh.setFont(font_small_text)
 
         hh = self.table.horizontalHeader()
         hh.setFont(font_table_header)
+
 
         corner = self.table.findChild(QAbstractButton)
         if corner:
@@ -79,7 +92,7 @@ class StintTracker(QWidget):
 
             corner.setFixedWidth(80)
         
-        self.table.setFont(font_small_text)
+        # self.table.setFont(font_small_text)
         self.table.setObjectName("StintsTable")
 
         ### REGION - VISUAL ELEMENTS ###
@@ -158,6 +171,11 @@ class StintTracker(QWidget):
 
         hh.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Stint time
         self.table.setColumnWidth(5, 128)
+
+        self.table.setMinimumWidth(hh.length() + 100)
+        hh.setSectionsMovable(False)
+        hh.setCascadingSectionResizes(False)
+        hh.setHighlightSections(False)
 
     def start_process(self):
         # We'll run our process here.

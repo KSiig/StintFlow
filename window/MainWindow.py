@@ -2,10 +2,13 @@ from PyQt6.QtWidgets import (
         QMainWindow, 
         QTableView, 
         QPushButton, 
+        QSizePolicy,
         QWidget, 
         QVBoxLayout, 
+        QFrame,
         QHBoxLayout, 
         QPlainTextEdit, 
+        QScrollArea,
         QComboBox, 
         QLineEdit, 
         QLabel
@@ -14,8 +17,8 @@ from PyQt6.QtCore import QProcess, QTimer, Qt, QSize, Qt, QEvent
 from PyQt6.QtGui import QFont
 from .TitleBar import TitleBar
 from .NavigationMenu import NavigationMenu
-from .stint_tracking import SessionPicker, SelectionModel, TrackingMainWindow, StintTracker
-from .NavigationModel import NavigationModel
+from .stint_tracking import SessionPicker, OverviewMainWindow, StintTracker, ConfigMainWindow
+from .models import NavigationModel, SelectionModel
 
 import os
 import sys
@@ -30,7 +33,8 @@ class MainWindow(QMainWindow):
         self.selection_model = SelectionModel()
         self.navigation_model = NavigationModel()
 
-        main_window = TrackingMainWindow(self.selection_model)
+        # main_window = ConfigMainWindow({"selection_model": self.selection_model})
+        main_window = OverviewMainWindow({"selection_model": self.selection_model})
         self.navigation_model.set_active_widget(main_window)
 
         central_widget = QWidget()
@@ -42,10 +46,32 @@ class MainWindow(QMainWindow):
 
         nav_menu = NavigationMenu(self, self.selection_model, self.navigation_model)
 
+        self.central_scroll_area = QScrollArea()
+        self.central_scroll_area.setWidgetResizable(True)
+        self.central_scroll_area.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.central_scroll_area.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.central_scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+
+        self.central_container = QWidget()
+        self.central_container.setSizePolicy(
+            QSizePolicy.Policy.Minimum,
+            QSizePolicy.Policy.Expanding
+        )
+        self.central_container_layout = QHBoxLayout(self.central_container)
+        self.central_container_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.central_scroll_area.setWidget(self.central_container)
+
         self.work_space_layout.addWidget(nav_menu, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.work_space_layout.addLayout(self.central_work_space_layout)
+        # self.work_space_layout.addLayout(self.central_work_space_layout)
+        self.work_space_layout.addWidget(self.central_scroll_area)
         self.active_widget = self.navigation_model.active_widget
-        self.central_work_space_layout.addWidget(self.active_widget)
+        # self.central_work_space_layout.addWidget(self.active_widget)
+        self.central_container_layout.addWidget(self.active_widget)
         self.navigation_model.activeWidgetChanged.connect(self.change_workspace_widget)
 
         centra_widget_layout = QVBoxLayout()
@@ -59,9 +85,9 @@ class MainWindow(QMainWindow):
 
     def change_workspace_widget(self):
         # self.work_space_layout.replaceWidget(self.work_space_layout.)
-        self.clear_layout(self.central_work_space_layout)
+        self.clear_layout(self.central_container_layout)
         new_widget = self.navigation_model.active_widget
-        self.central_work_space_layout.addWidget(new_widget)
+        self.central_container_layout.addWidget(new_widget)
         self.active_widget = new_widget
 
     def clear_layout(self, layout):

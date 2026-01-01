@@ -7,7 +7,7 @@ from stinttracker.update_stint import update_stint
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtGui import QIcon, QFontDatabase, QFont
 from PyQt6.QtCore import QSize
-from window import MainWindow, FONT, get_fonts
+from window import MainWindow, FONT, get_fonts, OverlayScrollStyle
 
 from pyLMUSharedMemory import lmu_data
 from helpers import resource_path
@@ -40,6 +40,7 @@ with open(resource_path('styles/main.qss'), 'r') as f:
     # Set the stylesheet of the application
     app.setStyleSheet(style)
 
+# app.setStyle(OverlayScrollStyle())
 app.exec()
 
 # Open shared memory

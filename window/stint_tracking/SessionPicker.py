@@ -17,18 +17,23 @@ from PyQt6.QtCore import QSize, Qt
 from helpers.stinttracker import get_sessions, get_events
 from helpers import resource_path
 from window.Fonts import FONT, get_fonts
+from ..models import NavigationModel, SelectionModel
 
 class SessionPicker(QWidget):
-    def __init__(self, selection_model):
+    def __init__(self, models = {"selection_model": SelectionModel()}):
         super().__init__()
-        self.selection_model = selection_model
+        self.selection_model = models['selection_model']
 
         with open(resource_path('styles/session_picker.qss'), 'r') as f:
             style = f.read()
 
         self.setObjectName("StintSelection")
         self.setStyleSheet(style)
-        self.setFixedHeight(112)
+        # self.setFixedHeight(120)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Minimum,  # width adjusts to minimum needed
+            QSizePolicy.Policy.Maximum   # height adjusts to fit content
+        )
 
         frame = QFrame()
         frame.setObjectName("ComboBoxes")
@@ -45,17 +50,28 @@ class SessionPicker(QWidget):
         # Events dropdown
         self.events = QComboBox()
         for doc in get_events():
-            self.events.addItem(doc["name"], userData=doc["_id"])
+            self.events.addItem(doc["name"], userData=str(doc["_id"]))
 
         # Sessions dropdown
         self.sessions = QComboBox()
         for doc in get_sessions(self.events.currentData()):
-            self.sessions.addItem(doc["type"], userData=doc["_id"])
+            self.sessions.addItem(doc["type"], userData=str(doc["_id"]))
         self.events.currentIndexChanged.connect(self.on_event_changed)
         self.sessions.currentIndexChanged.connect(self.on_session_changed)
 
+        event_id = self.selection_model.event_id
+        session_id = self.selection_model.session_id
+        event_index = self.events.findData(str(event_id))
+        session_index = self.sessions.findData(str(session_id))
+
+        if event_index >= 0:
+            self.events.setCurrentIndex(event_index)
+
         self.on_event_changed() # Initial Load
 
+        if event_index >= 0:
+            self.sessions.setCurrentIndex(session_index)
+        
         # Create cards
         event_card = self._create_card(
             label_text="Event",
@@ -81,7 +97,7 @@ class SessionPicker(QWidget):
           layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
           # Left label (bold)
-          font_header_input = get_fonts(FONT.header_input)
+          font_header_input = get_fonts(FONT.header_input_hint)
           label = QLabel(label_text)
           label.setObjectName("CardLabel")
           label.setFont(font_header_input)
@@ -89,7 +105,7 @@ class SessionPicker(QWidget):
           # Right dropdown
           input_field = box
           input_field.setObjectName("ComboBox")
-          input_field.setFixedHeight(32)
+          input_field.setFixedHeight(40)
 
           layout.addWidget(label)
           layout.addWidget(input_field, stretch=1)
@@ -105,7 +121,7 @@ class SessionPicker(QWidget):
         self.sessions.blockSignals(True)
         self.sessions.clear()
         for doc in get_sessions(event_id):
-            self.sessions.addItem(doc["type"], userData=doc["_id"])
+            self.sessions.addItem(doc["type"], userData=str(doc["_id"]))
         self.sessions.blockSignals(False)
 
         # Set model to first session by default

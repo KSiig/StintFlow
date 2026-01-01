@@ -17,7 +17,7 @@ import sys
 from helpers import resource_path
 from .Fonts import FONT, get_fonts
 from .ClickableWidget import ClickableWidget
-from .stint_tracking import StintTracker, SessionPicker, TrackingMainWindow
+from .stint_tracking import StintTracker, SessionPicker, OverviewMainWindow, ConfigMainWindow
 import qtawesome as qta
 
 
@@ -48,8 +48,8 @@ class NavigationMenu(QWidget):
 
         stint_tracking_layout = self.create_layout_box("Stint tracking")
         # stint_tracking_layout = create_layout_box("Stint tracking")
-        stint_tracking_layout.addWidget(self.create_row('fa6s.chart-bar', 'Tracking', font_small_text, StintTracker))
-        stint_tracking_layout.addWidget(self.create_row('fa6s.chart-line', 'Overview', font_small_text, TrackingMainWindow))
+        stint_tracking_layout.addWidget(self.create_row('fa6s.chart-line', 'Overview', font_small_text, OverviewMainWindow))
+        stint_tracking_layout.addWidget(self.create_row('fa6s.chart-bar', 'Config', font_small_text, ConfigMainWindow))
         # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
 
         # test_tracking_layout = create_layout_box("Stint tracking")
@@ -95,5 +95,9 @@ class NavigationMenu(QWidget):
         return layout
 
     def test(self, widget):
-        window = widget(self.selection_model)
+        all_models = {
+            "selection_model": self.selection_model,
+            "navigation_model": self.navigation_model
+        }
+        window = widget(models=all_models)
         self.navigation_model.set_active_widget(window)

@@ -1,5 +1,6 @@
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from helpers.stinttracker import get_stints
+from ..Fonts import FONT, get_fonts
 
 class TableModel(QAbstractTableModel):
     def __init__(self, data, headers):
@@ -13,12 +14,16 @@ class TableModel(QAbstractTableModel):
         self.endResetModel()
 
     def data(self, index, role):
+        font_text_table_cell = get_fonts(FONT.text_table_cell)
         if role == Qt.ItemDataRole.DisplayRole:
             # See below for the nested-list data structure.
             # .row() indexes into the outer list,
             # .column() indexes into the sub-list
             return self._data[index.row()][index.column()]
-        
+
+        if role == Qt.ItemDataRole.FontRole:
+            return font_text_table_cell
+
         if role == Qt.ItemDataRole.TextAlignmentRole:
         #   if index.column() == 1:
             return Qt.AlignmentFlag.AlignHCenter + Qt.AlignmentFlag.AlignVCenter

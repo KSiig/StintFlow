@@ -1,13 +1,11 @@
 from .SessionPicker import SessionPicker
-from .SelectionModel import SelectionModel
-from .TableModel import TableModel
-from .tracking import MainWindow as TrackingMainWindow
+from .overview import MainWindow as OverviewMainWindow
+from .config import MainWindow as ConfigMainWindow
 from .StintTracker import StintTracker
 
 
 __all__ = [
   "SessionPicker", 
-  "SelectionModel",
-  "TrackingMainWindow",
+  "OverviewMainWindow",
   "StintTracker"
   ]

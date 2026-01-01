@@ -13,16 +13,17 @@ from PyQt6.QtWidgets import (
 
 from ..SessionPicker import SessionPicker
 from ..StintTracker import StintTracker
+from ...models import NavigationModel, SelectionModel
 
 class MainWindow(QWidget):
-    def __init__(self, selection_model):
+    def __init__(self, models = {"selection_model": SelectionModel()}):
         super().__init__()
 
-        self.selection_model = selection_model
+        self.selection_model = models['selection_model']
 
         main_window = QVBoxLayout(self)
 
-        session_picker = SessionPicker(selection_model=self.selection_model)
-        stint_tracker = StintTracker(selection_model=self.selection_model)
+        session_picker = SessionPicker(models)
+        stint_tracker = StintTracker(models)
         main_window.addWidget(session_picker)
         main_window.addWidget(stint_tracker)

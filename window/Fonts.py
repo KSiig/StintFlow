@@ -18,12 +18,20 @@ class FONT(Enum):
     "weight": QFont.Weight.DemiBold
   }
   header_input = {
+    "point_size": 12,
+    "weight": QFont.Weight.DemiBold
+  }
+  header_input_hint = {
     "point_size": 8,
     "weight": QFont.Weight.Normal
   }
   text_small = {
     "point_size": 12,
     "weight": QFont.Weight.Medium
+  }
+  text_table_cell = {
+    "point_size": 10,
+    "weight": QFont.Weight.Normal
   }
 
 def get_fonts(typography):
