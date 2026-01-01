@@ -29,7 +29,6 @@ class SessionPicker(QWidget):
 
         self.setObjectName("StintSelection")
         self.setStyleSheet(style)
-        # self.setFixedHeight(120)
         self.setSizePolicy(
             QSizePolicy.Policy.Minimum,  # width adjusts to minimum needed
             QSizePolicy.Policy.Maximum   # height adjusts to fit content

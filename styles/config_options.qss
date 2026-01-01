@@ -7,6 +7,7 @@ QLineEdit {
   padding: 8px 16px 8px 12px;
   border: 1px solid #E0E0E0;
   color: #747982;
+  background-color: #EBEBE4;
 }
 
 QFrame#ConfigOptions {
