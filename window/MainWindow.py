@@ -19,6 +19,7 @@ from .TitleBar import TitleBar
 from .NavigationMenu import NavigationMenu
 from .stint_tracking import SessionPicker, OverviewMainWindow, StintTracker, ConfigMainWindow
 from .models import NavigationModel, SelectionModel
+from window.models import TableModel
 
 import os
 import sys
@@ -34,7 +35,15 @@ class MainWindow(QMainWindow):
         self.navigation_model = NavigationModel()
 
         # main_window = ConfigMainWindow({"selection_model": self.selection_model})
-        main_window = OverviewMainWindow({"selection_model": self.selection_model})
+        self.table_model = TableModel(self.selection_model, [
+            "Driver",
+            "Driven",
+            "Pit end time",
+            "Tires changed",
+            "Tires left",
+            "Stint time"
+        ])
+        main_window = OverviewMainWindow({"selection_model": self.selection_model, "table_model": self.table_model})
         self.navigation_model.set_active_widget(main_window)
 
         central_widget = QWidget()
@@ -44,7 +53,11 @@ class MainWindow(QMainWindow):
         self.work_space_layout.setContentsMargins(11, 11, 11, 11)
         self.central_work_space_layout = QHBoxLayout()
 
-        nav_menu = NavigationMenu(self, self.selection_model, self.navigation_model)
+        nav_menu = NavigationMenu(self, {
+            "selection_model": self.selection_model, 
+            "table_model": self.table_model, 
+            "navigation_model": self.navigation_model
+            })
 
         self.central_scroll_area = QScrollArea()
         self.central_scroll_area.setWidgetResizable(True)

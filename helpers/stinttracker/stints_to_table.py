@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 
-def stints_to_table(stints, starting_tires):
+def stints_to_table(stints, starting_tires, starting_time):
     rows = []
 
     prev_stint = {}
@@ -8,13 +8,22 @@ def stints_to_table(stints, starting_tires):
     for stint in stints:
         
         stint_time = "00:00:00"
+        t1 = ""
         if bool(prev_stint):
             t1 = datetime.strptime(prev_stint.get('pit_end_time'), "%H:%M:%S").time()
-            t2 = datetime.strptime(stint.get('pit_end_time'), "%H:%M:%S").time()
+        else:
+            t1 = datetime.strptime(normalize_24h_time(starting_time), "%H:%M:%S").time()
+            
+        t2 = datetime.strptime(stint.get('pit_end_time'), "%H:%M:%S").time()
 
-            dt1 = datetime.combine(date.today(), t1)
-            dt2 = datetime.combine(date.today(), t2)
-            stint_time = dt1 - dt2
+        dt1 = datetime.combine(date.today(), t1)
+        dt2 = datetime.combine(date.today(), t2)
+
+        # If start time is earlier, it must be the next day
+        if dt1 < dt2:
+            dt1 += timedelta(days=1)
+
+        stint_time = dt1 - dt2
 
         tires_changed = int(stint.get("tires_changed"))
         tires_left = tires_left - tires_changed
@@ -78,3 +87,8 @@ def is_last_stint(pit_end_time, avg_stint_time):
         return True
 
     return False
+
+def normalize_24h_time(time_str: str) -> str:
+    if time_str.startswith("24:"):
+        return "00:" + time_str[3:]
+    return time_str

@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
         QLabel
     )
 from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QProcess, QTimer, Qt, QSize
 
 from ...models import NavigationModel, SelectionModel
 from helpers import resource_path
@@ -26,6 +27,7 @@ class ConfigOptions(QWidget):
     def __init__(self, models = {"selection_model": SelectionModel()}):
         super().__init__()
         self.selection_model = models['selection_model']
+        self.table_model = models['table_model']
         self.event = get_event(self.selection_model.event_id)
 
         with open(resource_path('styles/config_options.qss'), 'r') as f:
@@ -43,24 +45,36 @@ class ConfigOptions(QWidget):
 
         self.edit_btn = QPushButton("Edit")
         self.save_btn = QPushButton("Save")
+        self.start_btn = QPushButton("Start tracking")
+        self.stop_btn = QPushButton("Stop tracking")
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addWidget(self.edit_btn)
+        btn_layout.addWidget(self.save_btn)
+        btn_layout.addWidget(self.start_btn)
+        btn_layout.addWidget(self.stop_btn)
+        btn_layout.setSpacing(8)
 
         self.edit_btn.clicked.connect(self.toggle_edit)
         self.save_btn.clicked.connect(self.toggle_edit)
         self.save_btn.clicked.connect(self.save_config)
+
+        self.stop_btn.clicked.connect(self.toggle_track)
+        self.start_btn.clicked.connect(self.toggle_track)
 
         # Root vertical container
         root_layout = QVBoxLayout(frame)
         root_layout.setContentsMargins(0,0,16,0)
         root_layout.setSpacing(32)
         root_layout.addWidget(
-            self.create_row("tires", "Tires", "How many tires at start of event", 54, self.event.get('tires'))
+            self.create_row("tires", "Starting tires", "How many tires at start of event", 54, self.event.get('tires'))
             )
         root_layout.addWidget(
-            self.create_row("length", "Length", "Hours and minutes of the race (HH:MM:SS)", 96, self.event.get('length'))
+            self.create_row("length", "Race length", "Hours and minutes of the race (HH:MM:SS)", 96, self.event.get('length'))
             )
-        root_layout.addWidget(self.edit_btn)
-        root_layout.addWidget(self.save_btn)
+        root_layout.addLayout(btn_layout)
         self.save_btn.hide()
+        self.stop_btn.hide()
         root_layout.addStretch()
 
     def create_row(self, id, title, hint, input_width = 336, text = ""):
@@ -120,6 +134,7 @@ class ConfigOptions(QWidget):
         return card
 
     def toggle_edit(self):
+        # Edit is clicked
         if self.save_btn.isHidden():
             self.edit_btn.hide()
             self.save_btn.show()
@@ -139,6 +154,30 @@ class ConfigOptions(QWidget):
                     """
                 )
 
+    def toggle_track(self):
+        # Start is clicked
+        if self.stop_btn.isHidden():
+            self.start_btn.hide()
+            self.stop_btn.show()
+            self.start_process()
+        else:
+            self.stop_btn.hide()
+            self.start_btn.show()
+            self.p.kill()
+
+    def start_process(self):
+        # We'll run our process here.
+        print('Starting process')
+        self.p = QProcess()
+        # self.p.readyReadStandardOutput.connect(self.handle_stdout)
+        # self.p.readyReadStandardError.connect(self.handle_stderr)
+        self.p.start("python3", [
+            '-u', 
+            'update_stint.py', 
+            str(self.selection_model.session_id),
+            "Kasper Siig"
+            ])
+
     def save_config(self):
         query = { "_id": ObjectId(self.selection_model.event_id) }
 
@@ -150,3 +189,4 @@ class ConfigOptions(QWidget):
         }}
 
         events_col.update_one(query, doc)
+        self.table_model.update_data()

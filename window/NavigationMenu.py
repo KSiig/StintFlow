@@ -19,14 +19,17 @@ from .Fonts import FONT, get_fonts
 from .ClickableWidget import ClickableWidget
 from .stint_tracking import StintTracker, SessionPicker, OverviewMainWindow, ConfigMainWindow
 import qtawesome as qta
+from .models import NavigationModel, SelectionModel
 
 
 class NavigationMenu(QWidget):
-    def __init__(self, parent, selection_model, navigation_model):
+    def __init__(self, parent, models = {"selection_model": SelectionModel()}):
         super().__init__(parent)
 
-        self.selection_model = selection_model
-        self.navigation_model = navigation_model
+        self.models = models
+        self.selection_model = models['selection_model']
+        self.navigation_model = models['navigation_model']
+        self.table_model = models['table_model']
 
         with open(resource_path('styles/navigation_menu.qss'), 'r') as f:
             style = f.read()
@@ -95,9 +98,5 @@ class NavigationMenu(QWidget):
         return layout
 
     def test(self, widget):
-        all_models = {
-            "selection_model": self.selection_model,
-            "navigation_model": self.navigation_model
-        }
-        window = widget(models=all_models)
+        window = widget(self.models)
         self.navigation_model.set_active_widget(window)

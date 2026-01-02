@@ -43,5 +43,5 @@ def get_remaining_time(scoring):
   m = (d % 3600) // 60
   s = d % 60
 
-  return f"{h:02}.{m:02}.{s:02}"
+  return f"{h:02}:{m:02}:{s:02}"
   

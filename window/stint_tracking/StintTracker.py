@@ -29,6 +29,7 @@ class StintTracker(QWidget):
         super().__init__()
 
         self.selection_model = models['selection_model']
+        self.table_model = models['table_model']
 
         with open(resource_path('styles/stint_tracker.qss'), 'r') as f:
             style = f.read()
@@ -59,6 +60,7 @@ class StintTracker(QWidget):
         if not focus:
             self.table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
             self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.table_model.update_data()
         self.refresh_table()      # initial load
 
         vh = self.table.verticalHeader()
@@ -130,19 +132,11 @@ class StintTracker(QWidget):
             if self.column_count != column_count:
                 self.set_columns()
 
-        event = get_event(self.selection_model.event_id)
-        if event:
-            tires = str(event['tires'])
-        else:
-            tires = "0"
-        
-        stints = list(get_stints(self.selection_model.session_id))
-        data = stints_to_table(stints, tires)
 
-        if not hasattr(self, "model"):
+        if self.table.model() is None:
             # First time
-            self.model = TableModel(data, self.table.headers)
-            self.table.setModel(self.model)
+            # self.model = TableModel(self.selection_model, self.table.headers)
+            self.table.setModel(self.table_model)
             self.table.resizeColumnsToContents()
 
             self.column_count = self.table.model().columnCount()
@@ -150,7 +144,7 @@ class StintTracker(QWidget):
 
         else:
             # Update existing model
-            self.model.update_data(data)
+            self.table_model.update_data()
 
     def set_columns(self):
         hh = self.table.horizontalHeader()

@@ -1,17 +1,32 @@
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from helpers.stinttracker import get_stints
 from ..Fonts import FONT, get_fonts
+from helpers.stinttracker import get_stints, get_event
+from helpers import stints_to_table, resource_path
 
 class TableModel(QAbstractTableModel):
-    def __init__(self, data, headers):
+    def __init__(self, selection_model, headers):
         super().__init__()
-        self._data = data
+        self.selection_model = selection_model
+        self.set_data()
         self.headers = headers
 
-    def update_data(self, new_data):
+    def update_data(self):
         self.beginResetModel()
-        self._data = new_data
+        self.set_data()
         self.endResetModel()
+    
+    def set_data(self):
+        event = get_event(self.selection_model.event_id)
+        if event:
+            tires = str(event['tires'])
+            starting_time = event['length']
+        else:
+            tires = "0"
+            starting_time = "00:00:00"
+        
+        stints = list(get_stints(self.selection_model.session_id))
+        self._data = stints_to_table(stints, tires, starting_time)
 
     def data(self, index, role):
         font_text_table_cell = get_fonts(FONT.text_table_cell)
