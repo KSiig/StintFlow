@@ -15,7 +15,8 @@ def update_stint(telemetry, scoring, tracking_data):
   # Initialize player vehicle telemetry and scoring objects
   player_idx = telemetry.playerVehicleIdx
   player_vehicle = telemetry.telemInfo[player_idx]
-  player_vehicle_scoring = find_scoring_vehicle(telemetry, scoring, tracking_data['drivers'])
+  player_vehicle_scoring, driver_name = find_scoring_vehicle(telemetry, scoring, tracking_data['drivers'])
+  tracking_data['driver_name'] = driver_name
       
   # Ensure a stint isn't recorded when leaving the garage
   if is_in_garage(player_vehicle_scoring):

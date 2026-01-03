@@ -19,7 +19,7 @@ def create_pit_stop(remaining_time, vehicle, vehicle_scoring, num_penalties, tra
 
   pitstop = {
     "session_id": ObjectId(tracking_data['session_id']),
-    "driver": 'Kasper Siig',
+    "driver": tracking_data['driver_name'],
     "pit_end_time": remaining_time,
     "tires_new": tires_new,
     "tires_changed": count_tires_changed(tires_new)
