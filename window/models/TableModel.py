@@ -3,30 +3,76 @@ from helpers.stinttracker import get_stints
 from ..Fonts import FONT, get_fonts
 from helpers.stinttracker import get_stints, get_event
 from helpers import stints_to_table, resource_path
+import json
+import copy
 
 class TableModel(QAbstractTableModel):
-    def __init__(self, selection_model, headers):
+    def __init__(self, selection_model, headers, data = []):
         super().__init__()
         self.selection_model = selection_model
-        self.set_data()
+        if data:
+            self._data = data
+        else:
+            self.set_data()
         self.headers = headers
+        self.editable = False
 
-    def update_data(self):
+    def clone(self):
+        return TableModel(
+            selection_model=self.selection_model,
+            headers=copy.deepcopy(self.headers),
+            data=copy.deepcopy(self._data)
+        )
+
+    def update_data(self, data = ""):
         self.beginResetModel()
-        self.set_data()
+        self.set_data(data)
         self.endResetModel()
     
-    def set_data(self):
-        event = get_event(self.selection_model.event_id)
-        if event:
-            tires = str(event['tires'])
-            starting_time = event['length']
+    def set_data(self, data = ""):
+        if not data:
+            event = get_event(self.selection_model.event_id)
+            if event:
+                tires = str(event['tires'])
+                starting_time = event['length']
+            else:
+                tires = "0"
+                starting_time = "00:00:00"
+            
+            stints = list(get_stints(self.selection_model.session_id))
+            self._data = stints_to_table(stints, tires, starting_time)
         else:
-            tires = "0"
-            starting_time = "00:00:00"
-        
-        stints = list(get_stints(self.selection_model.session_id))
-        self._data = stints_to_table(stints, tires, starting_time)
+            self._data = data
+    
+    def setData(self, index, value, role = Qt.ItemDataRole.EditRole):
+        if not index.isValid() or role != Qt.ItemDataRole.EditRole:
+            return False
+
+        row, col = index.row(), index.column()
+
+        # Update your underlying data
+        self._data[row][col] = value
+
+        # Notify the view that the cell has changed
+        self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole])
+
+        return True
+
+    def set_editable(self, editable):
+        self.editable = editable
+
+    def flags(self, index):
+        if not index.isValid():
+            return Qt.ItemFlag.NoItemFlags
+
+        if self.editable:
+            return (
+                Qt.ItemFlag.ItemIsSelectable |
+                Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsEditable
+            )
+        else:
+            return Qt.ItemFlag.NoItemFlags
 
     def data(self, index, role):
         font_text_table_cell = get_fonts(FONT.text_table_cell)
@@ -43,7 +89,10 @@ class TableModel(QAbstractTableModel):
         #   if index.column() == 1:
             return Qt.AlignmentFlag.AlignHCenter + Qt.AlignmentFlag.AlignVCenter
 
-    def rowCount(self, index):
+    def get_all_data(self):
+        return self._data
+
+    def rowCount(self, parent=QModelIndex()):
         # The `index` argument is not used for table models.
         # The length of the outer list.
         return len(self._data)

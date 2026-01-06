@@ -94,35 +94,17 @@ class StintTracker(QWidget):
 
             corner.setFixedWidth(80)
         
-        # self.table.setFont(font_small_text)
         self.table.setObjectName("StintsTable")
-
-        ### REGION - VISUAL ELEMENTS ###
-
-        # Execution button
-        # self.btn_track = QPushButton("Start tracking")
-        # self.btn_track.pressed.connect(self.start_process)
-
-        # self.btn_stop = QPushButton("Stop tracking")
-        # self.btn_stop.pressed.connect(self.stop_process)
-
-
-        # Tires field
-        # self.lbl_tires = QLabel("Starting tires: ")
-        # self.input_tires = QLineEdit("56", parent=self)
-        # box_tires = QHBoxLayout()
-        # box_tires.addWidget(self.lbl_tires)
-        # box_tires.addWidget(self.input_tires)
 
         ### REGION - LAYOUTS ###
         
         container.addWidget(self.table)
 
-        self.timer = QTimer(self)
-        self.timer.setInterval(5000)  # 1 second
-        self.timer.timeout.connect(self.refresh_table)
+        # self.timer = QTimer(self)
+        # self.timer.setInterval(5000)  # 1 second
+        # self.timer.timeout.connect(self.refresh_table)
 
-        self.timer.start()  
+        # self.timer.start()  
         self.selection_model.sessionChanged.connect(self.refresh_table)
 
     def refresh_table(self):
@@ -137,7 +119,6 @@ class StintTracker(QWidget):
             # First time
             # self.model = TableModel(self.selection_model, self.table.headers)
             self.table.setModel(self.table_model)
-            self.table.resizeColumnsToContents()
 
             self.column_count = self.table.model().columnCount()
             self.set_columns()
@@ -170,26 +151,6 @@ class StintTracker(QWidget):
         hh.setSectionsMovable(False)
         hh.setCascadingSectionResizes(False)
         hh.setHighlightSections(False)
-
-    def start_process(self):
-        # We'll run our process here.
-        print('Starting process')
-        self.btn_track.hide()
-        self.btn_stop.show()
-        self.p = QProcess()
-        self.p.readyReadStandardOutput.connect(self.handle_stdout)
-        self.p.readyReadStandardError.connect(self.handle_stderr)
-        self.p.start("python3", [
-            '-u', 
-            'update_stint.py', 
-            str(self.selection_model.session_id),
-            "Kasper Siig"
-            ])
-
-    def stop_process(self):
-        self.btn_stop.hide()
-        self.btn_track.show()
-        self.p.kill()
 
     def handle_stderr(self):
         data = self.p.readAllStandardError()

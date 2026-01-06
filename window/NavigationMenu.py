@@ -17,7 +17,13 @@ import sys
 from helpers import resource_path
 from .Fonts import FONT, get_fonts
 from .ClickableWidget import ClickableWidget
-from .stint_tracking import StintTracker, SessionPicker, OverviewMainWindow, ConfigMainWindow
+from .stint_tracking import (
+    StintTracker, 
+    SessionPicker, 
+    OverviewMainWindow, 
+    ConfigMainWindow, 
+    StrategiesMainWindow
+)
 import qtawesome as qta
 from .models import NavigationModel, SelectionModel
 
@@ -53,6 +59,7 @@ class NavigationMenu(QWidget):
         # stint_tracking_layout = create_layout_box("Stint tracking")
         stint_tracking_layout.addWidget(self.create_row('fa6s.chart-line', 'Overview', font_small_text, OverviewMainWindow))
         stint_tracking_layout.addWidget(self.create_row('fa6s.chart-bar', 'Config', font_small_text, ConfigMainWindow))
+        stint_tracking_layout.addWidget(self.create_row('fa6s.chess-board', 'Strategies', font_small_text, StrategiesMainWindow))
         # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
 
         # test_tracking_layout = create_layout_box("Stint tracking")
