@@ -41,18 +41,19 @@ class NavigationMenu(QWidget):
             style = f.read()
 
         self.setStyleSheet(style)
-        # self.setContentsMargins(8, 8, 8, 8)
         self.setFixedWidth(200)
 
         font_small_text = get_fonts(FONT.text_small)
 
         frame = QFrame()
+        frame.setContentsMargins(0,0,0,0)
         frame.setObjectName("NavMenu")
 
         root_widget_layout = QVBoxLayout(self)   
         root_widget_layout.addWidget(frame)
 
         nav_box = QVBoxLayout(frame)
+        nav_box.setContentsMargins(4,4,4,4)
         nav_box.setSpacing(24)
 
         stint_tracking_layout = self.create_layout_box("Stint tracking")
@@ -70,6 +71,9 @@ class NavigationMenu(QWidget):
         nav_box.addLayout(stint_tracking_layout)
         # nav_box.addLayout(test_tracking_layout)
         nav_box.addStretch()
+
+        session_picker = SessionPicker(models)
+        nav_box.addWidget(session_picker)
 
     def create_row(self, icon, label, font, widget):
         container = ClickableWidget()

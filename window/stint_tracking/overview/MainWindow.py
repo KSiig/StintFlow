@@ -23,7 +23,5 @@ class MainWindow(QWidget):
 
         main_window = QVBoxLayout(self)
 
-        session_picker = SessionPicker(models)
         stint_tracker = StintTracker(models)
-        main_window.addWidget(session_picker)
         main_window.addWidget(stint_tracker)

@@ -36,13 +36,18 @@ class SessionPicker(QWidget):
 
         frame = QFrame()
         frame.setObjectName("ComboBoxes")
+        frame.setSizePolicy(
+            QSizePolicy.Policy.Minimum,  # width adjusts to minimum needed
+            QSizePolicy.Policy.Fixed   # height adjusts to fit content
+        )
 
         root_widget_layout = QVBoxLayout(self)   
+        root_widget_layout.setContentsMargins(0,0,8,0)
         root_widget_layout.addWidget(frame)
 
         # Root horizontal container
-        root_layout = QHBoxLayout(frame)
-        # root_layout.setContentsMargins(24, 32, 24, 24)  # top padding emphasized
+        root_layout = QVBoxLayout(frame)
+        root_layout.setContentsMargins(0,0,0,0)  # top padding emphasized
         root_layout.setSpacing(16)
         root_layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
@@ -88,23 +93,30 @@ class SessionPicker(QWidget):
     def _create_card(self, label_text: str, box: QComboBox) -> QFrame:
           card = QFrame()
           card.setObjectName("InputCard")
-          card.setFixedSize(512, 80)
+        #   card.setFixedSize(512, 80)
+          card.setSizePolicy(
+              QSizePolicy.Policy.Minimum,  # width adjusts to minimum needed
+              QSizePolicy.Policy.Fixed   # height adjusts to fit content
+          )
 
           layout = QVBoxLayout(card)
-          layout.setContentsMargins(0, 0, 16, 32)
+          layout.setContentsMargins(0, 0, 0, 0)
           layout.setSpacing(4)
           layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-          # Left label (bold)
-          font_header_input = get_fonts(FONT.header_input_hint)
+          font_lbl = get_fonts(FONT.header_input_hint)
           label = QLabel(label_text)
           label.setObjectName("CardLabel")
-          label.setFont(font_header_input)
+          label.setFont(font_lbl)
 
           # Right dropdown
           input_field = box
           input_field.setObjectName("ComboBox")
-          input_field.setFixedHeight(40)
+          input_field.setFont(font_lbl)
+          input_field.setSizePolicy(
+              QSizePolicy.Policy.Minimum,  # width adjusts to minimum needed
+              QSizePolicy.Policy.Fixed   # height adjusts to fit content
+          )
 
           layout.addWidget(label)
           layout.addWidget(input_field, stretch=1)

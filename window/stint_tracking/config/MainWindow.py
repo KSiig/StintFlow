@@ -26,11 +26,9 @@ class MainWindow(QWidget):
 
         h_layout = QHBoxLayout()
         config_options = ConfigOptions(models)
-        session_picker = SessionPicker(models)
         stint_tracker = StintTracker(models)
 
         h_layout.addWidget(config_options)
         h_layout.addWidget(stint_tracker)
 
-        main_window.addWidget(session_picker)
         main_window.addLayout(h_layout)

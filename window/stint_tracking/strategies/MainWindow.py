@@ -30,9 +30,6 @@ class MainWindow(QWidget):
         main_layout = QVBoxLayout(self)
         self.setLayout(main_layout)
 
-        session_picker = SessionPicker(models)
-        main_layout.addWidget(session_picker)
-
         session_id = self.selection_model.session_id
         strategies = list(get_strategies(session_id))
 
