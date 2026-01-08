@@ -1,5 +1,6 @@
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
+    QStackedLayout,
     QApplication,
     QHBoxLayout,
     QLabel,
@@ -36,6 +37,7 @@ class NavigationMenu(QWidget):
         self.selection_model = models['selection_model']
         self.navigation_model = models['navigation_model']
         self.table_model = models['table_model']
+        self.windows = {}  # store instantiated windows
 
         with open(resource_path('styles/navigation_menu.qss'), 'r') as f:
             style = f.read()
@@ -54,6 +56,7 @@ class NavigationMenu(QWidget):
 
         nav_box = QVBoxLayout(frame)
         nav_box.setSpacing(24)
+        session_picker = SessionPicker(models)
 
         stint_tracking_layout = self.create_layout_box("Stint tracking")
         # stint_tracking_layout = create_layout_box("Stint tracking")
@@ -71,10 +74,25 @@ class NavigationMenu(QWidget):
         # nav_box.addLayout(test_tracking_layout)
         nav_box.addStretch()
 
-        session_picker = SessionPicker(models)
         nav_box.addWidget(session_picker)
 
-    def create_row(self, icon, label, font, widget):
+    # Helper: add a nav row AND create the window in the stack
+    def add_nav_row(self, layout, icon, text, font, window_cls):
+        # Create clickable row
+        row_widget = self.create_row(icon, text, font, window_cls)
+        layout.addWidget(row_widget)
+
+        # Instantiate window if not already done
+        if window_cls not in self.windows:
+            window = window_cls(self.models)
+            window.setParent(self.stack_container)
+            self.stack_layout.addWidget(window)
+            self.windows[window_cls] = window
+
+        # Connect nav click to show the window
+        row_widget.clicked.connect(lambda cls=window_cls: self.show_window(cls))
+
+    def create_row(self, icon, label, font, widget_cls):
         container = ClickableWidget()
         fa6s_icon = qta.icon(icon, color='#000')
         icon_label = QLabel()
@@ -90,7 +108,10 @@ class NavigationMenu(QWidget):
         row_layout.setSpacing(16)
         row_layout.setContentsMargins(8,0,0,0)
 
-        container.clicked.connect(lambda: self.test(widget))
+        container.clicked.connect(lambda widget_cls=widget_cls: self.set_active_widget(widget_cls))
+
+        widget = widget_cls(self.models)
+        self.navigation_model.add_widget(widget_cls, widget)
 
         return container
 
@@ -107,6 +128,5 @@ class NavigationMenu(QWidget):
 
         return layout
 
-    def test(self, widget):
-        window = widget(self.models)
-        self.navigation_model.set_active_widget(window)
+    def set_active_widget(self, widget_cls):
+        self.navigation_model.set_active_widget(widget_cls)

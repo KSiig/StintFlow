@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import ( 
         QMainWindow, 
+        QStackedLayout,
         QTableView, 
         QPushButton, 
         QSizePolicy,
@@ -34,6 +35,7 @@ class MainWindow(QMainWindow):
 
         self.selection_model = SelectionModel()
         self.navigation_model = NavigationModel()
+        self.windows = {}
 
         # main_window = ConfigMainWindow({"selection_model": self.selection_model})
         self.table_model = TableModel(self.selection_model, [
@@ -75,7 +77,7 @@ class MainWindow(QMainWindow):
             QSizePolicy.Policy.Minimum,
             QSizePolicy.Policy.Expanding
         )
-        self.central_container_layout = QHBoxLayout(self.central_container)
+        self.central_container_layout = QStackedLayout(self.central_container)
         self.central_container_layout.setContentsMargins(0, 0, 0, 0)
 
         self.central_scroll_area.setWidget(self.central_container)
@@ -99,10 +101,16 @@ class MainWindow(QMainWindow):
 
     def change_workspace_widget(self):
         # self.work_space_layout.replaceWidget(self.work_space_layout.)
-        clear_layout(self.central_container_layout)
-        new_widget = self.navigation_model.active_widget
-        self.central_container_layout.addWidget(new_widget)
-        self.active_widget = new_widget
+        # clear_layout(self.central_container_layout)
+        widget_cls = self.navigation_model.active_widget
+        if widget_cls not in self.windows:
+            new_widget = self.navigation_model.widgets[widget_cls]
+            new_widget.setParent(self.central_container)
+            self.central_container_layout.addWidget(new_widget)
+            self.windows[widget_cls] = new_widget
+        # self.central_container_layout.addWidget(new_widget)
+        # self.active_widget = new_widget
+        self.central_container_layout.setCurrentWidget(self.windows[widget_cls])
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:
