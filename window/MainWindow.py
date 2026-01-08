@@ -20,6 +20,7 @@ from .NavigationMenu import NavigationMenu
 from .stint_tracking import SessionPicker, OverviewMainWindow, StintTracker, ConfigMainWindow
 from .models import NavigationModel, SelectionModel
 from window.models import TableModel
+from helpers import clear_layout
 
 import os
 import sys
@@ -98,25 +99,10 @@ class MainWindow(QMainWindow):
 
     def change_workspace_widget(self):
         # self.work_space_layout.replaceWidget(self.work_space_layout.)
-        self.clear_layout(self.central_container_layout)
+        clear_layout(self.central_container_layout)
         new_widget = self.navigation_model.active_widget
         self.central_container_layout.addWidget(new_widget)
         self.active_widget = new_widget
-
-    def clear_layout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-
-            widget = item.widget()
-            if widget is not None:
-                widget.setParent(None)
-                widget.deleteLater()
-
-            # Handle nested layouts
-            sub_layout = item.layout()
-            if sub_layout is not None:
-                self.clear_layout(sub_layout)
-
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:

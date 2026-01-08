@@ -25,7 +25,7 @@ from ..models import NavigationModel, SelectionModel
 
 class StintTracker(QWidget):
 
-    def __init__(self, models = {"selection_model": SelectionModel()}, focus = False):
+    def __init__(self, models = {"selection_model": SelectionModel()}, focus = False, auto_update=True):
         super().__init__()
 
         self.selection_model = models['selection_model']
@@ -105,7 +105,8 @@ class StintTracker(QWidget):
         # self.timer.timeout.connect(self.refresh_table)
 
         # self.timer.start()  
-        self.selection_model.sessionChanged.connect(self.refresh_table)
+        if auto_update:
+            self.selection_model.sessionChanged.connect(self.refresh_table)
 
     def refresh_table(self):
         self.column_count = 0

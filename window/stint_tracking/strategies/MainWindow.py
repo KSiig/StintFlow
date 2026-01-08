@@ -18,6 +18,7 @@ from ...models import NavigationModel, SelectionModel
 from .MainTab import MainTab
 from ..delegates.TireChangeCombo import TireComboDelegate
 from helpers.strategies import get_strategies, mongo_docs_to_rows
+from helpers import clear_layout
 
 class MainWindow(QWidget):
     def __init__(self, models = {"selection_model": SelectionModel()}):
@@ -26,10 +27,16 @@ class MainWindow(QWidget):
         self.selection_model = models['selection_model']
         self.table_model = models['table_model']
         self.models = models
+        self.selection_model.sessionChanged.connect(self.create_view)
 
-        main_layout = QVBoxLayout(self)
-        self.setLayout(main_layout)
+        self.main_layout = QVBoxLayout(self)
+        self.setLayout(self.main_layout)
 
+        self.create_view()
+
+
+    def create_view(self):
+        clear_layout(self.main_layout)
         session_id = self.selection_model.session_id
         strategies = list(get_strategies(session_id))
 
@@ -41,11 +48,12 @@ class MainWindow(QWidget):
 
         if strategies:
             for strategy in strategies:
-                tab = self.create_tab(strategy, models)
+                tab = self.create_tab(strategy, self.models)
 
                 self.tabs.addTab(tab, strategy['name'])
 
-        main_layout.addWidget(self.tabs)
+        self.main_layout.addWidget(self.tabs)
+
 
     def create_tab(self, strategy, models):
         first_stint = strategy['model_data']
@@ -53,7 +61,7 @@ class MainWindow(QWidget):
         table_model = self.table_model.clone()
         self.models['table_model'] = table_model
 
-        stint_tracker = StintTracker(models)
+        stint_tracker = StintTracker(models, auto_update=False)
         stint_tracker.table.setItemDelegateForColumn(
             3,
             TireComboDelegate(stint_tracker.table, update_doc=True, strategy_id=strategy['_id'])
