@@ -58,9 +58,13 @@ class MainWindow(QWidget):
         first_stint = strategy['model_data']
         strategy_data = mongo_docs_to_rows(first_stint)
         table_model = self.table_model.clone()
-        self.models['table_model'] = table_model
+        # self.models['table_model'] = table_model
+        tracker_models = {
+            **self.models,
+            "table_model": table_model
+        }
 
-        stint_tracker = StintTracker(models, auto_update=False)
+        stint_tracker = StintTracker(tracker_models, auto_update=False)
         stint_tracker.table.setItemDelegateForColumn(
             3,
             TireComboDelegate(stint_tracker.table, update_doc=True, strategy_id=strategy['_id'])
@@ -69,7 +73,7 @@ class MainWindow(QWidget):
 
         layout = QVBoxLayout()
         tab.setLayout(layout)
-        self.models['table_model'].update_data(strategy_data)
+        tracker_models['table_model'].update_data(strategy_data)
         layout.addWidget(stint_tracker)
         for row in range(stint_tracker.table.model().rowCount()):
             index = stint_tracker.table.model().index(row, 3)

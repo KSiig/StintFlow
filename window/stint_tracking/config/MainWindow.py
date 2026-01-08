@@ -27,7 +27,7 @@ class MainWindow(QWidget):
 
         h_layout = QHBoxLayout()
         config_options = ConfigOptions(models)
-        config_options.stint_created.connect(self.table_model.set_data)
+        config_options.stint_created.connect(self.table_model.update_data)
         stint_tracker = StintTracker(models)
 
         h_layout.addWidget(config_options)
