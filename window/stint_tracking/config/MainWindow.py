@@ -21,11 +21,13 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.selection_model = models['selection_model']
+        self.table_model = models['table_model']
 
         main_window = QVBoxLayout(self)
 
         h_layout = QHBoxLayout()
         config_options = ConfigOptions(models)
+        config_options.stint_created.connect(self.table_model.set_data)
         stint_tracker = StintTracker(models)
 
         h_layout.addWidget(config_options)

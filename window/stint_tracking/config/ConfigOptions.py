@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
         QLineEdit, 
         QLabel
     )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtCore import QProcess, QTimer, Qt, QSize
 
 from ...models import NavigationModel, SelectionModel
@@ -25,6 +25,8 @@ from helpers.db import events_col, teams_col
 from bson import ObjectId
 
 class ConfigOptions(QWidget):
+    stint_created = pyqtSignal()
+
     def __init__(self, models = {"selection_model": SelectionModel()}):
         super().__init__()
         self.selection_model = models['selection_model']
@@ -210,8 +212,8 @@ class ConfigOptions(QWidget):
     def start_process(self):
         # We'll run our process here.
         self.p = QProcess()
-        # self.p.readyReadStandardOutput.connect(self.handle_stdout)
-        # self.p.readyReadStandardError.connect(self.handle_stderr)
+        self.p.readyReadStandardOutput.connect(self.handle_stdout)
+        self.p.readyReadStandardError.connect(self.handle_stderr)
         process_args = [
             '-u', 
             'update_stint.py', 
@@ -220,6 +222,25 @@ class ConfigOptions(QWidget):
             ]
         self.p.start("python3", process_args)
         print('Starting process: python3 ', process_args)
+
+    def handle_stderr(self):
+        data = self.p.readAllStandardError()
+        stderr = bytes(data).decode("utf8")
+
+    def handle_stdout(self):
+        data = self.p.readAllStandardOutput()
+        stdout = bytes(data).decode("utf8")
+        if stdout.startswith('__event__'):
+            self.handle_event(stdout)
+
+    def handle_event(self, stdout):
+        args = stdout.split(':')
+        process = args[1].strip()
+        event = args[2].strip()
+
+        if process == 'stint_tracker':
+            if event == 'stint_created':
+                self.stint_created.emit()
 
     def save_config(self):
         query = { "_id": ObjectId(self.selection_model.event_id) }

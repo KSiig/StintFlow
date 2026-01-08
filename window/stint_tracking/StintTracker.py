@@ -153,16 +153,6 @@ class StintTracker(QWidget):
         hh.setCascadingSectionResizes(False)
         hh.setHighlightSections(False)
 
-    def handle_stderr(self):
-        data = self.p.readAllStandardError()
-        stderr = bytes(data).decode("utf8")
-        self.message(stderr)
-
-    def handle_stdout(self):
-        data = self.p.readAllStandardOutput()
-        stdout = bytes(data).decode("utf8")
-        self.message(stdout)
-
     def message(self, s):
         self.text.appendPlainText(s)
 

@@ -34,7 +34,6 @@ class MainWindow(QWidget):
 
         self.create_view()
 
-
     def create_view(self):
         clear_layout(self.main_layout)
         session_id = self.selection_model.session_id

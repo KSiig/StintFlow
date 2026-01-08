@@ -27,6 +27,5 @@ def create_pit_stop(remaining_time, vehicle, vehicle_scoring, num_penalties, tra
 
   if not is_penalty_served:
     stints_col.insert_one(pitstop)
-    print("Stint created")
+    print("__event__:stint_tracker:stint_created")
 
-  print("DONE")

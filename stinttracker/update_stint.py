@@ -12,6 +12,8 @@ def update_stint(telemetry, scoring, tracking_data):
   global player_names
   global num_penalties
 
+  print("checking for stint")
+
   # Initialize player vehicle telemetry and scoring objects
   player_idx = telemetry.playerVehicleIdx
   player_vehicle = telemetry.telemInfo[player_idx]
