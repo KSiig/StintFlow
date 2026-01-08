@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
         QLineEdit, 
         QLabel
     )
-from helpers.strategies import sanitize_stints, save_strategy
+from helpers.strategies import sanitize_stints, update_strategy
 
 class TireComboDelegate(QStyledItemDelegate):
     def __init__(self, parent=None, update_doc=False, strategy_id=""):
@@ -40,4 +40,4 @@ class TireComboDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText())
         sanitized_data = sanitize_stints(model.get_all_data())
-        save_strategy(self.strategy_id, sanitized_data)
+        update_strategy(self.strategy_id, sanitized_data)

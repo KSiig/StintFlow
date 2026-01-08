@@ -24,14 +24,15 @@ app_icon.addFile(resource_path('favicon/favicon-48x48.png'), QSize(48,48))
 app_icon.addFile(resource_path('favicon/favicon-256x256.png'), QSize(256,256))
 app.setWindowIcon(app_icon)
 
-window = MainWindow()
-window.show()
-
-
 font = get_fonts(FONT.text_small)
 
 # Set as default font for the app
 app.setFont(font)
+
+window = MainWindow()
+window.show()
+
+
 
 # Open the qss styles file and read in the CSS-like styling code
 with open(resource_path('styles/main.qss'), 'r') as f:

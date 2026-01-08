@@ -114,7 +114,8 @@ class SessionPicker(QWidget):
     # Event changed
     def on_event_changed(self):
         event_id = self.events.currentData()
-        self.selection_model.set_event(event_id)
+        event_name = self.events.currentText()
+        self.selection_model.set_event(event_id, event_name)
 
         # Repopulate sessions safely
         self.sessions.blockSignals(True)
@@ -125,10 +126,10 @@ class SessionPicker(QWidget):
 
         # Set model to first session by default
         if self.sessions.count() > 0:
-            self.selection_model.set_session(self.sessions.currentData())
+            self.selection_model.set_session(self.sessions.currentData(), self.sessions.currentText())
         else:
             self.selection_model.set_session(None)
 
     # Session changed
     def on_session_changed(self):
-        self.selection_model.set_session(self.sessions.currentData())
+        self.selection_model.set_session(self.sessions.currentData(), self.sessions.currentText())

@@ -1,6 +1,6 @@
 from helpers.db import strategies_col
 
-def save_strategy(strategy_id, model_data):
+def update_strategy(strategy_id, model_data):
   query = { "_id": strategy_id }
 
   doc = { "$set":{
