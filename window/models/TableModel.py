@@ -43,6 +43,23 @@ class TableModel(QAbstractTableModel):
             self._data = stints_to_table(stints, tires, starting_time)
         else:
             self._data = data
+
+    def recalc_tires(self):
+        event = get_event(self.selection_model.event_id)
+        remaining_tires = event['tires']
+        for row in self._data:
+            tires_changed = row[3]
+            row[4] = int(remaining_tires) - int(tires_changed)
+            remaining_tires = row[4]
+
+        topLeft = self.index(0, 0)
+        bottomRight = self.index(
+            self.rowCount() - 1,
+            self.columnCount() - 1
+        )
+
+        if self.rowCount() > 0 and self.columnCount() > 0:
+            self.dataChanged.emit(topLeft, bottomRight, [])
     
     def setData(self, index, value, role = Qt.ItemDataRole.EditRole):
         if not index.isValid() or role != Qt.ItemDataRole.EditRole:

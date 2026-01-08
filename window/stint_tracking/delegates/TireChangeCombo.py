@@ -39,5 +39,6 @@ class TireComboDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText())
+        model.recalc_tires()
         sanitized_data = sanitize_stints(model.get_all_data())
         update_strategy(self.strategy_id, sanitized_data)
