@@ -33,6 +33,7 @@ class ConfigOptions(QWidget):
         self.selection_model = models['selection_model']
         self.table_model = models['table_model']
         self.event = get_event(self.selection_model.event_id)
+        self.selection_model.eventChanged.connect(self.set_labels)
 
         with open(resource_path('styles/config_options.qss'), 'r') as f:
             style = f.read()
@@ -93,6 +94,11 @@ class ConfigOptions(QWidget):
         self.save_btn.hide()
         self.stop_btn.hide()
         root_layout.addStretch()
+
+    def set_labels(self):
+        self.event = get_event(self.selection_model.event_id)
+        self.inputs['tires'].setText(self.event['tires'])
+        self.inputs['length'].setText(self.event['length'])
 
     def create_labels(self, title, hint):
         font_title = get_fonts(FONT.header_input)
