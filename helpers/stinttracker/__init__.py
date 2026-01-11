@@ -6,5 +6,6 @@ __all__ = [
   "get_active_event",
   "get_active_session",
   "get_stints",
-  "get_event"
+  "get_event",
+  "get_session"
   ]

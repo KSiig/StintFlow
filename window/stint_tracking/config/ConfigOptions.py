@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
         QTableView, 
         QPushButton, 
         QFrame,
+        QCheckBox,
         QWidget, 
         QVBoxLayout, 
         QSpacerItem,
@@ -38,6 +39,7 @@ class ConfigOptions(QWidget):
 
         self.setStyleSheet(style)
         self.inputs = {}
+        font_cb = get_fonts(FONT.header_input_hint)
 
         frame = QFrame()
         frame.setObjectName("ConfigOptions")
@@ -50,12 +52,23 @@ class ConfigOptions(QWidget):
         self.save_btn = QPushButton("Save")
         self.start_btn = QPushButton("Start tracking")
         self.stop_btn = QPushButton("Stop tracking")
+        self.practice_cb = QCheckBox(text="Practice")
+        self.lbl_return_to_grg = QLabel("Please return to garage!")
+        self.practice_cb.setFont(font_cb)
+        self.lbl_return_to_grg.setFont(font_cb)
 
         btn_layout = QHBoxLayout()
-        btn_layout.addWidget(self.edit_btn)
-        btn_layout.addWidget(self.save_btn)
-        btn_layout.addWidget(self.start_btn)
-        btn_layout.addWidget(self.stop_btn)
+        btn_tracking_layout = QVBoxLayout()
+        btn_tracking_layout.setSpacing(4)
+        btn_layout.addWidget(self.edit_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout.addWidget(self.save_btn, alignment=Qt.AlignmentFlag.AlignTop)
+
+        btn_tracking_layout.addWidget(self.start_btn)
+        btn_tracking_layout.addWidget(self.stop_btn)
+        btn_tracking_layout.addWidget(self.practice_cb, alignment=Qt.AlignmentFlag.AlignHCenter)
+        btn_tracking_layout.addWidget(self.lbl_return_to_grg, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.lbl_return_to_grg.hide()
+        btn_layout.addLayout(btn_tracking_layout)
         btn_layout.setSpacing(8)
 
         self.edit_btn.clicked.connect(self.toggle_edit)
@@ -214,33 +227,47 @@ class ConfigOptions(QWidget):
         self.p = QProcess()
         self.p.readyReadStandardOutput.connect(self.handle_stdout)
         self.p.readyReadStandardError.connect(self.handle_stderr)
+        is_practice = self.practice_cb.isChecked()
         process_args = [
             '-u', 
             'update_stint.py', 
-            str(self.selection_model.session_id),
-            ','.join(self.drivers)
+            '--session-id', str(self.selection_model.session_id),
+            '--drivers', *self.drivers
             ]
+        if is_practice:
+            process_args.append('--practice')
+
         self.p.start("python3", process_args)
         print('Starting process: python3 ', process_args)
 
     def handle_stderr(self):
         data = self.p.readAllStandardError()
         stderr = bytes(data).decode("utf8")
+        print(stderr)
 
     def handle_stdout(self):
         data = self.p.readAllStandardOutput()
         stdout = bytes(data).decode("utf8")
-        if stdout.startswith('__event__'):
-            self.handle_event(stdout)
+        print(stdout)
+        if stdout.startswith('__'):
+            self.handle_output(stdout)
 
-    def handle_event(self, stdout):
+    def handle_output(self, stdout):
+
         args = stdout.split(':')
         process = args[1].strip()
-        event = args[2].strip()
+        msg = args[2].strip()
 
-        if process == 'stint_tracker':
-            if event == 'stint_created':
-                self.stint_created.emit()
+        if stdout.startswith('__event__'):
+            if process == 'stint_tracker':
+                if msg == 'stint_created':
+                    self.stint_created.emit()
+        if stdout.startswith('__info__'):
+            if process == 'stint_tracker':
+                if msg == 'return_to_garage':
+                    self.lbl_return_to_grg.show()
+                if msg == 'player_in_garage':
+                    self.lbl_return_to_grg.hide()
 
     def save_config(self):
         query = { "_id": ObjectId(self.selection_model.event_id) }

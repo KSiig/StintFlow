@@ -13,3 +13,18 @@ QLineEdit {
 QFrame#ConfigOptions {
   border-right: 3px solid #E0E0E0;
 }
+
+QCheckBox {
+  padding-bottom: 1px;
+  color: #747982;
+}
+
+QCheckBox::indicator {
+    background-color: red;  /* light background so it shows on white */
+    border-radius: 7px;
+    padding: 2px;
+}
+
+QCheckBox::indicator:checked {
+    background-color: green;  /* blue when checked */
+}

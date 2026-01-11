@@ -1,6 +1,7 @@
 import sys
 from pyLMUSharedMemory import lmu_data
 from stinttracker.update_stint import update_stint
+from helpers import parse_args
 import mmap
 import ctypes
 import time
@@ -16,13 +17,14 @@ shared_mem = mmap.mmap(
 lmu = lmu_data.LMUObjectOut.from_buffer(shared_mem)
 
 try:
-    session_id = sys.argv[1]
-    drivers = sys.argv[2].split(',')
+    args = parse_args()
     tracking_data = {
-        "session_id": session_id,
-        "drivers": drivers
+        "session_id": args.session_id,
+        "drivers": args.drivers,
+        "is_practice": args.practice
     }
-    print("Tracking session:", session_id)
+
+    print("Tracking session:", tracking_data['session_id'])
     while True:
         update_stint(lmu.telemetry, lmu.scoring, tracking_data)
         hz_interval = 1
