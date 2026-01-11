@@ -12,6 +12,7 @@ remaining_time_out_of_pits = "00:00:00"
 recording = False
 stints = []
 prev_time = "00:00:00"
+driver_name = ""
 
 def update_stint(telemetry, scoring, tracking_data):
   global updating
@@ -21,8 +22,10 @@ def update_stint(telemetry, scoring, tracking_data):
   global recording
   global stints
   global prev_time
+  global driver_name
 
   is_practice = tracking_data['is_practice']
+
 
   # Find either length of event or latest `pit_end_time`
   if is_practice and not stints:
@@ -37,7 +40,9 @@ def update_stint(telemetry, scoring, tracking_data):
   # Initialize player vehicle telemetry and scoring objects
   player_idx = telemetry.playerVehicleIdx
   player_vehicle = telemetry.telemInfo[player_idx]
-  player_vehicle_scoring, driver_name = find_scoring_vehicle(telemetry, scoring, tracking_data['drivers'])
+  player_vehicle_scoring, driver_name_cur = find_scoring_vehicle(telemetry, scoring, tracking_data['drivers'])
+  if get_pit_state(player_vehicle_scoring) == PITSTATE['coming_in'].value:
+    driver_name = driver_name_cur
   tracking_data['driver_name'] = driver_name
       
   if is_practice and not recording:
