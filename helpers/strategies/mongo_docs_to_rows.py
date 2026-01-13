@@ -5,6 +5,7 @@ def mongo_docs_to_rows(docs):
 
     for doc in docs:
         row = [
+            doc.get("stint_type"),
             doc.get("name"),
             "✅" if doc.get("driven") else "❌",
             doc.get("pit_end_time"),

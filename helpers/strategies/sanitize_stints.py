@@ -4,9 +4,10 @@ def sanitize_stints(rows):
     sanitized = []
 
     for row in rows:
-        name, driven, pit_end_time, tires_changed, tires_left, stint_time = row
+        stint_type, name, driven, pit_end_time, tires_changed, tires_left, stint_time = row
 
         doc = {
+            "stint_type": stint_type,
             "name": name,
             "driven": driven == "✅",
             "pit_end_time": normalize_time(pit_end_time),

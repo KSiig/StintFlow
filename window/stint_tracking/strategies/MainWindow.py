@@ -16,7 +16,7 @@ from ..SessionPicker import SessionPicker
 from ..StintTracker import StintTracker
 from ...models import NavigationModel, SelectionModel
 from .MainTab import MainTab
-from ..delegates.TireChangeCombo import TireComboDelegate
+from ..delegates import TireComboDelegate, StintTypeCombo
 from helpers.strategies import get_strategies, mongo_docs_to_rows
 from helpers import clear_layout
 
@@ -58,7 +58,6 @@ class MainWindow(QWidget):
         first_stint = strategy['model_data']
         strategy_data = mongo_docs_to_rows(first_stint)
         table_model = self.table_model.clone()
-        # self.models['table_model'] = table_model
         tracker_models = {
             **self.models,
             "table_model": table_model
@@ -66,7 +65,11 @@ class MainWindow(QWidget):
 
         stint_tracker = StintTracker(tracker_models, auto_update=False)
         stint_tracker.table.setItemDelegateForColumn(
-            3,
+            0,
+            StintTypeCombo(stint_tracker.table, update_doc=True, strategy_id=strategy['_id'])
+        )
+        stint_tracker.table.setItemDelegateForColumn(
+            4,
             TireComboDelegate(stint_tracker.table, update_doc=True, strategy_id=strategy['_id'])
         )
         tab = QWidget()
@@ -76,7 +79,16 @@ class MainWindow(QWidget):
         tracker_models['table_model'].update_data(strategy_data)
         layout.addWidget(stint_tracker)
         for row in range(stint_tracker.table.model().rowCount()):
-            index = stint_tracker.table.model().index(row, 3)
+            index = stint_tracker.table.model().index(row, 0)  # 0 = stint_type column
+            cell_text = str(index.data())
+
+            if cell_text:  # non-empty → open editor
+                stint_tracker.table.openPersistentEditor(index)
+            else:  # empty → close editor
+                stint_tracker.table.closePersistentEditor(index)
+            # index = stint_tracker.table.model().index(row, 0)
+            # stint_tracker.table.openPersistentEditor(index)
+            index = stint_tracker.table.model().index(row, 4)
             stint_tracker.table.openPersistentEditor(index)
         stint_tracker.table.resizeColumnsToContents()
 

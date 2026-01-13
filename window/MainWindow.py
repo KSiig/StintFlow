@@ -39,6 +39,7 @@ class MainWindow(QMainWindow):
 
         # main_window = ConfigMainWindow({"selection_model": self.selection_model})
         self.table_model = TableModel(self.selection_model, [
+            "Stint type",
             "Driver",
             "Driven",
             "Pit end time",

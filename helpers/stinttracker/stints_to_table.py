@@ -6,7 +6,8 @@ def stints_to_table(stints, starting_tires, starting_time):
     prev_stint = {}
     tires_left = int(starting_tires)
     stint_times = []
-    for stint in stints:
+    start_of_stint = 0
+    for i, stint in enumerate(stints):
         
         stint_time = "00:00:00"
         t1 = ""
@@ -29,9 +30,23 @@ def stints_to_table(stints, starting_tires, starting_time):
 
         tires_changed = int(stint.get("tires_changed"))
         tires_left = tires_left - tires_changed
-    
+
+        stint_amounts = i - start_of_stint
+        stint_type = get_stint_type(stint_amounts + 1)
+        
+        if tires_changed:
+            stint_type = ""
+            if start_of_stint == i:
+                stint_type = "Single"
+            start_of_stint = i + 1
+        
+        # If it's more than a double stint
+        if stint_amounts and not tires_changed:
+            rows[start_of_stint][0] = get_stint_type(stint_amounts + 1)
+            stint_type = ""
 
         rows.append([
+            stint_type,
             stint.get("driver"),
             "✅",
             stint.get("pit_end_time"),
@@ -65,6 +80,7 @@ def stints_to_table(stints, starting_tires, starting_time):
         
 
             rows.append([
+                "Single",
                 stint.get("driver"),
                 "❌",
                 stint.get("pit_end_time"),
@@ -128,3 +144,30 @@ def timedelta_to_time(td):
     minutes, seconds = divmod(remainder, 60)
     hours %= 24  # wrap around if > 24
     return time(hour=hours, minute=minutes, second=seconds)
+
+def get_stint_type(stint_amounts):
+    match stint_amounts:
+        case 0:
+            return "Single"
+        case 1:
+            return "Double"
+        case 2:
+            return "Triple"
+        case 3:
+            return "Quadruple"
+        case 4:
+            return "Quadruple"
+        case 5:
+            return "Quintuple"
+        case 6:
+            return "Sextuple"
+        case 7:
+            return "Septuple"
+        case 8:
+            return "Octuple"
+        case 9:
+            return "Nonuple"
+        case 10:
+            return "Decuple"
+        case _:
+            return "Unknown"

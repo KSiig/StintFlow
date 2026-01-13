@@ -16,15 +16,23 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from helpers.strategies import sanitize_stints, update_strategy
 
-class TireComboDelegate(QStyledItemDelegate):
+class StintTypeCombo(QStyledItemDelegate):
     def __init__(self, parent=None, update_doc=False, strategy_id=""):
         super().__init__(parent)
         self.update_doc = update_doc
         self.strategy_id = strategy_id
+        self.items = ["", "Single", "Double", "Triple", "Quadruple", "Quintuple", 
+                      "Sextuple", "Septuple", "Octuple", "Nonuple", "Decuple"]
 
     def createEditor(self, parent, option, index):
         combo = QComboBox(parent)
-        combo.addItems(["0", "1", "2", "3", "4"])
+        combo.addItems(self.items)
+
+        # Disable if the current cell text is empty
+        current_text = str(index.data())
+        if current_text == "":
+            combo.setEnabled(False)
+            combo.setStyleSheet("color: gray;")
 
         # Commit on every change
         combo.currentTextChanged.connect(
@@ -45,7 +53,7 @@ class TireComboDelegate(QStyledItemDelegate):
         if new_value == old_value:
             return  # ← prevents duplicate trigger
 
-        model.setData(index, editor.currentText())
-        model.recalc_tires_left()
+        model.setData(index, new_value)
+        model.recalc_tires_changed(index, old_value)
         sanitized_data = sanitize_stints(model.get_all_data())
         update_strategy(self.strategy_id, sanitized_data)

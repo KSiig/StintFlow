@@ -45,6 +45,7 @@ class StintTracker(QWidget):
         self.table.setShowGrid(False)
         self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.table.headers = [
+            "Stint type",
             "Driver",
             "Driven",
             "Pit end time",
@@ -62,6 +63,7 @@ class StintTracker(QWidget):
             self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.table_model.update_data()
         self.refresh_table()      # initial load
+        self.table_model.editorsNeedRefresh.connect(self.refresh_editors)
 
         vh = self.table.verticalHeader()
         self.table.verticalHeader().setStyleSheet(
@@ -107,6 +109,17 @@ class StintTracker(QWidget):
         # self.timer.start()  
         if auto_update:
             self.selection_model.sessionChanged.connect(self.refresh_table)
+
+    def refresh_editors(self):
+        # Iterate through all rows in the column for stint_type
+        for row in range(self.table.model().rowCount()):
+            index = self.table.model().index(row, 0)  # 0 = stint_type column
+            cell_text = str(index.data())
+
+            if cell_text:  # non-empty → open editor
+                self.table.openPersistentEditor(index)
+            else:  # empty → close editor
+                self.table.closePersistentEditor(index)
 
     def refresh_table(self):
         self.column_count = 0
