@@ -255,7 +255,6 @@ class TableModel(QAbstractTableModel):
               return self.headers[section]
 
             if orientation == Qt.Orientation.Vertical:
-                    return section
                     return section + 1
 
     def get_stint_type(self, stint_amounts):

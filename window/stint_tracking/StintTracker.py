@@ -47,7 +47,7 @@ class StintTracker(QWidget):
         self.table.headers = [
             "Stint type",
             "Driver",
-            "Driven",
+            "Status",
             "Pit end time",
             "Tires changed",
             "Tires left",
@@ -143,23 +143,26 @@ class StintTracker(QWidget):
 
     def set_columns(self):
         hh = self.table.horizontalHeader()
-        hh.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed) # Driver
-        self.table.setColumnWidth(0, 256) 
+        hh.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed) # Stint type
+        self.table.setColumnWidth(0, 96) 
 
-        hh.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed) # Driven
-        self.table.setColumnWidth(1, 64)
+        hh.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed) # Driver
+        self.table.setColumnWidth(1, 200) 
 
-        hh.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed) # Pit end time
-        self.table.setColumnWidth(2, 128)
+        hh.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed) # Status
+        self.table.setColumnWidth(2, 96)
 
-        hh.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed) # Tires changed
-        self.table.setColumnWidth(3, 96)
+        hh.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed) # Pit end time
+        self.table.setColumnWidth(3, 128)
 
-        hh.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed) # Tires left
+        hh.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed) # Tires changed
         self.table.setColumnWidth(4, 96)
 
-        hh.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Stint time
-        self.table.setColumnWidth(5, 128)
+        hh.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Tires left
+        self.table.setColumnWidth(5, 96)
+
+        hh.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed) # Stint time
+        self.table.setColumnWidth(6, 128)
 
         self.table.setMinimumWidth(hh.length() + 100)
         hh.setSectionsMovable(False)

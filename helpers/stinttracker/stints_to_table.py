@@ -48,7 +48,7 @@ def stints_to_table(stints, starting_tires, starting_time):
         rows.append([
             stint_type,
             stint.get("driver"),
-            "✅",
+            "Completed ✅",
             stint.get("pit_end_time"),
             tires_changed,
             tires_left,
@@ -81,8 +81,8 @@ def stints_to_table(stints, starting_tires, starting_time):
 
             rows.append([
                 "Single",
-                stint.get("driver"),
-                "❌",
+                "",
+                "Pending ⏳",
                 stint.get("pit_end_time"),
                 tires_changed,
                 tires_left,
