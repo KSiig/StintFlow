@@ -15,9 +15,12 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QSize, Qt 
 from helpers.stinttracker import get_sessions, get_events
+from helpers.stinttracker.races import get_event, get_session
 from helpers import resource_path
 from window.Fonts import FONT, get_fonts
 from ..models import NavigationModel, SelectionModel
+from bson import ObjectId
+from bson.errors import InvalidId
 
 class SessionPicker(QWidget):
     def __init__(self, models = {"selection_model": SelectionModel()}):
@@ -53,13 +56,14 @@ class SessionPicker(QWidget):
 
         # Events dropdown
         self.events = QComboBox()
+        self.events.setEditable = True
         for doc in get_events():
             self.events.addItem(doc["name"], userData=str(doc["_id"]))
 
         # Sessions dropdown
         self.sessions = QComboBox()
         for doc in get_sessions(self.events.currentData()):
-            self.sessions.addItem(doc["type"], userData=str(doc["_id"]))
+            self.sessions.addItem(doc["name"], userData=str(doc["_id"]))
         self.events.currentIndexChanged.connect(self.on_event_changed)
         self.sessions.currentIndexChanged.connect(self.on_session_changed)
 
@@ -124,7 +128,8 @@ class SessionPicker(QWidget):
           return card
 
     # Event changed
-    def on_event_changed(self):
+    def on_event_changed(self, event_id = "", event_name = ""):
+
         event_id = self.events.currentData()
         event_name = self.events.currentText()
         self.selection_model.set_event(event_id, event_name)
@@ -133,7 +138,7 @@ class SessionPicker(QWidget):
         self.sessions.blockSignals(True)
         self.sessions.clear()
         for doc in get_sessions(event_id):
-            self.sessions.addItem(doc["type"], userData=str(doc["_id"]))
+            self.sessions.addItem(doc["name"], userData=str(doc["_id"]))
         self.sessions.blockSignals(False)
 
         # Set model to first session by default
@@ -145,3 +150,75 @@ class SessionPicker(QWidget):
     # Session changed
     def on_session_changed(self):
         self.selection_model.set_session(self.sessions.currentData(), self.sessions.currentText())
+
+    def update_event_selection(self, event_id, event_name):
+        self.events.blockSignals(True)
+        for i in range(self.events.count()):
+            if self.events.itemData(i) == event_id:
+                self.events.setItemText(i, event_name)
+                self.events.setCurrentIndex(i)
+                return
+
+         # Force Qt to update displayed text
+        self.events.setEditable(True)
+        self.events.setCurrentText(event_name)
+        self.events.setEditable(False)
+        self.events.setCurrentIndex(self.events.count() - 1)
+
+        self.on_event_changed()
+        self.events.blockSignals(False)
+
+    def update_session_selection(self, session_id, session_name):
+        for i in range(self.sessions.count()):
+            if self.events.itemData(i) == session_id:
+                self.events.setCurrentIndex(i)
+                return
+        print()
+
+
+    def reload(self, selected_event_id=None, selected_session_id=None):
+        """
+        Refresh events and sessions combo boxes.
+        Optionally select a specific event/session.
+        """
+        self.events.blockSignals(True)
+        self.sessions.blockSignals(True)
+
+        # --- Refresh events ---
+        self.events.clear()
+        for doc in get_events():
+            self.events.addItem(doc["name"], userData=str(doc["_id"]))
+
+        # Select event
+        if selected_event_id:
+            index = self.events.findData(str(selected_event_id))
+            if index >= 0:
+                self.events.setCurrentIndex(index)
+        else:
+            # Keep current selection if possible
+            index = self.events.findData(str(self.selection_model.event_id))
+            if index >= 0:
+                self.events.setCurrentIndex(index)
+
+        # --- Refresh sessions ---
+        event_id = self.events.currentData()
+        self.sessions.clear()
+        for doc in get_sessions(event_id):
+            self.sessions.addItem(doc["name"], userData=str(doc["_id"]))
+
+        # Select session
+        if selected_session_id:
+            index = self.sessions.findData(str(selected_session_id))
+            if index >= 0:
+                self.sessions.setCurrentIndex(index)
+        else:
+            index = self.sessions.findData(str(self.selection_model.session_id))
+            if index >= 0:
+                self.sessions.setCurrentIndex(index)
+
+        # Update selection model to match combobox
+        self.selection_model.set_event(self.events.currentData(), self.events.currentText())
+        self.selection_model.set_session(self.sessions.currentData(), self.sessions.currentText())
+
+        self.sessions.blockSignals(False)
+        self.events.blockSignals(False)

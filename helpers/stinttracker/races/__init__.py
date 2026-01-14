@@ -5,6 +5,8 @@ from .get_sessions import get_sessions
 from .get_events import get_events
 from .get_event import get_event
 from .get_session import get_session
+from .create_event import create_event
+from .create_session import create_session
 
 # __all__ = [
 #   "get_active_event",

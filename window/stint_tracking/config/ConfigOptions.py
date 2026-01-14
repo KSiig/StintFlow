@@ -19,11 +19,12 @@ from PyQt6.QtCore import QProcess, QTimer, Qt, QSize
 
 from ...models import NavigationModel, SelectionModel
 from helpers import resource_path
-from helpers.stinttracker.races import get_event
+from helpers.stinttracker.races import get_event, get_session, create_event, create_session, get_sessions
 from helpers.db.teams import get_team, update_drivers
 from ...Fonts import FONT, get_fonts
-from helpers.db import events_col, teams_col
+from helpers.db import events_col, teams_col, sessions_col
 from bson import ObjectId
+from datetime import datetime
 
 class ConfigOptions(QWidget):
     stint_created = pyqtSignal()
@@ -33,7 +34,9 @@ class ConfigOptions(QWidget):
         self.selection_model = models['selection_model']
         self.table_model = models['table_model']
         self.event = get_event(self.selection_model.event_id)
+        self.session = get_session(self.selection_model.session_id)
         self.selection_model.eventChanged.connect(self.set_labels)
+        self.selection_model.sessionChanged.connect(self.set_labels)
 
         with open(resource_path('styles/config_options.qss'), 'r') as f:
             style = f.read()
@@ -51,8 +54,12 @@ class ConfigOptions(QWidget):
 
         self.edit_btn = QPushButton("Edit")
         self.save_btn = QPushButton("Save")
+        self.clone_btn = QPushButton("Clone event")
+        self.create_session_btn = QPushButton("New session")
+
         self.start_btn = QPushButton("Start tracking")
         self.stop_btn = QPushButton("Stop tracking")
+
         self.practice_cb = QCheckBox(text="Practice")
         self.lbl_return_to_grg = QLabel("Please return to garage!")
         self.practice_cb.setFont(font_cb)
@@ -60,14 +67,21 @@ class ConfigOptions(QWidget):
 
         btn_layout = QHBoxLayout()
         btn_tracking_layout = QVBoxLayout()
-        btn_tracking_layout.setSpacing(4)
-        btn_layout.addWidget(self.edit_btn, alignment=Qt.AlignmentFlag.AlignTop)
-        btn_layout.addWidget(self.save_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.setSpacing(8)
 
-        btn_tracking_layout.addWidget(self.start_btn)
-        btn_tracking_layout.addWidget(self.stop_btn)
-        btn_tracking_layout.addWidget(self.practice_cb, alignment=Qt.AlignmentFlag.AlignHCenter)
-        btn_tracking_layout.addWidget(self.lbl_return_to_grg, alignment=Qt.AlignmentFlag.AlignHCenter)
+        btn_layout_save_clone = QVBoxLayout()
+        btn_layout_save_clone.addWidget(self.edit_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.save_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.clone_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.create_session_btn, alignment=Qt.AlignmentFlag.AlignTop)
+
+        btn_layout.addLayout(btn_layout_save_clone)
+
+        btn_tracking_layout.addWidget(self.start_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addWidget(self.stop_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addWidget(self.practice_cb, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addWidget(self.lbl_return_to_grg, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addStretch()
         self.lbl_return_to_grg.hide()
         btn_layout.addLayout(btn_tracking_layout)
         btn_layout.setSpacing(8)
@@ -75,6 +89,8 @@ class ConfigOptions(QWidget):
         self.edit_btn.clicked.connect(self.toggle_edit)
         self.save_btn.clicked.connect(self.toggle_edit)
         self.save_btn.clicked.connect(self.save_config)
+        self.clone_btn.clicked.connect(self.clone_event)
+        self.create_session_btn.clicked.connect(self.create_session)
 
         self.stop_btn.clicked.connect(self.toggle_track)
         self.start_btn.clicked.connect(self.toggle_track)
@@ -83,6 +99,12 @@ class ConfigOptions(QWidget):
         root_layout = QVBoxLayout(frame)
         root_layout.setContentsMargins(0,0,16,0)
         root_layout.setSpacing(32)
+        root_layout.addWidget(
+            self.create_row("event_name", "Event name", "Name of the endurance race", 0, self.event.get('name'))
+            )
+        root_layout.addWidget(
+            self.create_row("session_name", "Session name", "Name of this specific session", 0, self.session.get('name'))
+            )
         root_layout.addWidget(
             self.create_row("tires", "Starting tires", "How many tires at start of event", 54, self.event.get('tires'))
             )
@@ -97,6 +119,14 @@ class ConfigOptions(QWidget):
 
     def set_labels(self):
         self.event = get_event(self.selection_model.event_id)
+        self.session = get_session(self.selection_model.session_id)
+
+        self.inputs['event_name'].setText(self.event['name'])
+        if not self.session:
+            self.session = list(get_sessions(self.event['_id']))[-1]
+            self.selection_model.set_session(self.session['_id'], self.session['name'])
+
+        self.inputs['session_name'].setText(self.session['name'])
         self.inputs['tires'].setText(self.event['tires'])
         self.inputs['length'].setText(self.event['length'])
 
@@ -149,16 +179,29 @@ class ConfigOptions(QWidget):
 
         # Input box
         input = QLineEdit(text)
-        input.setFixedWidth(input_width)
+        
+        if input_width:
+            input.setFixedWidth(input_width)
+
+        input.setSizePolicy(
+            QSizePolicy.Policy.Expanding,  # width adjusts to minimum needed
+            QSizePolicy.Policy.Minimum   # height adjusts to fit content
+        )
+        
         input.setFixedHeight(40)
         input.setFont(font_input)
-        input.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
         input.setReadOnly(True)
         self.inputs[id] = input
 
         main_box.addWidget(title_label)
         main_box.addWidget(hint_label)
-        main_box.addWidget(input, alignment=Qt.AlignmentFlag.AlignRight)
+        if input_width:
+            input.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+            main_box.addWidget(input, alignment=Qt.AlignmentFlag.AlignRight)
+        else:
+            input.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+            main_box.addWidget(input, stretch=1)
+
 
         return card
 
@@ -200,6 +243,7 @@ class ConfigOptions(QWidget):
         # Edit is clicked
         if self.save_btn.isHidden():
             self.edit_btn.hide()
+            self.clone_btn.hide()
             self.save_btn.show()
             for child in self.findChildren(QLineEdit):
                 child.setReadOnly(False)
@@ -209,6 +253,7 @@ class ConfigOptions(QWidget):
                 )
         else:
             self.save_btn.hide()
+            self.clone_btn.show()
             self.edit_btn.show()
             for child in self.findChildren(QLineEdit):
                 child.setReadOnly(True)
@@ -276,16 +321,24 @@ class ConfigOptions(QWidget):
                     self.lbl_return_to_grg.hide()
 
     def save_config(self):
-        query = { "_id": ObjectId(self.selection_model.event_id) }
+        event_query = { "_id": ObjectId(self.selection_model.event_id) }
+        session_query = { "_id": ObjectId(self.selection_model.session_id) }
 
         tires = self.inputs['tires'].text()
         length = self.inputs['length'].text()
-        doc = { "$set":{
+        event_name = self.inputs['event_name'].text()
+        session_name = self.inputs['session_name'].text()
+        event_doc = { "$set":{
+            "name": event_name,
             "tires": tires,
             "length": length
         }}
+        session_doc = { "$set":{
+            "name": session_name,
+        }}
 
-        events_col.update_one(query, doc)
+        events_col.update_one(event_query, event_doc)
+        sessions_col.update_one(session_query, session_doc)
         self.table_model.update_data()
 
         drivers = []
@@ -293,3 +346,32 @@ class ConfigOptions(QWidget):
             drivers.append(line_edit.text())
 
         update_drivers(self.team['_id'], drivers)
+
+    def clone_event(self):
+        event = get_event(self.selection_model.event_id)
+        del event['_id']
+        event['name'] = event['name'] + " - Clone"
+        event_created  = create_event(event)
+
+        session = {
+            "race_id": event_created.inserted_id,
+            "name": "practice"
+        }
+
+        session_created = create_session(session)
+        event = get_event(event_created.inserted_id)
+        session = get_session(session_created.inserted_id)
+
+        self.selection_model.set_event(event['_id'], event['name'])
+        self.selection_model.set_session(session['_id'], session['name'])
+
+    def create_session(self):
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        session_name = "Practice - " + now
+
+        session_doc = {
+            "race_id": ObjectId(self.selection_model.event_id),
+            "name": session_name
+        }
+        session = create_session(session_doc)
+        self.selection_model.set_session(session.inserted_id, session_doc['name'])

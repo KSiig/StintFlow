@@ -54,27 +54,25 @@ class NavigationMenu(QWidget):
         root_widget_layout = QVBoxLayout(self)   
         root_widget_layout.addWidget(frame)
 
-        nav_box = QVBoxLayout(frame)
-        nav_box.setSpacing(24)
-        session_picker = SessionPicker(models)
+        self.nav_box = QVBoxLayout(frame)
+        self.nav_box.setSpacing(24)
+        self.session_picker = SessionPicker(models)
 
         stint_tracking_layout = self.create_layout_box("Stint tracking")
-        # stint_tracking_layout = create_layout_box("Stint tracking")
         stint_tracking_layout.addWidget(self.create_row('fa6s.chart-line', 'Overview', font_small_text, OverviewMainWindow))
         stint_tracking_layout.addWidget(self.create_row('fa6s.chart-bar', 'Config', font_small_text, ConfigMainWindow))
         stint_tracking_layout.addWidget(self.create_row('fa6s.chess-board', 'Strategies', font_small_text, StrategiesMainWindow))
-        # stint_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
 
-        # test_tracking_layout = create_layout_box("Stint tracking")
-        # test_tracking_layout.addWidget(create_row('fa6s.chart-bar', 'Tracking', font_small_text))
-        # test_tracking_layout.addWidget(create_row('fa6s.chart-line', 'ing', font_small_text))
-        # test_tracking_layout.addWidget(create_row('fa6s.chart-line', 'iasdfadfafadd adsfa ang', font_small_text))
+        self.nav_box.addLayout(stint_tracking_layout)
+        self.nav_box.addStretch()
 
-        nav_box.addLayout(stint_tracking_layout)
-        # nav_box.addLayout(test_tracking_layout)
-        nav_box.addStretch()
+        self.nav_box.addWidget(self.session_picker)
+        self.selection_model.eventChanged.connect(self.update_event_selection)
+        self.selection_model.sessionChanged.connect(self.update_event_selection)
 
-        nav_box.addWidget(session_picker)
+    def update_event_selection(self):
+        self.session_picker.reload()
+
 
     # Helper: add a nav row AND create the window in the stack
     def add_nav_row(self, layout, icon, text, font, window_cls):

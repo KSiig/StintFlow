@@ -1,4 +1,5 @@
 from PyQt6.QtCore import QObject, pyqtSignal
+from bson import ObjectId
 
 class SelectionModel(QObject):
     eventChanged = pyqtSignal(object, object)
