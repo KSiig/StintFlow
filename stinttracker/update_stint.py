@@ -5,6 +5,7 @@ from helpers.stinttracker import *
 from helpers.db import *
 import math
 import time
+from .tires import get_tire_wear, get_tire_compound, get_tire_mgmt
 
 updating = False
 num_penalties = 0
@@ -13,6 +14,7 @@ recording = False
 stints = []
 prev_time = "00:00:00"
 driver_name = ""
+tires_coming_in = {}
 
 def update_stint(telemetry, scoring, tracking_data):
   global updating
@@ -23,9 +25,10 @@ def update_stint(telemetry, scoring, tracking_data):
   global stints
   global prev_time
   global driver_name
+  global tires_coming_in
 
   is_practice = tracking_data['is_practice']
-
+  tracking_data['tire_mgmt_data'] = get_tire_mgmt()
 
   # Find either length of event or latest `pit_end_time`
   if is_practice and not stints:
@@ -43,7 +46,34 @@ def update_stint(telemetry, scoring, tracking_data):
   player_vehicle_scoring, driver_name_cur = find_scoring_vehicle(telemetry, scoring, tracking_data['drivers'])
   if get_pit_state(player_vehicle_scoring) == PITSTATE['coming_in'].value:
     driver_name = driver_name_cur
+    tires_coming_in = {
+      "fl": {
+        "wear": get_tire_wear(player_vehicle, "fl"),
+        "flat": player_vehicle.mWheels[0].mFlat,
+        "detached": player_vehicle.mWheels[0].mDetached,
+        "compound": get_tire_compound("fl", tracking_data['tire_mgmt_data'])
+      },
+      "fr": {
+        "wear": get_tire_wear(player_vehicle, "fr"),
+        "flat": player_vehicle.mWheels[1].mFlat,
+        "detached": player_vehicle.mWheels[1].mDetached,
+        "compound": get_tire_compound("fr", tracking_data['tire_mgmt_data'])
+      },
+      "rl": {
+        "wear": get_tire_wear(player_vehicle, "rl"),
+        "flat": player_vehicle.mWheels[2].mFlat,
+        "detached": player_vehicle.mWheels[2].mDetached,
+        "compound": get_tire_compound("rl", tracking_data['tire_mgmt_data'])
+      },
+      "rr": {
+        "wear": get_tire_wear(player_vehicle, "rr"),
+        "flat": player_vehicle.mWheels[3].mFlat,
+        "detached": player_vehicle.mWheels[3].mDetached,
+        "compound": get_tire_compound("rr", tracking_data['tire_mgmt_data'])
+      },
+    }
   tracking_data['driver_name'] = driver_name
+  tracking_data['tires_coming_in'] = tires_coming_in
       
   if is_practice and not recording:
     while not is_in_garage(player_vehicle_scoring):
@@ -58,6 +88,7 @@ def update_stint(telemetry, scoring, tracking_data):
     print("__info__:stint_tracker:player_in_garage")
     updating = True
     remaining_time_out_of_pits = get_remaining_time(scoring)
+    
       
   # If pit stop has just ended, proceed to update
   if (not updating 

@@ -103,7 +103,8 @@ class MainTab(QWidget):
         return btn
 
     def create_strategy(self):
-        sanitized_data = sanitize_stints(self.table_model.get_all_data())
+        row_data, tire_data = self.table_model.get_all_data()
+        sanitized_data = sanitize_stints(row_data, tire_data)
         strategy = {
             "session_id": ObjectId(self.selection_model.session_id),
             "name": self.inputs['strategy_name'].text(),

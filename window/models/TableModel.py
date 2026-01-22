@@ -5,14 +5,16 @@ from helpers.stinttracker import get_stints, get_event
 from helpers import stints_to_table, resource_path
 import json
 import copy
+from .TableRoles import TableRoles
 
 class TableModel(QAbstractTableModel):
     editorsNeedRefresh = pyqtSignal()
-    def __init__(self, selection_model, headers, data = []):
+    def __init__(self, selection_model, headers, data = [], tires = []):
         super().__init__()
         self.selection_model = selection_model
         if data:
             self._data = data
+            self._tires = tires
         else:
             self.set_data()
         self.headers = headers
@@ -22,15 +24,16 @@ class TableModel(QAbstractTableModel):
         return TableModel(
             selection_model=self.selection_model,
             headers=copy.deepcopy(self.headers),
-            data=copy.deepcopy(self._data)
+            data=copy.deepcopy(self._data),
+            tires=copy.deepcopy(self._tires),
         )
 
-    def update_data(self, data = ""):
+    def update_data(self, data = "", tires = ""):
         self.beginResetModel()
-        self.set_data(data)
+        self.set_data(data, tires)
         self.endResetModel()
     
-    def set_data(self, data = ""):
+    def set_data(self, data = "", tires = ""):
         if not data:
             event = get_event(self.selection_model.event_id)
             if event:
@@ -41,10 +44,12 @@ class TableModel(QAbstractTableModel):
                 starting_time = "00:00:00"
             
             stints = list(get_stints(self.selection_model.session_id))
+            self._tires = [stint["tire_data"] for stint in stints]
             self._data = stints_to_table(stints, tires, starting_time)
             self.repaint_table()
         else:
             self._data = data
+            self._tires = tires
             self.repaint_table()
 
     def recalc_tires_left(self):
@@ -57,48 +62,6 @@ class TableModel(QAbstractTableModel):
 
         self.recalc_stint_types()
 
-    # def recalc_tires_changed(self, index, change_in_stints, old_value, diff_in_stints):
-    #     row = index.row()
-    #     next_row = row + 1
-
-    #     print("change_in_stints", change_in_stints)
-
-    #     old_column = [row[4] for row in self._data]
-    #     total_rows = self.rowCount()
-
-    #     if change_in_stints:
-    #         if old_value == "Single":
-    #             self._data[row][4] = "0"
-    #         else:
-    #             for i in range(change_in_stints):
-    #                 print("i: ", i)
-    #                 print("next_row: ", next_row)
-    #                 print("old_value", old_value)
-    #                 self._data[next_row + i][4] = "0"
-
-    #     for i, row in enumerate(self._data):
-    #         print(i, row[4])
-
-    #     print("diff_in_stints: ", diff_in_stints)
-
-    #     if diff_in_stints > 1:
-    #         starting_range = next_row + diff_in_stints
-    #     else:
-    #         starting_range = next_row
-    #     for i in range(starting_range, total_rows):
-    #         src_index = i - change_in_stints + 1  # Where to copy from
-    #         print("i: ", i)
-    #         print("src_index: ", src_index)
-
-    #         if 0 <= src_index < total_rows:
-    #             # Shift value
-    #             self._data[i][4] = old_column[src_index]
-    #         else:
-    #             # Out of bounds -> reset to "0"
-    #             self._data[i][4] = "0"
-
-    #     self.recalc_tires_left()
-
     def recalc_tires_changed(self, index, old_value):
         row = index.row()
         total_rows = self.rowCount()
@@ -107,36 +70,109 @@ class TableModel(QAbstractTableModel):
         new_len = self.get_stint_len(self._data[row][0])
         delta = new_len - old_len
 
-        # 1. Snapshot existing tire change positions
-        old_tc_rows = [
-            i for i, r in enumerate(self._data)
-            if int(r[4]) > 0
+        # Snapshot current tire changes
+        old_tire_changes = [
+            {"row": i, "value": self._data[i][4], "tires": self._tires[i]}
+            for i in range(total_rows) if int(self._data[i][4]) > 0
         ]
 
-        # 2. Clear all tire changes
+        # Clear all tire changes (we'll rebuild)
         for r in range(total_rows):
             self._data[r][4] = "0"
+            self._tires[r] = self.get_tire_dict(False)
 
-        # 3. Re-apply tire changes
-        for tc_row in old_tc_rows:
-            # Tire change belonging to edited stint → recompute
-            if row <= tc_row < row + old_len:
-                new_tc = min(row + new_len - 1, total_rows - 1)
-            # Downstream tire change → shift
-            elif tc_row >= row + old_len:
-                new_tc = tc_row + delta
-            # Upstream → untouched
+        # Re-apply tire changes
+        for tc in old_tire_changes:
+            old_row = tc["row"]
+
+            if row <= old_row < row + old_len:
+                # Tire change belongs to the edited stint → move to new end of stint
+                new_row = min(row + new_len - 1, total_rows - 1)
+            elif old_row >= row + old_len:
+                # Downstream tire change → shift by delta
+                new_row = old_row + delta
             else:
-                new_tc = tc_row
+                # Upstream → stays the same
+                new_row = old_row
 
-            if 0 <= new_tc < total_rows:
-                self._data[new_tc][4] = "4"
+            # Only apply if within bounds
+            if 0 <= new_row < total_rows:
+                self._data[new_row][4] = tc["value"]
+                self._tires[new_row] = tc["tires"]
 
-        # 4. FORCE tire change for edited stint (this fixes last-stint issue)
-        forced_tc = min(row + new_len - 1, total_rows - 1)
-        self._data[forced_tc][4] = "4"
+        # Force tire change at the end of the edited stint
+        forced_tc_row = min(row + new_len - 1, total_rows - 1)
+        self._data[forced_tc_row][4] = "4"
+        self._tires[forced_tc_row] = self.get_tire_dict(True)
 
+        # Recalculate tires left
         self.recalc_tires_left()
+
+    def get_tire_dict(self, tire_changed):
+        return {
+            "fr": {
+                "incoming": {
+                "wear": 0.95,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                },
+                "outgoing": {
+                "wear": 1,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                }
+            },
+            "fl": {
+                "incoming": {
+                "wear": 0.97,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                },
+                "outgoing": {
+                "wear": 1,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                }
+            },
+            "rl": {
+                "incoming": {
+                "wear": 0.94,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                },
+                "outgoing": {
+                "wear": 1,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                }
+            },
+            "rr": {
+                "incoming": {
+                "wear": 0.93,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                },
+                "outgoing": {
+                "wear": 1,
+                "flat": False,
+                "detached": False,
+                "compound": "Medium"
+                }
+            },
+            "tires_changed": {
+                "fl": tire_changed,
+                "fr": tire_changed,
+                "rl": tire_changed,
+                "rr": tire_changed
+            }
+        }
 
     def get_stint_len(self, stint_type):
         if not stint_type:
@@ -177,16 +213,30 @@ class TableModel(QAbstractTableModel):
             row[0] = stint_type
 
         self.editorsNeedRefresh.emit()
+        self.dataChanged.emit(
+            self.index(0, 0),
+            self.index(self.rowCount() - 1, 6),
+            [Qt.ItemDataRole.DisplayRole, TableRoles.TiresRole]
+        )
         self.repaint_table()
     
     def setData(self, index, value, role = Qt.ItemDataRole.EditRole):
-        if not index.isValid() or role != Qt.ItemDataRole.EditRole:
+        if not index.isValid() or role not in (
+            Qt.ItemDataRole.EditRole,
+            TableRoles.TiresRole,
+        ):
             return False
 
         row, col = index.row(), index.column()
 
-        # Update your underlying data
-        self._data[row][col] = value
+        if role == Qt.ItemDataRole.EditRole:
+            # Update your underlying data
+            self._data[row][col] = value
+
+        elif role == TableRoles.TiresRole:
+            self._tires[row] = value
+            tires_changed = sum(value['tires_changed'].values())
+            self._data[row][4] = tires_changed
 
         # Notify the view that the cell has changed
         self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole])
@@ -220,7 +270,13 @@ class TableModel(QAbstractTableModel):
             return Qt.ItemFlag.NoItemFlags
 
     def data(self, index, role):
+        if not index.isValid():
+            return None
         font_text_table_cell = get_fonts(FONT.text_table_cell)
+
+        row = index.row()
+        col = index.column()
+
         if role == Qt.ItemDataRole.DisplayRole:
             # See below for the nested-list data structure.
             # .row() indexes into the outer list,
@@ -234,8 +290,12 @@ class TableModel(QAbstractTableModel):
         #   if index.column() == 1:
             return Qt.AlignmentFlag.AlignHCenter + Qt.AlignmentFlag.AlignVCenter
 
+        if role == TableRoles.TiresRole:
+            return self._tires[row]
+
+
     def get_all_data(self):
-        return self._data
+        return self._data, self._tires
 
     def rowCount(self, parent=QModelIndex()):
         # The `index` argument is not used for table models.

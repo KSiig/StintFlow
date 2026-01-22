@@ -28,7 +28,8 @@ def stints_to_table(stints, starting_tires, starting_time):
         stint_time = dt1 - dt2
         stint_times.append(stint_time)
 
-        tires_changed = int(stint.get("tires_changed"))
+        tire_data = stint.get('tire_data')
+        tires_changed = sum(tire_data['tires_changed'].values())
         tires_left = tires_left - tires_changed
 
         stint_amounts = i - start_of_stint
@@ -50,7 +51,7 @@ def stints_to_table(stints, starting_tires, starting_time):
             stint.get("driver"),
             "Completed ✅",
             stint.get("pit_end_time"),
-            tires_changed,
+            str(tires_changed),
             tires_left,
             stint_time
         ])
@@ -59,7 +60,8 @@ def stints_to_table(stints, starting_tires, starting_time):
     mean_stint_time = calc_mean_stint_time(stint_times)
 
     if prev_stint:
-        while not is_last_stint(prev_stint.get('pit_end_time'), timedelta_to_time(mean_stint_time)):
+        break_next = False
+        while True:
             t1 = datetime.strptime(prev_stint.get('pit_end_time'), "%H:%M:%S").time()
             t2 = timedelta_to_time(mean_stint_time)
 
@@ -75,7 +77,8 @@ def stints_to_table(stints, starting_tires, starting_time):
             # Get the time part again
             t1_minus = dt_minus.time()
             prev_stint['pit_end_time'] = str(t1_minus)
-            tires_changed = int(stint.get("tires_changed"))
+            tire_data = stint.get('tire_data')
+            tires_changed = sum(tire_data['tires_changed'].values())
             tires_left = tires_left - tires_changed
         
 
@@ -89,6 +92,17 @@ def stints_to_table(stints, starting_tires, starting_time):
                 mean_stint_time
             ])
             prev_stint = stint
+
+            # break exactly ONE iteration AFTER this becomes true
+            if break_next:
+                break
+
+            # do–while condition check at the END
+            if is_last_stint(
+                prev_stint.get('pit_end_time'),
+                timedelta_to_time(mean_stint_time)
+            ):
+                break_next = True
     else:
         print("No stint exists")
 

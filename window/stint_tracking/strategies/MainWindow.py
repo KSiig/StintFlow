@@ -55,7 +55,7 @@ class MainWindow(QWidget):
 
 
     def create_tab(self, strategy, models):
-        first_stint = strategy['model_data']
+        first_stint = strategy['model_data']['rows']
         strategy_data = mongo_docs_to_rows(first_stint)
         table_model = self.table_model.clone()
         tracker_models = {
@@ -76,7 +76,7 @@ class MainWindow(QWidget):
 
         layout = QVBoxLayout()
         tab.setLayout(layout)
-        tracker_models['table_model'].update_data(strategy_data)
+        tracker_models['table_model'].update_data(strategy_data, strategy['model_data']['tires'])
         layout.addWidget(stint_tracker)
         for row in range(stint_tracker.table.model().rowCount()):
             index = stint_tracker.table.model().index(row, 0)  # 0 = stint_type column

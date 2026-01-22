@@ -55,5 +55,6 @@ class StintTypeCombo(QStyledItemDelegate):
 
         model.setData(index, new_value)
         model.recalc_tires_changed(index, old_value)
-        sanitized_data = sanitize_stints(model.get_all_data())
+        row_data, tire_data = model.get_all_data()
+        sanitized_data = sanitize_stints(row_data, tire_data)
         update_strategy(self.strategy_id, sanitized_data)

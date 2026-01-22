@@ -1,7 +1,9 @@
 from datetime import timedelta
+import json
 
-def sanitize_stints(rows):
-    sanitized = []
+def sanitize_stints(rows, tires):
+    sanitized_rows = []
+    sanitized_tires = []
 
     for row in rows:
         stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time = row
@@ -16,9 +18,21 @@ def sanitize_stints(rows):
             "stint_time_seconds": int(stint_time.total_seconds()) if isinstance(stint_time, timedelta) else int(stint_time),
         }
 
-        sanitized.append(doc)
+        sanitized_rows.append(doc)
 
-    return sanitized
+    last_tire_set = 0
+    for i in range(len(rows)):
+        tire = tires[i] if i < len(tires) else None
+        if tire:
+            sanitized_tires.append(tires[i])
+            last_tire_set = i
+        else:
+            sanitized_tires.append(tires[last_tire_set])
+
+    return {
+        "rows": sanitized_rows,
+        "tires": sanitized_tires
+    }
 
 def normalize_time(t: str) -> str:
     parts = [int(p) for p in t.split(":")]

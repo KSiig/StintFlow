@@ -17,3 +17,7 @@ QTableView QTableCornerButton::section {
 QTableView::item {
   border-bottom: 1px solid #E0E0E0;
 }
+
+QPushButton#TirePicker {
+  /* background-color: red; */
+}
