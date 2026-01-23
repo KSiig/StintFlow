@@ -54,11 +54,16 @@ class TableModel(QAbstractTableModel):
 
     def recalc_tires_left(self):
         event = get_event(self.selection_model.event_id)
-        remaining_tires = event['tires']
-        for row in self._data:
-            tires_changed = row[4]
-            row[5] = int(remaining_tires) - int(tires_changed)
-            remaining_tires = row[5]
+        tires_left = int(event['tires'])
+        for i, row in enumerate(self._data):
+
+            for tire in ["fl", "fr", "rl", "rr"]:
+                is_tire_changed = self._tires[i]['tires_changed'][tire]
+                compound = self._tires[i][tire]['outgoing']['compound'].lower()
+
+                if is_tire_changed and compound == 'medium':
+                    tires_left -= 1
+            row[5] = tires_left
 
         self.recalc_stint_types()
 

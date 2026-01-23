@@ -29,8 +29,19 @@ def stints_to_table(stints, starting_tires, starting_time):
         stint_times.append(stint_time)
 
         tire_data = stint.get('tire_data')
-        tires_changed = sum(tire_data['tires_changed'].values())
-        tires_left = tires_left - tires_changed
+        tires_changed = 0
+        for tire in ["fl", "fr", "rl", "rr"]:
+            is_tire_changed = tire_data['tires_changed'][tire]
+            compound = tire_data[tire]['outgoing']['compound'].lower()
+
+            if is_tire_changed and compound == 'medium':
+                tires_changed += 1
+                tires_left -= 1
+            else:
+                tires_changed += 1
+
+        # tires_changed = sum(tire_data['tires_changed'].values())
+        # tires_left = tires_left - tires_changed
 
         stint_amounts = i - start_of_stint
         stint_type = get_stint_type(stint_amounts + 1)
@@ -78,8 +89,20 @@ def stints_to_table(stints, starting_tires, starting_time):
             t1_minus = dt_minus.time()
             prev_stint['pit_end_time'] = str(t1_minus)
             tire_data = stint.get('tire_data')
-            tires_changed = sum(tire_data['tires_changed'].values())
-            tires_left = tires_left - tires_changed
+            tires_changed = 0
+            for tire in ["fl", "fr", "rl", "rr"]:
+                is_tire_changed = tire_data['tires_changed'][tire]
+                compound = tire_data[tire]['outgoing']['compound'].lower()
+
+                if is_tire_changed and compound == 'medium':
+                    tires_changed += 1
+                    tires_left -= 1
+                else:
+                    tires_changed += 1
+
+
+            # tires_changed = sum(tire_data['tires_changed'].values())
+            # tires_left = tires_left - tires_changed
         
 
             rows.append([

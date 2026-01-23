@@ -81,16 +81,20 @@ class TireComboDelegate(QStyledItemDelegate):
     def setEditorData(self, editor, index):
         editor.blockSignals(True)
         self.tires_changed = index.data()
-        # editor.setCurrentText(str(index.data()))
         self.update_btn(editor.btn, index)
         editor.blockSignals(False)
 
     def setModelData(self, editor, model, index):
         values = editor.popup.values()
-        values_lowered = {k.lower(): v for k, v in values.items()}
+        values_lowered = {k.lower(): v.lower() for k, v in values.items()}
         old_value = model.data(index, TableRoles.TiresRole)
         new_value = copy.deepcopy(old_value)
-        new_value['tires_changed'] = values_lowered
+        # new_value['tires_changed'] = values_lowered
+
+        for tire, compound in values_lowered.items():
+            new_value['tires_changed'][tire] = bool(compound)
+            if compound:
+                new_value[tire.lower()]['outgoing']['compound'] = compound
 
         if new_value == old_value:
             return  # ← prevents duplicate trigger
@@ -103,7 +107,6 @@ class TireComboDelegate(QStyledItemDelegate):
 
     def update_btn(self, btn, index):
         tire_data = index.data(TableRoles.TiresRole)
-        # print("tire_data: ", tire_data)
         if tire_data:
             tires_changed = sum(tire_data['tires_changed'].values())
         else:
@@ -129,16 +132,21 @@ class TirePopup(QWidget):
         btn_wet.setIcon(QIcon(resource_path('resources/tire_icons/wet.png')))
 
         btn_x.clicked.connect(lambda: self.set_all_tires(None))
-        btn_medium.clicked.connect(lambda: self.set_all_tires("mediums"))
-        btn_wet.clicked.connect(lambda: self.set_all_tires("wets"))
+        btn_medium.clicked.connect(lambda: self.set_all_tires("medium"))
+        btn_wet.clicked.connect(lambda: self.set_all_tires("wet"))
 
         for btn in (btn_medium, btn_wet, btn_x):
             btn.setFixedSize(SIZE_BTN)
             btn.setIconSize(SIZE_ICON)
 
-        layout.addWidget(btn_x, 0, 0)
-        layout.addWidget(btn_medium, 0, 1)
-        # layout.addWidget(btn_wet, 0, 2)
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(0)
+
+        btn_layout.addWidget(btn_x)
+        btn_layout.addWidget(btn_medium)
+        btn_layout.addWidget(btn_wet)
+
+        layout.addLayout(btn_layout, 0, 1)
 
         self.boxes = {}
         for i, tire in enumerate(["FL", "FR", "RL", "RR"]):
@@ -146,8 +154,9 @@ class TirePopup(QWidget):
             col = (i % 2) * 2 # 0, 2 (label + checkbox)
 
             label = QLabel(tire)
-            cb = QCheckBox()
-            cb.clicked.connect(lambda _: self.dataChanged.emit())
+            cb = QComboBox()
+            cb.addItems(["", "Medium", "Wet", "Used medium", "Used wet"])
+            cb.currentIndexChanged.connect(lambda _: self.dataChanged.emit())
 
             layout.addWidget(label, row, col)
             layout.addWidget(cb, row, col + 1)
@@ -158,14 +167,24 @@ class TirePopup(QWidget):
         for tire, _ in self.boxes.items():
             if tire in self.boxes:
                 tire_changed = data['tires_changed'][tire.lower()]
-                self.boxes[tire].setChecked(tire_changed)
+                tire_compound = data[tire.lower()]['outgoing']['compound'].capitalize()
+                index = self.boxes[tire].findText(tire_compound)
+                if tire_changed:
+                    index = self.boxes[tire].findText(tire_compound)
+                    self.boxes[tire].setCurrentIndex(index)
+                else:
+                    self.boxes[tire].setCurrentIndex(0)
+
 
     def values(self):
-        return {k: v.isChecked() for k, v in self.boxes.items()}
+        return {k: v.currentText() for k, v in self.boxes.items()}
 
-    def set_all_tires(self, tires):
+    def set_all_tires(self, compound):
         for tire, _ in self.boxes.items():
             if tire in self.boxes:
-                tire_changed = bool(tires)
-                self.boxes[tire].setChecked(tire_changed)
+                if compound:
+                    index = self.boxes[tire].findText(compound.capitalize())
+                    self.boxes[tire].setCurrentIndex(index)
+                else:
+                    self.boxes[tire].setCurrentIndex(0)
                 self.dataChanged.emit()
