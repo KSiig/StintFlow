@@ -7,6 +7,7 @@ from .get_event import get_event
 from .get_session import get_session
 from .create_event import create_event
 from .create_session import create_session
+from .update_stint import update_stint
 
 # __all__ = [
 #   "get_active_event",

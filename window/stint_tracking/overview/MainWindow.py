@@ -25,5 +25,5 @@ class MainWindow(QWidget):
 
         main_window = QVBoxLayout(self)
 
-        stint_tracker = StintTracker(models)
+        stint_tracker = StintTracker(models, allow_editors=True)
         main_window.addWidget(stint_tracker)

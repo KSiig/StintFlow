@@ -17,7 +17,7 @@ from PyQt6.QtCore import Qt
 from helpers.strategies import sanitize_stints, update_strategy
 
 class StintTypeCombo(QStyledItemDelegate):
-    def __init__(self, parent=None, update_doc=False, strategy_id=""):
+    def __init__(self, parent=None, update_doc=False, strategy_id=None):
         super().__init__(parent)
         self.update_doc = update_doc
         self.strategy_id = strategy_id
@@ -55,6 +55,9 @@ class StintTypeCombo(QStyledItemDelegate):
 
         model.setData(index, new_value)
         model.recalc_tires_changed(index, old_value)
-        row_data, tire_data = model.get_all_data()
-        sanitized_data = sanitize_stints(row_data, tire_data)
-        update_strategy(self.strategy_id, sanitized_data)
+        if self.strategy_id:
+            row_data, tire_data = model.get_all_data()
+            sanitized_data = sanitize_stints(row_data, tire_data)
+            update_strategy(self.strategy_id, sanitized_data)
+        else:
+            print("not a strategy")

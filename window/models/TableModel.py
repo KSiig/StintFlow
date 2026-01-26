@@ -9,12 +9,13 @@ from .TableRoles import TableRoles
 
 class TableModel(QAbstractTableModel):
     editorsNeedRefresh = pyqtSignal()
-    def __init__(self, selection_model, headers, data = [], tires = []):
+    def __init__(self, selection_model, headers, data = [], tires = [], meta = []):
         super().__init__()
         self.selection_model = selection_model
         if data:
             self._data = data
             self._tires = tires
+            self._meta = meta
         else:
             self.set_data()
         self.headers = headers
@@ -45,7 +46,16 @@ class TableModel(QAbstractTableModel):
             
             stints = list(get_stints(self.selection_model.session_id))
             self._tires = [stint["tire_data"] for stint in stints]
+            self._meta = [
+                {"id": stint["_id"]}
+                for stint in stints
+            ]
             self._data = stints_to_table(stints, tires, starting_time)
+            for i, row in enumerate(self._data):
+                if i >= len(self._tires):
+                    self._tires.append(self.get_tire_dict(True))
+
+            self.recalc_stint_types()
             self.repaint_table()
         else:
             self._data = data
@@ -258,14 +268,28 @@ class TableModel(QAbstractTableModel):
         if self.rowCount() > 0 and self.columnCount() > 0:
             self.dataChanged.emit(topLeft, bottomRight, [])
 
-    def set_editable(self, editable):
+    def set_editable(self, editable, partial = False):
         self.editable = editable
+        self.partial = partial
 
     def flags(self, index):
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
 
-        if self.editable:
+        status_index = self.index(index.row(), 2)
+        status = self.data(status_index, Qt.ItemDataRole.DisplayRole)
+
+
+        if self.editable and self.partial:
+            if "Completed" in status:
+                return (
+                    Qt.ItemFlag.ItemIsSelectable |
+                    Qt.ItemFlag.ItemIsEnabled |
+                    Qt.ItemFlag.ItemIsEditable
+                )
+            else:
+                return Qt.ItemFlag.NoItemFlags
+        elif self.editable:
             return (
                 Qt.ItemFlag.ItemIsSelectable |
                 Qt.ItemFlag.ItemIsEnabled |
@@ -290,6 +314,9 @@ class TableModel(QAbstractTableModel):
 
         if role == Qt.ItemDataRole.FontRole:
             return font_text_table_cell
+
+        if role == TableRoles.MetaRole:
+            return self._meta[row]
 
         if role == Qt.ItemDataRole.TextAlignmentRole:
         #   if index.column() == 1:

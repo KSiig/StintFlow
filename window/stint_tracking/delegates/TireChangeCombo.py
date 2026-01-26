@@ -20,13 +20,14 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 from helpers import resource_path
+from helpers.stinttracker.races import update_stint
 from helpers.strategies import sanitize_stints, update_strategy
 from ...models import TableRoles
 import json
 import copy
 
 class TireComboDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None, update_doc=False, strategy_id=""):
+    def __init__(self, parent=None, update_doc=False, strategy_id=None):
         super().__init__(parent)
         self.update_doc = update_doc
         self.strategy_id = strategy_id
@@ -89,7 +90,6 @@ class TireComboDelegate(QStyledItemDelegate):
         values_lowered = {k.lower(): v.lower() for k, v in values.items()}
         old_value = model.data(index, TableRoles.TiresRole)
         new_value = copy.deepcopy(old_value)
-        # new_value['tires_changed'] = values_lowered
 
         for tire, compound in values_lowered.items():
             new_value['tires_changed'][tire] = bool(compound)
@@ -103,7 +103,12 @@ class TireComboDelegate(QStyledItemDelegate):
         model.recalc_tires_left()
         row_data, tire_data = model.get_all_data()
         sanitized_data = sanitize_stints(row_data, tire_data)
-        update_strategy(self.strategy_id, sanitized_data)
+        if self.strategy_id:
+            update_strategy(self.strategy_id, sanitized_data)
+        else:
+            stint_id = model.data(index, TableRoles.MetaRole)['id']
+            row = sanitized_data['tires'][index.row()]
+            update_stint(stint_id, row)
 
     def update_btn(self, btn, index):
         tire_data = index.data(TableRoles.TiresRole)

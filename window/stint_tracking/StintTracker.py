@@ -22,10 +22,11 @@ from window.models import TableModel
 from ..TitleBar import TitleBar
 from ..Fonts import FONT, get_fonts
 from ..models import NavigationModel, SelectionModel
+from .delegates import TireComboDelegate, StintTypeCombo
 
 class StintTracker(QWidget):
 
-    def __init__(self, models = {"selection_model": SelectionModel()}, focus = False, auto_update=True):
+    def __init__(self, models = {"selection_model": SelectionModel()}, focus = False, auto_update=True, allow_editors=False):
         super().__init__()
 
         self.selection_model = models['selection_model']
@@ -57,13 +58,13 @@ class StintTracker(QWidget):
             QSizePolicy.Policy.Minimum,
             QSizePolicy.Policy.Expanding
         )
-        # self.table.setMinimumWidth(self.table.horizontalHeader().length())
         if not focus:
             self.table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
             self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.table_model.update_data()
         self.refresh_table()      # initial load
-        self.table_model.editorsNeedRefresh.connect(self.refresh_editors)
+        if not allow_editors:
+            self.table_model.editorsNeedRefresh.connect(self.refresh_editors)
 
         vh = self.table.verticalHeader()
         self.table.verticalHeader().setStyleSheet(
@@ -109,6 +110,13 @@ class StintTracker(QWidget):
         # self.timer.start()  
         if auto_update:
             self.selection_model.sessionChanged.connect(self.refresh_table)
+
+        if allow_editors:
+            self.table.model().set_editable(True, True)
+            self.table.setItemDelegateForColumn(
+                4,
+                TireComboDelegate(self.table, update_doc=True)
+            )
 
     def refresh_editors(self):
         # Iterate through all rows in the column for stint_type
