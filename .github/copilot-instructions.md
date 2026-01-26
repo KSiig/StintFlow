@@ -52,10 +52,20 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 
 ### Code Organization & Style
 - **PEP 8 compliance**, descriptive naming, comments explaining "why" not "what"
+- **Private functions and methods**: Prefix with underscore (`_function_name`) to indicate they're only used internally
 - **Docstrings**: Include for all functions, classes, modules (module-level comments explaining file purpose)
 - **Inline comments**: Only for complex logic; explain reasoning and non-obvious behavior
 - **Readability over brevity**: Explicit, clear code preferred over clever one-liners
 - **Maintenance First**: Highest priority is easy understanding and modification
+
+**Logging Convention**: Use the `log()` and `log_exception()` functions from `core.errors` instead of `print()` statements
+- For regular logging: `log(level, message, category='component', action='specific_action')`
+  - Levels: `'DEBUG'`, `'INFO'`, `'WARNING'`, `'ERROR'`, `'CRITICAL'`
+  - Example: `log('DEBUG', 'Font loaded successfully', category='ui', action='setup_font')`
+- For exceptions: `log_exception(exception, 'Error description', category='component', action='specific_action')`
+  - Automatically includes full stack trace
+  - Example: `log_exception(e, 'Failed to load stylesheet', category='main', action='load_stylesheet')`
+- Structured logging ensures messages are written to both console and log file with proper timestamps and levels
 
 ### PyQt6 Patterns
 - **Signals/Slots**: Use PyQt6 signals for cross-component communication, NOT direct function calls

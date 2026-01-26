@@ -6,7 +6,7 @@ in the format used throughout the application. It determines appropriate
 recovery actions and logs errors appropriately.
 """
 
-from .log_error import log_error
+from .log_error import log
 
 
 # Registry of error handlers by category and action
@@ -52,13 +52,13 @@ def handle_error(event_string, **kwargs):
         handle_error("__error__:database:connection_failed", retry_count=3)
     """
     if not event_string or not event_string.startswith('__'):
-        log_error('WARNING', f"Invalid error event format: {event_string}")
+        log('WARNING', f"Invalid error event format: {event_string}")
         return False
     
     # Parse event string: __prefix__:category:action
     parts = event_string.split(':')
     if len(parts) < 3:
-        log_error('WARNING', f"Malformed error event: {event_string}")
+        log('WARNING', f"Malformed error event: {event_string}")
         return False
     
     prefix = parts[0].strip()
@@ -80,7 +80,7 @@ def handle_error(event_string, **kwargs):
         log_level = 'INFO'
     
     # Log the event
-    log_error(log_level, f"Event received: {action}", category=category, action=action)
+    log(log_level, f"Event received: {action}", category=category, action=action)
     
     # Also print in the original format for backward compatibility
     print(event_string)
@@ -91,15 +91,15 @@ def handle_error(event_string, **kwargs):
             handler = _error_handlers[category][action]
             result = handler(**kwargs)
             if result:
-                log_error('DEBUG', f"Handler for {category}:{action} executed successfully")
+                log('DEBUG', f"Handler for {category}:{action} executed successfully")
             else:
-                log_error('WARNING', f"Handler for {category}:{action} returned False")
+                log('WARNING', f"Handler for {category}:{action} returned False")
             return result
         except Exception as e:
             # Fail silently - log the exception but don't crash
-            log_error('ERROR', f"Error handler for {category}:{action} raised exception: {str(e)}")
+            log('ERROR', f"Error handler for {category}:{action} raised exception: {str(e)}")
             return False
     else:
         # No handler registered - this is okay, just log it
-        log_error('DEBUG', f"No handler registered for {category}:{action}")
+        log('DEBUG', f"No handler registered for {category}:{action}")
         return False

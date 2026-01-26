@@ -1,0 +1,94 @@
+"""
+Font definitions and utilities for the application UI.
+
+Provides a centralized FONT enum for typography definitions and the get_fonts()
+function for creating QFont instances with consistent styling.
+"""
+
+from enum import Enum
+from PyQt6.QtGui import QFontDatabase, QFont
+from core.utilities import resource_path
+from core.errors import log
+
+
+font_family = None
+
+
+class FONT(Enum):
+    """Typography definitions for different UI elements."""
+    title = {
+        "point_size": 16,
+        "weight": QFont.Weight.DemiBold
+    }
+    header_nav = {
+        "point_size": 14,
+        "weight": QFont.Weight.DemiBold
+    }
+    header_table = {
+        "point_size": 12,
+        "weight": QFont.Weight.DemiBold
+    }
+    header_input = {
+        "point_size": 12,
+        "weight": QFont.Weight.DemiBold
+    }
+    text_small = {
+        "point_size": 12,
+        "weight": QFont.Weight.Medium
+    }
+    text_table_cell = {
+        "point_size": 10,
+        "weight": QFont.Weight.Normal
+    }
+    header_input_hint = {
+        "point_size": 8,
+        "weight": QFont.Weight.Normal
+    }
+
+
+def get_fonts(typography):
+    """
+    Create a QFont instance for the given typography definition.
+    
+    Args:
+        typography (FONT): Typography enum value
+        
+    Returns:
+        QFont: Configured font with styling applied
+    """
+    global font_family
+
+    _load_fonts()
+
+    font_settings = typography.value
+    font = QFont(font_family)
+    font.setPointSize(font_settings['point_size'])
+    font.setWeight(font_settings['weight'])
+    font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+    font.setStyleStrategy(
+        QFont.StyleStrategy.PreferAntialias |
+        QFont.StyleStrategy.NoSubpixelAntialias
+    )
+
+    return font
+
+
+def _load_fonts():
+    """
+    Load application fonts from resources.
+    
+    Loads the Inter font family and sets the global font_family variable.
+    Only loads once; subsequent calls are no-ops.
+    """
+    global font_family
+    if not font_family:
+        font_id = QFontDatabase.addApplicationFont(
+            resource_path('resources/fonts/Inter-VariableFont_opsz,wght.ttf')
+        )
+        if font_id == -1:
+            log('ERROR', 'Failed to load font Inter', category='ui', action='load_fonts')
+        else:
+            # Get the family name
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            log('INFO', 'Font family loaded successfully', category='ui', action='load_fonts')
+            font_family = font_families[0]

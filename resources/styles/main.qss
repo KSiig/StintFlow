@@ -1,0 +1,25 @@
+QMainWindow, QWidget {
+  background-color: #FFFAFA;
+  color: #000;
+  font-family: Segoe UI;
+  /* border: 1px solid black; */
+}
+
+QScrollBar:horizontal, QScrollBar:vertical {
+    background: transparent;
+    border: none;
+}
+
+QScrollBar::handle {
+    background: #B0B0B0;
+    border-radius: 6px;
+}
+
+QScrollBar::sub-line, QScrollBar::add-line {
+    height: 0px;
+    width: 0px;
+}
+
+QComboBox {
+  color: #828282;
+}
