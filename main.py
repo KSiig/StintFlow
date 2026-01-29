@@ -29,10 +29,9 @@ def _setup_application_icon(app):
         app_icon = QIcon()
         icon_sizes = [
             ('resources/favicons/favicon-16x16.png', 16),
-            ('resources/favicons/favicon-24x24.png', 24),
             ('resources/favicons/favicon-32x32.png', 32),
-            ('resources/favicons/favicon-48x48.png', 48),
-            ('resources/favicons/favicon-256x256.png', 256),
+            ('resources/favicons/favicon-192x192.png', 192),
+            ('resources/favicons/favicon-512x512.png', 512),
         ]
         
         for icon_path, size in icon_sizes:

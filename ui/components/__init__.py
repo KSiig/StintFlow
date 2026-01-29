@@ -3,6 +3,6 @@ Barrel file for UI components.
 """
 
 from .MainWindow import MainWindow
-from .TitleBar import TitleBar
+from .DraggableArea import DraggableArea
 
-__all__ = ['MainWindow', 'TitleBar']
+__all__ = ['MainWindow', 'DraggableArea']

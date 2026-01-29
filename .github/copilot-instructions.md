@@ -57,6 +57,7 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 - **Inline comments**: Only for complex logic; explain reasoning and non-obvious behavior
 - **Readability over brevity**: Explicit, clear code preferred over clever one-liners
 - **Maintenance First**: Highest priority is easy understanding and modification
+- **Type Hints**: Use type hints for clarity, but **DO NOT use `Optional`**—use default values instead (e.g., `def foo(models: ModelContainer = None)` not `def foo(models: Optional[ModelContainer] = None)`)
 
 **Logging Convention**: Use the `log()` and `log_exception()` functions from `core.errors` instead of `print()` statements
 - For regular logging: `log(level, message, category='component', action='specific_action')`
@@ -69,6 +70,11 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 
 ### PyQt6 Patterns
 - **Signals/Slots**: Use PyQt6 signals for cross-component communication, NOT direct function calls
+- **Model Container Pattern**: Pass models to UI components using `ModelContainer` dataclass
+  - Defined in `ui/models/model_container.py`
+  - Example: `OverviewMainWindow(ModelContainer(selection_model=..., table_model=...))`
+  - Provides type safety, IDE autocomplete, and clear dependencies
+  - Component constructors accept `models: ModelContainer` parameter
 - **Table Models**: Extend `QAbstractTableModel` with custom roles (`TableRoles.py`)
   - Store display data (`_data`) and metadata (`_tires`, `_meta`) separately
   - Use `beginResetModel()`/`endResetModel()` for bulk updates
@@ -116,6 +122,7 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 - Python/PyQt6 best practices and common patterns
 - File organization and the "one function per file" principle
 - **Avoid shortcuts** that reduce lines at the cost of maintainability
+- **NEVER remove TODO comments**—they document future work and incomplete features; if implementing the TODO, update or replace it with the completion
 
 **Testing**: 
 - Write code to be testable (dependency injection, separation of concerns)

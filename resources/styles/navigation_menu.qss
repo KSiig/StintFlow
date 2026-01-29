@@ -1,3 +1,44 @@
+/* ============================================================
+   Navigation Menu Container
+   ============================================================ */
 QFrame#NavMenu {
-  border-right: 3px solid #E0E0E0;
+  background-color: #101f23;
+}
+
+/* ============================================================
+   Section Headers
+   ============================================================ */
+QLabel#NavMenuSectionLabel {
+  color: #D1D5DC;
+  background-color: #101f23;
+}
+
+/* ============================================================
+   Menu Items
+   ============================================================ */
+QWidget#MenuItem {
+  background-color: transparent;
+  border-radius: 4px;
+  padding: 80px;
+  margin-left: 40px;
+  margin-right: 16px;
+}
+
+/* Active state - highlighted with green background */
+QWidget#MenuItem[active="true"] {
+  background-color: #05fd7e;
+}
+
+/* Active state text - dark color for contrast on green background */
+QWidget#MenuItem[active="true"] QLabel {
+  color: #04080B;
+}
+
+/* Ensure children inherit transparent background */
+QWidget#MenuItem[active="true"] * {
+  background-color: transparent;
+}
+
+QWidget#MenuItem * {
+  background-color: transparent;
 }

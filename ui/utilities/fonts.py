@@ -17,7 +17,7 @@ font_family = None
 class FONT(Enum):
     """Typography definitions for different UI elements."""
     title = {
-        "point_size": 16,
+        "point_size": 15,
         "weight": QFont.Weight.DemiBold
     }
     header_nav = {
@@ -30,6 +30,10 @@ class FONT(Enum):
     }
     header_input = {
         "point_size": 12,
+        "weight": QFont.Weight.DemiBold
+    }
+    menu_section = {
+        "point_size": 10.5,
         "weight": QFont.Weight.DemiBold
     }
     text_small = {
@@ -62,7 +66,7 @@ def get_fonts(typography):
 
     font_settings = typography.value
     font = QFont(font_family)
-    font.setPointSize(font_settings['point_size'])
+    font.setPointSizeF(font_settings['point_size'])
     font.setWeight(font_settings['weight'])
     font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
     font.setStyleStrategy(
@@ -76,17 +80,17 @@ def get_fonts(typography):
 def _load_fonts():
     """
     Load application fonts from resources.
-    
-    Loads the Inter font family and sets the global font_family variable.
+
+    Loads the WorkSans font family and sets the global font_family variable.
     Only loads once; subsequent calls are no-ops.
     """
     global font_family
     if not font_family:
         font_id = QFontDatabase.addApplicationFont(
-            resource_path('resources/fonts/Inter-VariableFont_opsz,wght.ttf')
+            resource_path('resources/fonts/WorkSans-VariableFont_wght.ttf')
         )
         if font_id == -1:
-            log('ERROR', 'Failed to load font Inter', category='ui', action='load_fonts')
+            log('ERROR', 'Failed to load font WorkSans', category='ui', action='load_fonts')
         else:
             # Get the family name
             font_families = QFontDatabase.applicationFontFamilies(font_id)
