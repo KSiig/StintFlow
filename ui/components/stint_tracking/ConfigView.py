@@ -1,5 +1,5 @@
 """
-Configuration window for stint tracking.
+Configuration view for stint tracking.
 
 Displays configuration options and stint tracker side-by-side.
 """
@@ -10,9 +10,9 @@ from PyQt6.QtCore import Qt
 from ui.models import ModelContainer
 
 
-class ConfigMainWindow(QWidget):
+class ConfigView(QWidget):
     """
-    Configuration window for stint tracking.
+    View for stint tracking configuration.
     
     Shows ConfigOptions (left) and StintTracker (right) in a horizontal layout.
     """

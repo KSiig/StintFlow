@@ -1,5 +1,5 @@
 """
-Overview window for stint tracking.
+Overview view for stint tracking.
 
 Displays stint tracking table and controls for managing race stints.
 """
@@ -10,9 +10,9 @@ from PyQt6.QtCore import Qt
 from ui.models import ModelContainer
 
 
-class OverviewMainWindow(QWidget):
+class OverviewView(QWidget):
     """
-    Main window for stint tracking overview.
+    View for stint tracking overview.
     
     Shows stint data table and tracking controls.
     """

@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 
-from ui.components import MainWindow
+from ui.components.window import ApplicationWindow
 from ui.utilities import FONT, get_fonts
 from core.utilities import resource_path
 from core.errors import log, log_exception
@@ -104,10 +104,10 @@ def _create_and_show_main_window():
     Create and display the main application window.
     
     Returns:
-        MainWindow: The created main window instance, or None if creation failed
+        ApplicationWindow: The created main window instance, or None if creation failed
     """
     try:
-        window = MainWindow()
+        window = ApplicationWindow()
         window.show()
         log('INFO', 'Main window created and displayed', category='main', action='create_window')
         return window

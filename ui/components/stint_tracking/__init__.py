@@ -1,6 +1,13 @@
-"""Stint tracking UI components."""
+"""
+Barrel file for stint tracking components.
 
-from .OverviewMainWindow import OverviewMainWindow
-from .ConfigMainWindow import ConfigMainWindow
+Views and components related to stint tracking functionality.
+"""
 
-__all__ = ['OverviewMainWindow', 'ConfigMainWindow']
+from .OverviewView import OverviewView
+from .ConfigView import ConfigView
+
+__all__ = [
+    'OverviewView',
+    'ConfigView'
+]

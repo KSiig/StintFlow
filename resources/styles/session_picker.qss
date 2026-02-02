@@ -1,38 +1,45 @@
-QWidget {
-}
-
-QFrame#InputCard {
-  border-radius: 16px;        /* rounded-xl */
-  background-color: #FFFAFA;
-}
-
-QLabel#CardLabel {
-  background-color: #FFFAFA;
-}
-
-QLineEdit#CardInput {
-  background-color: #FFFAFA;
-  border: 1px solid #e5e7eb;  
-  border-radius: 8px;         
-  padding: 6px 10px;
-  color: #9ca3af;             
-}
-
-QLineEdit#CardInput:focus {
-  border: 1px solid #d1d5db;
-  outline: none;
-}
+/* ============================================================
+   Session Picker - ComboBoxes
+   ============================================================ */
 
 QComboBox#ComboBox {
+  background-color: transparent;
+  color: #D1D5DC;
+  border: 1px solid #2a3f44;
+  border-radius: 8px;
+  padding-left: 34px;
+}
+
+/* Dropdown list */
+QComboBox#ComboBox QAbstractItemView {
+  background-color: #1F2937;
+  selection-background-color: #374151;
+  selection-color: #F9FAFB;
+  color: #D1D5DC;
+  padding: 4px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+}
+
+QComboBox#ComboBox QAbstractItemView::item {
+  padding: 8px 12px;
   border-radius: 4px;
-  padding: 8px 16px 8px 12px;
-  border: 1px solid #E0E0E0;
 }
 
-QComboBox#ComboBox::drop-down:button{
-  border: none;
+QComboBox#ComboBox QAbstractItemView::item:hover {
+  background-color: #374151;
 }
 
+QComboBox#ComboBox QAbstractItemView::item:selected {
+  background-color: #4B5563;
+}
+
+/* Container frame */
 QFrame#ComboBoxes {
-  /* border-bottom: 3px solid #E0E0E0; */
+  border-top: 1px solid #374151;
+  background-color: #101f23;
+}
+
+QWidget#StintSelection {
+  background-color: #101f23;
 }

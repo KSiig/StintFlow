@@ -36,6 +36,10 @@ class FONT(Enum):
         "point_size": 10.5,
         "weight": QFont.Weight.DemiBold
     }
+    combo_input = {
+        "point_size": 10.5,
+        "weight": QFont.Weight.Normal
+    }
     text_small = {
         "point_size": 12,
         "weight": QFont.Weight.Medium
