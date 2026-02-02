@@ -8,13 +8,14 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.QtCore import Qt
 
 from ui.models import ModelContainer
+from .StintTable import StintTable
 
 
 class ConfigView(QWidget):
     """
     View for stint tracking configuration.
     
-    Shows ConfigOptions (left) and StintTracker (right) in a horizontal layout.
+    Shows ConfigOptions (left) and StintTable (right) in a horizontal layout.
     """
     
     def __init__(self, models: ModelContainer):
@@ -41,12 +42,13 @@ class ConfigView(QWidget):
         config_placeholder.setStyleSheet("font-size: 18px; color: #666;")
         h_layout.addWidget(config_placeholder)
         
-        # TODO: Add StintTracker component
-        # stint_tracker = StintTracker(models)
-        # h_layout.addWidget(stint_tracker)
-        tracker_placeholder = QLabel("Stint Tracker - Coming Soon")
-        tracker_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        tracker_placeholder.setStyleSheet("font-size: 18px; color: #666;")
-        h_layout.addWidget(tracker_placeholder)
+        # Add stint table (read-only for config view)
+        stint_table = StintTable(
+            models=models,
+            focus=False,         # No keyboard focus in config view
+            auto_update=True,    # Refresh when session changes
+            allow_editors=False  # Read-only display
+        )
+        h_layout.addWidget(stint_table)
         
         main_layout.addLayout(h_layout)

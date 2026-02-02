@@ -4,17 +4,17 @@ Overview view for stint tracking.
 Displays stint tracking table and controls for managing race stints.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
 
 from ui.models import ModelContainer
+from .StintTable import StintTable
 
 
 class OverviewView(QWidget):
     """
     View for stint tracking overview.
     
-    Shows stint data table and tracking controls.
+    Shows stint data table with editing enabled.
     """
     
     def __init__(self, models: ModelContainer):
@@ -31,10 +31,12 @@ class OverviewView(QWidget):
         
         layout = QVBoxLayout(self)
         
-        # TODO: Add StintTracker component with allow_editors=True
-        # For now, show placeholder text
-        placeholder = QLabel("Stint Tracker Overview - Coming Soon")
-        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        placeholder.setStyleSheet("font-size: 24px; color: #666;")
+        # Create stint table with editing enabled
+        stint_table = StintTable(
+            models=models,
+            focus=True,          # Allow keyboard focus and selection
+            auto_update=True,    # Refresh when session changes
+            allow_editors=True   # Enable tire combo editors
+        )
         
-        layout.addWidget(placeholder)
+        layout.addWidget(stint_table)

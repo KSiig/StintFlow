@@ -3,5 +3,24 @@
 from .model_container import ModelContainer
 from .SelectionModel import SelectionModel
 from .NavigationModel import NavigationModel
+from .TableModel import TableModel
+from .TableRoles import TableRoles
 
-__all__ = ['ModelContainer', 'SelectionModel', 'NavigationModel']
+# Table utilities and processors
+from .table_constants import ColumnIndex, TableRow, TireData
+from .table_utils import create_table_row, is_completed_row
+from . import table_processors
+
+__all__ = [
+    'ModelContainer',
+    'SelectionModel',
+    'NavigationModel',
+    'TableModel',
+    'TableRoles',
+    'ColumnIndex',
+    'TableRow',
+    'TireData',
+    'create_table_row',
+    'is_completed_row',
+    'table_processors'
+]

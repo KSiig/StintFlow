@@ -92,9 +92,18 @@ class ApplicationWindow(QMainWindow):
     
     def _create_initial_views(self) -> None:
         """Create and register initial view windows."""
+        from ..stint_tracking.constants import TABLE_HEADERS
+        from ui.models import TableModel
+        
+        # Create table model for stint tracking
+        table_model = TableModel(
+            selection_model=self.selection_model,
+            headers=TABLE_HEADERS
+        )
+        
         models = ModelContainer(
             selection_model=self.selection_model,
-            table_model=None  # TODO: Create TableModel when migrated
+            table_model=table_model
         )
         
         # Create overview view and set as active
