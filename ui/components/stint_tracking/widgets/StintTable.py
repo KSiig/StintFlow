@@ -29,15 +29,14 @@ from ui.utilities import get_fonts, FONT, load_icon
 from core.errors import log
 from core.utilities import resource_path
 
-from .constants import (
+from ..constants import (
     TABLE_HEADERS,
     COLUMN_WIDTHS,
     VERTICAL_HEADER_WIDTH,
     VERTICAL_HEADER_LABEL
 )
-from .DriverPillDelegate import DriverPillDelegate
-from .StatusDelegate import StatusDelegate
-from .SpacedHeaderView import SpacedHeaderView
+from ..delegates import DriverPillDelegate, StatusDelegate
+from ..table import SpacedHeaderView
 from ui.models.table_constants import ColumnIndex
 
 

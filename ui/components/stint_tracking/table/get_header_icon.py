@@ -4,7 +4,7 @@ Get header icon filename by column index.
 Retrieves the icon path for a specific table header column.
 """
 
-from .constants import TABLE_HEADERS
+from ..constants import TABLE_HEADERS
 
 
 def get_header_icon(index):

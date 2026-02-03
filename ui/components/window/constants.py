@@ -7,12 +7,12 @@ Defines window dimensions, margins, and layout configuration.
 # Window initial position and size
 WINDOW_X = 200
 WINDOW_Y = 100
-WINDOW_WIDTH = 1440
+WINDOW_WIDTH = 1600
 WINDOW_HEIGHT = 832
 
 # Layout margins and spacing
 WORKSPACE_MARGINS_HOR = 16
-WORKSPACE_MARGINS_VER = 32
+WORKSPACE_MARGINS_VER = 48
 
 # Draggable area configuration
 DRAGGABLE_AREA_HEIGHT = 40

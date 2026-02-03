@@ -4,7 +4,7 @@ Extract header titles from TABLE_HEADERS constant.
 Used by code that needs just the string titles for calculations.
 """
 
-from .constants import TABLE_HEADERS
+from ..constants import TABLE_HEADERS
 
 
 def get_header_titles():

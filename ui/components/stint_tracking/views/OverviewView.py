@@ -7,7 +7,7 @@ Displays stint tracking table and controls for managing race stints.
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 
 from ui.models import ModelContainer
-from .StintTable import StintTable
+from ..widgets import StintTable
 
 
 class OverviewView(QWidget):
