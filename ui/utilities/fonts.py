@@ -53,6 +53,16 @@ class FONT(Enum):
         "weight": QFont.Weight.Normal
     }
 
+    ## Table fonts ##
+    table_header = {
+        "point_size": 10.5,
+        "weight": QFont.Weight.DemiBold
+    }
+    table_cell = {
+        "point_size": 10.5,
+        "weight": QFont.Weight.Normal
+    }
+
 
 def get_fonts(typography):
     """

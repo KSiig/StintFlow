@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-from .constants import WORKSPACE_MARGINS
+from .constants import WORKSPACE_MARGINS_HOR, WORKSPACE_MARGINS_VER
 
 
 def create_scroll_area() -> QScrollArea:
@@ -67,7 +67,7 @@ def create_right_pane(scroll_area: QScrollArea) -> QWidget:
     """
     pane = QWidget()
     layout = QVBoxLayout(pane)
-    layout.setContentsMargins(WORKSPACE_MARGINS, 0, 0, WORKSPACE_MARGINS)
+    layout.setContentsMargins(WORKSPACE_MARGINS_HOR, WORKSPACE_MARGINS_VER, WORKSPACE_MARGINS_HOR, WORKSPACE_MARGINS_VER // 2)
     layout.setSpacing(0)
     
     # Window buttons are positioned absolutely, not added to layout
@@ -92,7 +92,7 @@ def create_main_layout(navigation_menu: QWidget, right_pane: QWidget) -> QFrame:
         QFrame: Border frame containing the assembled layout
     """
     main_layout = QHBoxLayout()
-    main_layout.setContentsMargins(0, WORKSPACE_MARGINS, 0, 0)
+    main_layout.setContentsMargins(0, 0, 0, 0)
     main_layout.setSpacing(0)
     
     # Left pane: Navigation menu (static)

@@ -18,6 +18,10 @@ from ..stint_helpers import (
     is_last_stint
 )
 
+# Constants
+FULL_TIRE_SET = 4  # Number of tires in a full set change
+NO_TIRE_CHANGE = 0  # No tires changed
+
 
 def convert_stints_to_table(
     stints: list[dict],
@@ -103,7 +107,7 @@ def process_completed_stints(
         row = create_table_row(
             stint_type=stint_type,
             driver=stint.get("driver", ""),
-            status="Completed ✅",
+            status="Completed",
             pit_time=stint.get("pit_end_time", "00:00:00"),
             tires_changed=total_changed,
             tires_left=tires_left,
@@ -134,33 +138,25 @@ def generate_pending_stints(
     # Get last pit time from last completed stint
     current_pit_time = rows[-1][ColumnIndex.PIT_END_TIME]
     tires_left = starting_tires_left
-    break_next = False
     
     while True:
         # Calculate next pit time by subtracting mean stint time
-        t1 = datetime.strptime(current_pit_time, "%H:%M:%S").time()
-        t2 = timedelta_to_time(mean_stint_time)
-        
-        dt = datetime.combine(datetime.today(), t1)
-        delta = timedelta(hours=t2.hour, minutes=t2.minute, seconds=t2.second)
-        dt_minus = dt - delta
-        
-        current_pit_time = dt_minus.time().strftime("%H:%M:%S")
+        current_pit_time = _subtract_time_from_pit_time(current_pit_time, mean_stint_time)
         
         # Determine tire changes for pending stint
-        # If last stint had no tire changes, assume 4 tires; otherwise 0
+        # If last stint had no tire changes, assume full set; otherwise none
         last_tire_change = int(rows[-1][ColumnIndex.TIRES_CHANGED])
-        pending_tires_changed = 4 if last_tire_change == 0 else 0
+        pending_tires_changed = FULL_TIRE_SET if last_tire_change == NO_TIRE_CHANGE else NO_TIRE_CHANGE
         
         # Adjust tires_left
-        if pending_tires_changed == 4:
-            tires_left -= 4
+        if pending_tires_changed == FULL_TIRE_SET:
+            tires_left -= FULL_TIRE_SET
         
         # Add pending row
         row = create_table_row(
             stint_type="Single",
             driver="",
-            status="Pending ⏳",
+            status="Pending",
             pit_time=current_pit_time,
             tires_changed=pending_tires_changed,
             tires_left=tires_left,
@@ -168,10 +164,32 @@ def generate_pending_stints(
         )
         rows.append(row)
         
-        # Break exactly ONE iteration AFTER this becomes true
-        if break_next:
-            break
-        
-        # Check if we've reached the race end
+        # Check if this is the last stint before race end
         if is_last_stint(current_pit_time, timedelta_to_time(mean_stint_time)):
-            break_next = True
+            break
+
+
+def _subtract_time_from_pit_time(pit_time_str: str, delta: timedelta) -> str:
+    """
+    Subtract a timedelta from a pit time string.
+    
+    Args:
+        pit_time_str: Time string in format "HH:MM:SS"
+        delta: Time duration to subtract
+        
+    Returns:
+        New time string in format "HH:MM:SS"
+    """
+    pit_time = datetime.strptime(pit_time_str, "%H:%M:%S").time()
+    delta_as_time = timedelta_to_time(delta)
+    
+    # Combine with today's date for arithmetic
+    pit_datetime = datetime.combine(datetime.today(), pit_time)
+    delta_timedelta = timedelta(
+        hours=delta_as_time.hour,
+        minutes=delta_as_time.minute,
+        seconds=delta_as_time.second
+    )
+    
+    result_datetime = pit_datetime - delta_timedelta
+    return result_datetime.time().strftime("%H:%M:%S")

@@ -11,7 +11,7 @@
    Base Styles
    ============================================================ */
 QMainWindow, QWidget {
-  background-color: #04080B;
+  background-color: #0a1416;
   color: #D1D5DC;
 }
 

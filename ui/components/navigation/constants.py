@@ -11,12 +11,13 @@ Consolidates configuration for navigation menu and session picker.
 # Layout dimensions
 MENU_WIDTH = 256
 MENU_SPACING = 24
-LOGO_SIZE = 24
+LOGO_SIZE = 16
 MENU_ITEM_ICON_SIZE = 16
 TITLE_BOTTOM_MARGIN = 16
 
 # Colors
-MENU_ITEM_ICON_COLOR = "#05fd7e"
+MENU_SECTION_ICON_COLOR = "#05fd7e"
+MENU_ITEM_ICON_COLOR = "#ffffff"
 MENU_ITEM_ICON_COLOR_ACTIVE = "#04080B"
 
 # Navigation menu icon paths

@@ -27,6 +27,7 @@ from .constants import (
     MENU_SPACING,
     LOGO_SIZE,
     TITLE_BOTTOM_MARGIN,
+    MENU_SECTION_ICON_COLOR,
     ICON_LOGO,
     ICON_TIMER,
     ICON_EYE,
@@ -123,11 +124,13 @@ class NavigationMenu(QWidget):
         
         # Logo
         logo = QLabel()
+        logo.setObjectName("TitleLogo")
         logo.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        logo.setPixmap(get_cached_icon(ICON_LOGO, LOGO_SIZE))
+        logo.setPixmap(get_cached_icon(ICON_LOGO, LOGO_SIZE, MENU_SECTION_ICON_COLOR))
         
         # Title
         title = QLabel("StintFlow")
+        title.setObjectName("TitleLabel")
         title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         title.setFont(get_fonts(FONT.title))
         
@@ -202,7 +205,8 @@ class NavigationMenu(QWidget):
             
             # Icon
             icon_label = QLabel()
-            icon_pixmap = get_cached_icon(icon_path, LOGO_SIZE)
+            icon_label.setObjectName("NavMenuSectionIcon")
+            icon_pixmap = get_cached_icon(icon_path, LOGO_SIZE, MENU_SECTION_ICON_COLOR)
             icon_label.setPixmap(icon_pixmap)
             icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             header_layout.addWidget(icon_label)

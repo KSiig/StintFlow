@@ -9,13 +9,15 @@ import copy
 
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex, pyqtSignal
 
-from ui.utilities import get_fonts, FONT
+from ui.utilities import get_fonts, FONT, load_icon
 from core.database import get_stints, get_event
 from core.errors import log
+from core.utilities import resource_path
+from ui.components.stint_tracking import get_header_icon
 
 from .TableRoles import TableRoles
 from .table_constants import ColumnIndex
-from .table_utils import create_table_row, is_completed_row
+from .table_utils import is_completed_row
 from .table_processors import (
     convert_stints_to_table,
     count_tire_changes,
@@ -24,6 +26,12 @@ from .table_processors import (
     recalculate_tires_changed
 )
 from .stint_helpers import get_default_tire_dict
+
+# Constants
+DEFAULT_TIRE_COUNT = "0"
+DEFAULT_RACE_LENGTH = "00:00:00"
+HEADER_ICON_COLOR = "#FFFFFF"
+VERTICAL_HEADER_START_INDEX = 1  # Row numbers are 1-indexed
 
 
 class TableModel(QAbstractTableModel):
@@ -40,7 +48,7 @@ class TableModel(QAbstractTableModel):
     def __init__(
         self,
         selection_model,
-        headers: list[str],
+        headers: list[dict],
         data: list[list] = None,
         tires: list[dict] = None,
         meta: list[dict] = None
@@ -50,7 +58,7 @@ class TableModel(QAbstractTableModel):
         
         Args:
             selection_model: SelectionModel with current event/session selection
-            headers: Column header names
+            headers: Column header definitions (list of dicts with 'title' and 'icon')
             data: Optional pre-populated display data
             tires: Optional pre-populated tire metadata
             meta: Optional pre-populated document metadata
@@ -73,13 +81,14 @@ class TableModel(QAbstractTableModel):
             self._meta = []
             self._load_data_from_database()
     
-    def clone(self):
+    def clone(self) -> 'TableModel':
         """
         Create a deep copy of this model.
         
         Returns:
             New TableModel instance with copied data
         """
+        log('DEBUG', 'Cloning table model', category='table_model', action='clone')
         return TableModel(
             selection_model=self.selection_model,
             headers=copy.deepcopy(self.headers),
@@ -122,11 +131,11 @@ class TableModel(QAbstractTableModel):
         # Get event info for tire count and race length
         event = get_event(self.selection_model.event_id)
         if event:
-            total_tires = str(event.get('tires', '0'))
-            starting_time = event.get('length', '00:00:00')
+            total_tires = str(event.get('tires', DEFAULT_TIRE_COUNT))
+            starting_time = event.get('length', DEFAULT_RACE_LENGTH)
         else:
-            total_tires = "0"
-            starting_time = "00:00:00"
+            total_tires = DEFAULT_TIRE_COUNT
+            starting_time = DEFAULT_RACE_LENGTH
             log('WARNING', f'Event {self.selection_model.event_id} not found - using defaults',
                 category='table_model', action='load_data')
         
@@ -216,12 +225,32 @@ class TableModel(QAbstractTableModel):
     
     # Qt Model Interface Methods
     
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        """Return number of rows in model."""
+    def rowCount(self, parent: QModelIndex = None) -> int:
+        """
+        Return number of rows in model.
+        
+        Args:
+            parent: Parent index (unused for table models)
+            
+        Returns:
+            Number of rows
+        """
+        if parent is None:
+            parent = QModelIndex()
         return len(self._data)
     
-    def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        """Return number of columns in model."""
+    def columnCount(self, parent: QModelIndex = None) -> int:
+        """
+        Return number of columns in model.
+        
+        Args:
+            parent: Parent index (unused for table models)
+            
+        Returns:
+            Number of columns, or 0 if no data
+        """
+        if parent is None:
+            parent = QModelIndex()
         return len(self._data[0]) if self._data else 0
     
     def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole):
@@ -252,7 +281,7 @@ class TableModel(QAbstractTableModel):
             return get_fonts(FONT.text_table_cell)
         
         elif role == Qt.ItemDataRole.TextAlignmentRole:
-            return Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+            return  Qt.AlignmentFlag.AlignVCenter
         
         elif role == TableRoles.TiresRole:
             return self._tires[row] if row < len(self._tires) else None
@@ -316,28 +345,23 @@ class TableModel(QAbstractTableModel):
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
         
-        if self.editable and self.partial:
-            # Only completed rows editable
-            if is_completed_row(self._data, index.row()):
-                return (
-                    Qt.ItemFlag.ItemIsSelectable |
-                    Qt.ItemFlag.ItemIsEnabled |
-                    Qt.ItemFlag.ItemIsEditable
-                )
-            else:
-                return Qt.ItemFlag.NoItemFlags
+        # Determine if this cell should be editable
+        is_editable = self.editable and (
+            not self.partial or is_completed_row(self._data, index.row())
+        )
         
-        elif self.editable:
-            # All rows editable
-            return (
-                Qt.ItemFlag.ItemIsSelectable |
-                Qt.ItemFlag.ItemIsEnabled |
-                Qt.ItemFlag.ItemIsEditable
-            )
+        if is_editable:
+            return self._get_editable_flags()
         
-        else:
-            # No editing
-            return Qt.ItemFlag.NoItemFlags
+        return Qt.ItemFlag.NoItemFlags
+    
+    def _get_editable_flags(self) -> Qt.ItemFlag:
+        """Return standard flags for editable cells."""
+        return (
+            Qt.ItemFlag.ItemIsSelectable |
+            Qt.ItemFlag.ItemIsEnabled |
+            Qt.ItemFlag.ItemIsEditable
+        )
     
     def headerData(
         self,
@@ -351,15 +375,25 @@ class TableModel(QAbstractTableModel):
         Args:
             section: Row/column index
             orientation: Horizontal or Vertical
-            role: Data role
+            role: Data role (DisplayRole for text, DecorationRole for icon)
             
         Returns:
-            Header label or None
+            Header label, icon, or None
         """
-        if role == Qt.ItemDataRole.DisplayRole:
-            if orientation == Qt.Orientation.Horizontal:
-                return self.headers[section] if section < len(self.headers) else None
-            elif orientation == Qt.Orientation.Vertical:
-                return section + 1  # Row numbers (1-indexed)
+        if orientation == Qt.Orientation.Horizontal and section < len(self.headers):
+            if role == Qt.ItemDataRole.DisplayRole:
+                return self.headers[section]
+            elif role == Qt.ItemDataRole.DecorationRole:
+                icon_file = get_header_icon(section)
+                icon_path = resource_path(f"resources/icons/table_headers/{icon_file}")
+                return load_icon(icon_path, color=HEADER_ICON_COLOR)
+            elif role == Qt.ItemDataRole.TextAlignmentRole:
+                return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        
+        elif orientation == Qt.Orientation.Vertical:
+            if role == Qt.ItemDataRole.DisplayRole:
+                return section + VERTICAL_HEADER_START_INDEX
+            elif role == Qt.ItemDataRole.TextAlignmentRole:
+                return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
         
         return None

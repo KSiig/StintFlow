@@ -29,10 +29,12 @@ from .constants import (
     WINDOW_Y,
     WINDOW_WIDTH,
     WINDOW_HEIGHT,
-    WORKSPACE_MARGINS,
+    WORKSPACE_MARGINS_HOR,
     DRAGGABLE_AREA_HEIGHT,
     RESIZE_EDGE_MARGIN
 )
+from ..stint_tracking import get_header_titles
+from ui.models import TableModel
 
 
 class ApplicationWindow(QMainWindow):
@@ -92,13 +94,11 @@ class ApplicationWindow(QMainWindow):
     
     def _create_initial_views(self) -> None:
         """Create and register initial view windows."""
-        from ..stint_tracking.constants import TABLE_HEADERS
-        from ui.models import TableModel
         
         # Create table model for stint tracking
         table_model = TableModel(
             selection_model=self.selection_model,
-            headers=TABLE_HEADERS
+            headers=get_header_titles()
         )
         
         models = ModelContainer(
@@ -198,7 +198,7 @@ class ApplicationWindow(QMainWindow):
         # Position window buttons in top-right corner
         buttons_width = self.window_buttons.sizeHint().width()
         buttons_height = self.window_buttons.sizeHint().height()
-        x_pos = self.width() - buttons_width - WORKSPACE_MARGINS
+        x_pos = self.width() - buttons_width - WORKSPACE_MARGINS_HOR
         y_pos = (DRAGGABLE_AREA_HEIGHT - buttons_height) // 2  # Center vertically
         
         self.window_buttons.setGeometry(x_pos, y_pos, buttons_width, buttons_height)

@@ -18,13 +18,14 @@ from PyQt6.QtWidgets import (
     QAbstractButton,
     QAbstractItemView,
     QSizePolicy,
-    QHeaderView
+    QHeaderView,
+    QFrame
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QIcon, QFontMetrics
 
 from ui.models import ModelContainer
-from ui.utilities import get_fonts, FONT
+from ui.utilities import get_fonts, FONT, load_icon
 from core.errors import log
 from core.utilities import resource_path
 
@@ -34,6 +35,10 @@ from .constants import (
     VERTICAL_HEADER_WIDTH,
     VERTICAL_HEADER_LABEL
 )
+from .DriverPillDelegate import DriverPillDelegate
+from .StatusDelegate import StatusDelegate
+from .SpacedHeaderView import SpacedHeaderView
+from ui.models.table_constants import ColumnIndex
 
 
 class StintTable(QWidget):
@@ -46,6 +51,16 @@ class StintTable(QWidget):
     - Styled table with custom headers and column widths
     - No horizontal scrollbar (fixed column layout)
     """
+    
+    # Layout constants
+    ROW_PADDING_VERTICAL = 40  # Total vertical padding for rows (top + bottom)
+    CORNER_ICON_SIZE = 16
+    CORNER_ICON_SPACING = 4
+    CORNER_PADDING_LEFT = 8
+    CORNER_PADDING_RIGHT = 4
+    VERTICAL_HEADER_PADDING_LEFT = 12
+    MIN_WIDTH_EXTRA_PADDING = 20  # Extra padding for minimum table width
+    CORNER_HEIGHT_ADJUSTMENT = 26  # Height reduction for corner button
     
     def __init__(
         self,
@@ -75,9 +90,20 @@ class StintTable(QWidget):
         # Create table
         self.table = self._create_table(focus)
         
+        # Set custom delegates for styled columns
+        self._setup_delegates()
+        
+        # Wrap table in QFrame for background styling
+        table_frame = QFrame(self)
+        table_frame.setObjectName("StintTableFrame")
+        frame_layout = QHBoxLayout(table_frame)
+        frame_layout.setContentsMargins(0, 0, 0, 0)
+        frame_layout.addWidget(self.table)
+        
         # Setup layout
         container = QHBoxLayout(self)
-        container.addWidget(self.table)
+        container.setContentsMargins(0, 0, 0, 0)
+        container.addWidget(table_frame)
         
         # Configure table model (if available)
         if self.table_model is not None:
@@ -100,7 +126,7 @@ class StintTable(QWidget):
     def _load_stylesheet(self) -> None:
         """Load QSS stylesheet for stint table."""
         try:
-            stylesheet_path = resource_path('resources/styles/stint_tracker.qss')
+            stylesheet_path = resource_path('resources/styles/stint_table.qss')
             with open(stylesheet_path, 'r') as f:
                 self.setStyleSheet(f.read())
         except FileNotFoundError:
@@ -121,13 +147,17 @@ class StintTable(QWidget):
             Configured QTableView instance
         """
         table = QTableView(self)
-        table.setShowGrid(False)
+        table.setShowGrid(True)  # Enable grid to show row borders
         table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         table.setSizePolicy(
             QSizePolicy.Policy.Minimum,
             QSizePolicy.Policy.Expanding
         )
         table.setObjectName("StintsTable")
+        
+        # Replace horizontal header with custom spaced header
+        custom_header = SpacedHeaderView(Qt.Orientation.Horizontal, table)
+        table.setHorizontalHeader(custom_header)
         
         # Configure focus and selection
         if not focus:
@@ -150,35 +180,89 @@ class StintTable(QWidget):
         vh = table.verticalHeader()
         
         # Get fonts for styling
-        font_table_cell = get_fonts(FONT.text_table_cell)
-        font_table_header = get_fonts(FONT.header_table)
+        font_table_cell = get_fonts(FONT.table_cell)
+        font_table_header = get_fonts(FONT.table_header)
         
         vh.setStyleSheet(
             f"QHeaderView::section {{ "
             f"font-family: {font_table_cell.family()}; "
             f"font-size: {font_table_cell.pointSize()}pt; "
+            f"padding-left: {self.VERTICAL_HEADER_PADDING_LEFT}px; "
             f"}}"
         )
         vh.setFixedWidth(VERTICAL_HEADER_WIDTH)
-        vh.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        vh.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         
-        # Configure corner button with "Stint no." label
+        # Set row height with padding
+        font_metrics = QFontMetrics(font_table_cell)
+        row_height = font_metrics.height() + self.ROW_PADDING_VERTICAL
+        vh.setDefaultSectionSize(row_height)
+        
+        # Configure corner button
+        self._setup_corner_button(table, vh, font_table_header)
+    
+    def _setup_corner_button(self, table: QTableView, vh: QHeaderView, font_table_header) -> None:
+        """
+        Configure corner button with custom "Stint no." label and icon.
+        
+        Args:
+            table: Table view containing the corner button
+            vh: Vertical header view for size reference
+            font_table_header: Font to use for the label
+        """
         corner = table.findChild(QAbstractButton)
-        if corner:
-            corner.setText("")
-            corner.setIcon(QIcon())
-            
-            layout = QVBoxLayout()
-            layout.setContentsMargins(2, 2, 2, 2)
-            layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            
-            label = QLabel(VERTICAL_HEADER_LABEL)
-            label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            label.setFont(font_table_header)
-            
-            corner.setLayout(layout)
-            layout.addWidget(label)
-            corner.setFixedWidth(VERTICAL_HEADER_WIDTH)
+        if not corner:
+            return
+        
+        # Hide the original corner button
+        corner.hide()
+        
+        # Create replacement widget
+        corner_replacement = QWidget(table)
+        corner_replacement.setObjectName("StintTableCornerReplacement")
+        corner_height = vh.defaultSectionSize() - self.CORNER_HEIGHT_ADJUSTMENT
+        corner_replacement.setFixedSize(VERTICAL_HEADER_WIDTH, corner_height)
+        corner_replacement.setStyleSheet(
+            "QWidget { "
+            "background-color: #101f23; "
+            "border: none; "
+            "}"
+        )
+        
+        # Create layout for icon + text
+        corner_layout = QHBoxLayout(corner_replacement)
+        corner_layout.setContentsMargins(
+            self.CORNER_PADDING_LEFT, 0, 
+            self.CORNER_PADDING_RIGHT, 0
+        )
+        corner_layout.setSpacing(self.CORNER_ICON_SPACING)
+        corner_layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        # Add hash icon
+        icon_label = QLabel()
+        icon_path = resource_path("resources/icons/table_headers/hash.svg")
+        icon_pixmap = load_icon(icon_path, color='#FFFFFF')
+        icon_label.setPixmap(icon_pixmap)
+        icon_label.setStyleSheet("background-color: transparent;")
+        icon_label.setFixedSize(self.CORNER_ICON_SIZE, self.CORNER_ICON_SIZE)
+        corner_layout.addWidget(icon_label)
+        
+        # Add text label
+        text_label = QLabel(VERTICAL_HEADER_LABEL)
+        text_label.setFont(font_table_header)
+        text_label.setStyleSheet("background-color: transparent; color: #ffffff;")
+        corner_layout.addWidget(text_label)
+        
+        corner_layout.addStretch()
+        
+        # Position and show
+        corner_replacement.move(0, 0)
+        corner_replacement.show()
+    
+    def _setup_delegates(self) -> None:
+        """Configure custom delegates for styled columns."""
+        self.table.setItemDelegateForColumn(ColumnIndex.DRIVER, DriverPillDelegate(self.table))
+        self.table.setItemDelegateForColumn(ColumnIndex.STATUS, StatusDelegate(self.table))
     
     def _setup_horizontal_header(self, table: QTableView) -> None:
         """
@@ -188,7 +272,7 @@ class StintTable(QWidget):
             table: Table view to configure
         """
         hh = table.horizontalHeader()
-        font_table_header = get_fonts(FONT.header_table)
+        font_table_header = get_fonts(FONT.table_header)
         hh.setFont(font_table_header)
     
     def _setup_editors(self) -> None:
@@ -263,7 +347,7 @@ class StintTable(QWidget):
             self.table.setColumnWidth(col, width)
         
         # Calculate minimum table width
-        min_width = hh.length() + VERTICAL_HEADER_WIDTH + 20  # Extra padding
+        min_width = hh.length() + VERTICAL_HEADER_WIDTH + self.MIN_WIDTH_EXTRA_PADDING
         self.table.setMinimumWidth(min_width)
         
         # Disable header interactions

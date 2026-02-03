@@ -6,9 +6,16 @@ QFrame#NavMenu {
 }
 
 /* ============================================================
+   Title and icon
+   ============================================================ */
+QLabel#TitleLabel, QLabel#TitleLogo {
+  background-color: #101f23;
+}
+
+/* ============================================================
    Section Headers
    ============================================================ */
-QLabel#NavMenuSectionLabel {
+QLabel#NavMenuSectionLabel, QLabel#NavMenuSectionIcon {
   color: #D1D5DC;
   background-color: #101f23;
 }

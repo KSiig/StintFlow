@@ -1,0 +1,46 @@
+QFrame#StintTableFrame {
+    background-color: #101f23;
+    padding: 8px;
+    border: 1px solid #1e2939;
+    border-radius: 8px;
+}
+
+QTableView {
+  border: none;
+  background-color: #101f23;
+  gridline-color: #15232b;
+}
+
+QTableView::item {
+  border-bottom: 1px solid #15232b;
+  padding-left: 30px;
+}
+
+QTableView::corner {
+  background-color: #101f23;
+  border: none;
+}
+
+QFrame#StintTableFrame > *, 
+QAbstractButton, 
+#StintTableCornerHeaderLabel, 
+#StintTableCornerHeader,
+QHeaderView::section,
+QHeaderView {
+    background-color: #101f23;
+    border: none;
+}
+
+QHeaderView::section {
+    color: #ffffff;
+    border: none;
+    padding: 4px;
+}
+
+QHeaderView::section:horizontal {
+    padding-left: 8px;
+}
+
+/* QHeaderView::section:hover {
+    background-color: #162a30;
+} */
