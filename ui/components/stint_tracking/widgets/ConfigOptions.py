@@ -380,7 +380,7 @@ class ConfigOptions(QWidget):
             is_practice = self.practice_cb.isChecked()
             process_args = [
                 '-u',
-                'update_stint.py',  # TODO: Update to new processor path
+                'processors/stint_tracker/run.py',
                 '--session-id', str(self.selection_model.session_id),
                 '--drivers', *self.drivers
             ]
@@ -413,11 +413,7 @@ class ConfigOptions(QWidget):
         data = self.p.readAllStandardOutput()
         stdout = bytes(data).decode("utf8")
         
-        if stdout.startswith('__'):
-            self._handle_output(stdout)
-        else:
-            log('DEBUG', f'Stint tracker output: {stdout}',
-                category='config_options', action='handle_stdout')
+        self._handle_output(stdout)
     
     def _handle_output(self, stdout: str):
         """
