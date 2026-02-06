@@ -26,6 +26,7 @@ class StintTypeCombo(QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         combo = QComboBox(parent)
+        combo.setObjectName("StintTypeCombo")
         combo.addItems(self.items)
 
         # Disable if the current cell text is empty

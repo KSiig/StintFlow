@@ -255,3 +255,78 @@ def is_last_stint(pit_end_time: str, mean_stint_time) -> bool:
     
     # If it starts with "-1 day", we've gone into negative time
     return str(stint_time).startswith("-1 day")
+
+
+def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
+    """
+    Convert table model data into database-compatible format.
+    
+    Args:
+        rows: List of row data from table model (display format)
+        tires: List of tire metadata dictionaries
+        
+    Returns:
+        Dictionary with 'rows' and 'tires' keys containing sanitized data
+    """
+    sanitized_rows = []
+    sanitized_tires = []
+
+    for row in rows:
+        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time = row
+
+        # Convert stint_time to seconds
+        if isinstance(stint_time, timedelta):
+            stint_time_seconds = int(stint_time.total_seconds())
+        elif isinstance(stint_time, str):
+            # Parse HH:MM:SS format string
+            parts = [int(p) for p in stint_time.split(":")]
+            while len(parts) < 3:
+                parts.insert(0, 0)
+            h, m, s = parts
+            stint_time_seconds = h * 3600 + m * 60 + s
+        else:
+            stint_time_seconds = int(stint_time)
+
+        doc = {
+            "stint_type": stint_type,
+            "name": name,
+            "status": status == "completed ✅",
+            "pit_end_time": _normalize_time(pit_end_time),
+            "tires_changed": int(tires_changed),
+            "tires_left": int(tires_left),
+            "stint_time_seconds": stint_time_seconds,
+        }
+
+        sanitized_rows.append(doc)
+
+    # propagate last valid tire set to rows without tire data
+    last_tire_set = 0
+    for i in range(len(rows)):
+        tire = tires[i] if i < len(tires) else none
+        if tire:
+            sanitized_tires.append(tires[i])
+            last_tire_set = i
+        else:
+            sanitized_tires.append(tires[last_tire_set])
+
+    return {
+        "rows": sanitized_rows,
+        "tires": sanitized_tires
+    }
+
+
+def _normalize_time(t: str) -> str:
+    """
+    Normalize time string to HH:MM:SS format.
+    
+    Args:
+        t: Time string (e.g., "1:23", "12:34:56")
+        
+    Returns:
+        Normalized time string in HH:MM:SS format
+    """
+    parts = [int(p) for p in t.split(":")]
+    while len(parts) < 3:
+        parts.insert(0, 0)
+    h, m, s = parts
+    return f"{h:02d}:{m:02d}:{s:02d}"

@@ -283,14 +283,14 @@ class StintTable(QWidget):
         
         self.table.model().set_editable(True, True)
         
-        # TODO: Import and set TireComboDelegate when migrated
-        # from .delegates import TireComboDelegate
-        # self.table.setItemDelegateForColumn(
-        #     4,  # Tires changed column
-        #     TireComboDelegate(self.table, update_doc=True)
-        # )
-        log('WARNING', 'TireComboDelegate not yet migrated - editors disabled',
-            category='stint_table', action='setup_editors')
+        # Import delegates
+        from ..delegates import TireComboDelegate
+        
+        # Set tire combo delegate for "Tires changed" column
+        self.table.setItemDelegateForColumn(
+            4,  # Tires changed column
+            TireComboDelegate(self.table, update_doc=True)
+        )
     
     def _refresh_editors(self) -> None:
         """
@@ -320,7 +320,7 @@ class StintTable(QWidget):
         # Early return if no table_model available
         if self.table_model is None:
             return
-        
+            
         # Check if columns need reconfiguration
         if self.table.model():
             column_count = self.table.model().columnCount()

@@ -1,0 +1,64 @@
+/* Tab Bar Frame - Container for tab navigation */
+QFrame#TabBarFrame {
+  background-color: #101f23;
+  padding: 8px;
+  border: 1px solid #1e2939;
+  border-radius: 8px;
+}
+
+/* Tab Bar Styling */
+QTabBar {
+  qproperty-expanding: false;  /* Prevents tabs from expanding to fill space */  qproperty-drawBase: false;  /* Remove the line under the tabs */  background-color: #101f23;
+  border: 0px solid red;
+}
+
+QTabBar::tear {
+  border: none;
+}
+
+QTabBar::scroller {
+  border: none;
+}
+
+QTabBar::tab {
+  background-color: transparent;
+  color: #9f9fa9;
+  padding: 8px 16px;
+  margin-right: 8px;
+  border-radius: 8px;
+  min-width: 0px;  /* Allow tabs to shrink to content size */
+}
+
+QTabBar::tab:selected {
+  background-color: #05fd7e;
+  border: 0px solid transparent;
+  color: #101f23;
+  font-weight: 600;
+}
+
+QTabBar::tab:selected:hover {
+  background-color: #05fd7e;  /* Keep same as selected state */
+  color: #101f23;
+}
+
+QTabBar::tab:hover {
+  background-color: transparent;
+  border: 0px solid transparent;
+  color: #ffffff;
+}
+
+/* Add Strategy Button */
+QPushButton#AddStrategyButton {
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+QPushButton#AddStrategyButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+QPushButton#AddStrategyButton:pressed {
+  background-color: rgba(255, 255, 255, 0.2);
+}

@@ -19,7 +19,7 @@ from ui.utilities import FONT, get_fonts, get_cached_icon
 from ui.models import ModelContainer
 from core.utilities import resource_path
 from core.errors import log_exception
-from ..stint_tracking import OverviewView, ConfigView
+from ..stint_tracking import OverviewView, ConfigView, StrategiesView
 from .SessionPicker import SessionPicker
 from .menu_item_factory import MenuItemConfig, create_menu_item, update_menu_item_state
 from .constants import (
@@ -96,8 +96,9 @@ class NavigationMenu(QWidget):
         self._menu_items[ConfigView] = config_item
         stint_tracking_layout.addWidget(config_item.widget)
         
-        # TODO: Add Strategies menu item when component is migrated
-        strategies_item = create_menu_item("Strategies", lambda: print("Strategies clicked"), ICON_TARGET)
+        strategies_item = create_menu_item("Strategies", lambda: self._switch_to_strategies(), ICON_TARGET)
+        strategies_item.window_class = StrategiesView
+        self._menu_items[StrategiesView] = strategies_item
         stint_tracking_layout.addWidget(strategies_item.widget)
         
         menu_layout.addLayout(stint_tracking_layout)
@@ -157,6 +158,16 @@ class NavigationMenu(QWidget):
             if config_widget:
                 self.models.navigation_model.set_active_widget(config_widget)
                 item_config = self._menu_items.get(ConfigView)
+                if item_config:
+                    self._set_active_menu_item(item_config)
+    
+    def _switch_to_strategies(self) -> None:
+        """Switch to the Strategies window and update active menu item."""
+        if self.models and self.models.navigation_model:
+            strategies_widget = self.models.navigation_model.widgets.get(StrategiesView)
+            if strategies_widget:
+                self.models.navigation_model.set_active_widget(strategies_widget)
+                item_config = self._menu_items.get(StrategiesView)
                 if item_config:
                     self._set_active_menu_item(item_config)
     

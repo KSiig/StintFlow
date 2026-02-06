@@ -6,8 +6,12 @@ Custom item delegates for rendering table cells.
 
 from .DriverPillDelegate import DriverPillDelegate
 from .StatusDelegate import StatusDelegate
+from .TireComboDelegate import TireComboDelegate
+from .StintTypeCombo import StintTypeCombo
 
 __all__ = [
     'DriverPillDelegate',
-    'StatusDelegate'
+    'StatusDelegate',
+    'TireComboDelegate',
+    'StintTypeCombo'
 ]

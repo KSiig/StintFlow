@@ -1,0 +1,6 @@
+QFrame#StrategyForm {
+  background-color: #101f23;
+  padding: 8px;
+  border: 1px solid #1e2939;
+  border-radius: 8px;
+}

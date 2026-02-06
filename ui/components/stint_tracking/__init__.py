@@ -14,13 +14,13 @@ constants.py - Shared constants used across multiple modules
 """
 
 # Views - main UI compositions
-from .views import OverviewView, ConfigView
+from .views import OverviewView, ConfigView, StrategiesView
 
 # Widgets - reusable components
 from .widgets import ConfigOptions, StintTable
 
 # Delegates - table cell renderers
-from .delegates import DriverPillDelegate, StatusDelegate
+from .delegates import DriverPillDelegate, StatusDelegate, TireComboDelegate, StintTypeCombo
 
 # Config helpers - configuration panel utilities
 from .config import (
@@ -36,6 +36,7 @@ __all__ = [
     # Views
     'OverviewView',
     'ConfigView',
+    'StrategiesView',
     
     # Widgets
     'ConfigOptions',
@@ -44,6 +45,8 @@ __all__ = [
     # Delegates
     'DriverPillDelegate',
     'StatusDelegate',
+    'TireComboDelegate',
+    'StintTypeCombo',
     
     # Config
     'StintTrackerEvents',

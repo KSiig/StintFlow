@@ -11,6 +11,10 @@ from .table_constants import ColumnIndex, TableRow, TireData
 from .table_utils import create_table_row, is_completed_row
 from . import table_processors
 
+# Helper functions
+from .stint_helpers import sanitize_stints
+from .mongo_docs_to_rows import mongo_docs_to_rows
+
 __all__ = [
     'ModelContainer',
     'SelectionModel',
@@ -22,5 +26,7 @@ __all__ = [
     'TireData',
     'create_table_row',
     'is_completed_row',
-    'table_processors'
+    'table_processors',
+    'sanitize_stints',
+    'mongo_docs_to_rows'
 ]

@@ -15,7 +15,7 @@ from PyQt6.QtGui import QMouseEvent
 from ..navigation import NavigationMenu
 from .WindowButtons import WindowButtons
 from ..common import DraggableArea
-from ..stint_tracking import OverviewView, ConfigView
+from ..stint_tracking import OverviewView, ConfigView, StrategiesView
 from ui.models import ModelContainer, SelectionModel, NavigationModel
 from ui.utilities import ResizeController
 from .layout_factory import (
@@ -109,11 +109,15 @@ class ApplicationWindow(QMainWindow):
         # Create overview view and set as active
         overview_view = OverviewView(models)
         self.navigation_model.add_widget(OverviewView, overview_view)
-        self.navigation_model.set_active_widget(overview_view)
         
         # Create config view
         config_view = ConfigView(models)
         self.navigation_model.add_widget(ConfigView, config_view)
+        
+        # Create strategies view
+        strategies_view = StrategiesView(models)
+        self.navigation_model.add_widget(StrategiesView, strategies_view)
+        self.navigation_model.set_active_widget(strategies_view)
     
     def _assemble_layout(self) -> None:
         """Assemble all layout components into the main window."""

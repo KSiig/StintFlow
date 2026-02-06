@@ -52,7 +52,7 @@ def _configure_logger():
     # Console handler - simpler format
     # Note: Stack traces are automatically included when log_exception() is called
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.INFO)  # Show DEBUG messages in console
     console_format = logging.Formatter('%(levelname)s: %(message)s')
     console_handler.setFormatter(console_format)
     
