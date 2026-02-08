@@ -87,7 +87,7 @@ class DropdownButton(QWidget):
         """Show popup below the button."""
         # Position popup below the button
         pos = self.btn.mapToGlobal(self.btn.rect().bottomLeft())
-        self.popup.move(pos)
+        self.popup.move(pos.x(), pos.y() + 8)
         self.popup.show()
     
     def _on_value_changed(self, value: str):
@@ -130,6 +130,10 @@ class DropdownPopup(QWidget):
             parent: Parent widget
         """
         super().__init__(parent, Qt.WindowType.Popup)
+        self.setObjectName(f"{popup_object_name}Container")
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+        self.setWindowFlag(Qt.WindowType.NoDropShadowWindowHint, True)
         
         # Create main layout for the popup
         popup_layout = QVBoxLayout(self)

@@ -6,15 +6,20 @@ the ability to handle window state changes. Designed to be placed at the
 top of the right pane in the application.
 """
 
-from PyQt6.QtCore import QSize, Qt
+import sys
+from pathlib import Path
+
+from PyQt6.QtCore import QSize, Qt, QProcess
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QToolButton,
     QWidget,
+    QApplication,
 )
 
 from core.utilities import resource_path
+from core.errors import log, log_exception
 
 
 # Window buttons configuration
@@ -29,6 +34,7 @@ BUTTON_ICONS = {
     'minimize': 'resources/icons/window_buttons/minus.svg',
     'maximize': 'resources/icons/window_buttons/square.svg',
     'restore': 'resources/icons/window_buttons/restore.svg',
+    'restart': 'resources/icons/window_buttons/restart.svg',
     'close': 'resources/icons/window_buttons/x.svg',
 }
 
@@ -68,6 +74,13 @@ class WindowButtons(QWidget):
             self.window().close
         )
 
+        self.restart_button = self._create_button(
+            resource_path(BUTTON_ICONS['restart']),
+            self._restart_app
+        )
+        self.restart_button.setToolTip('Restart')
+        self.restart_button.setVisible(self._should_show_restart())
+
         self.normal_button = self._create_button(
             resource_path(BUTTON_ICONS['restore']),
             self.window().showNormal
@@ -78,6 +91,7 @@ class WindowButtons(QWidget):
             self.min_button,
             self.normal_button,
             self.max_button,
+            self.restart_button,
             self.close_button,
         ]
         
@@ -118,3 +132,38 @@ class WindowButtons(QWidget):
         is_maximized = bool(state & Qt.WindowState.WindowMaximized)
         self.normal_button.setVisible(is_maximized)
         self.max_button.setVisible(not is_maximized)
+
+    def _restart_app(self) -> None:
+        """Restart the application using the current interpreter."""
+        try:
+            program, args = self._get_restart_command()
+            started = QProcess.startDetached(program, args)
+
+            if not started:
+                log('ERROR', 'Failed to start restart process',
+                    category='window_buttons', action='restart')
+                return
+
+            log('INFO', 'Restarting application',
+                category='window_buttons', action='restart')
+            QApplication.instance().quit()
+            print()
+
+        except Exception as exc:
+            log_exception(exc, 'Failed to restart application',
+                          category='window_buttons', action='restart')
+
+    def _should_show_restart(self) -> bool:
+        """Only show restart when running from a .py script."""
+        script_path = Path(sys.argv[0]).resolve()
+        return script_path.suffix.lower() == '.py'
+
+    def _get_restart_command(self) -> tuple[str, list[str]]:
+        """Build the restart command for script or bundled executable."""
+        executable = sys.executable
+        script_path = Path(sys.argv[0]).resolve()
+
+        if script_path.suffix.lower() == '.py':
+            return executable, [str(script_path), *sys.argv[1:]]
+
+        return executable, list(sys.argv[1:])

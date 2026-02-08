@@ -9,7 +9,6 @@ QFrame#TabBarFrame {
 /* Tab Bar Styling */
 QTabBar {
   qproperty-expanding: false;  /* Prevents tabs from expanding to fill space */  qproperty-drawBase: false;  /* Remove the line under the tabs */  background-color: #101f23;
-  border: 0px solid red;
 }
 
 QTabBar::tear {
