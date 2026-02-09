@@ -8,10 +8,17 @@ This module provides a unified error handling system that:
 - Provides user-accessible log files for debugging
 
 Usage:
-    from core.errors import handle_error, log_error, register_error_handler
+    from core.errors import handle_error, log, log_exception, register_error_handler
     
-    # Log an error
-    log_error('ERROR', 'Something went wrong', category='database', action='connection_failed')
+    # Log a message
+    log('ERROR', 'Something went wrong', category='database', action='connection_failed')
+    
+    # Log an exception with traceback
+    try:
+        # some code
+        pass
+    except Exception as e:
+        log_exception(e, 'Failed to connect', category='database', action='connection_failed')
     
     # Handle an error event
     handle_error('__event__:stint_tracker:stint_created')

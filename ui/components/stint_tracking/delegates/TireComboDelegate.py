@@ -6,7 +6,7 @@ Custom delegate for editing tire changes with a popup selector.
 
 import copy
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QPushButton, QLabel,
+    QWidget, QHBoxLayout, QPushButton,
     QGridLayout, QSizePolicy, QAbstractItemView, QStyledItemDelegate, QFrame, QVBoxLayout
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QSize
@@ -14,7 +14,7 @@ from PyQt6.QtGui import QIcon, QPixmap
 
 from core.utilities import resource_path
 from core.database import update_strategy
-from core.errors import log, log_exception
+from core.errors import log
 from ui.models.TableRoles import TableRoles
 from ui.models.stint_helpers import sanitize_stints
 from ui.components.common import DropdownButton

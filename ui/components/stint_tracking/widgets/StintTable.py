@@ -12,7 +12,6 @@ Supports optional editing mode with tire combo delegates.
 from PyQt6.QtWidgets import (
     QTableView,
     QWidget,
-    QVBoxLayout,
     QHBoxLayout,
     QLabel,
     QAbstractButton,
@@ -21,8 +20,8 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QFrame
 )
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QIcon, QFontMetrics
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFontMetrics
 
 from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT, load_icon
@@ -30,7 +29,6 @@ from core.errors import log
 from core.utilities import resource_path
 
 from ..constants import (
-    TABLE_HEADERS,
     COLUMN_WIDTHS,
     VERTICAL_HEADER_WIDTH,
     VERTICAL_HEADER_LABEL
@@ -239,7 +237,7 @@ class StintTable(QWidget):
         
         # Add hash icon
         icon_label = QLabel()
-        icon_path = resource_path("resources/icons/table_headers/hash.svg")
+        icon_path = "resources/icons/table_headers/hash.svg"
         icon_pixmap = load_icon(icon_path, color='#FFFFFF')
         icon_label.setPixmap(icon_pixmap)
         icon_label.setStyleSheet("background-color: transparent;")

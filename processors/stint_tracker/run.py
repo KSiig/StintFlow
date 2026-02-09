@@ -18,7 +18,6 @@ sys.path.insert(0, str(project_root))
 import argparse
 import mmap
 import ctypes
-import time
 from pyLMUSharedMemory import lmu_data
 from core.errors import log, log_exception
 from processors.stint_tracker.core.track_session import track_session

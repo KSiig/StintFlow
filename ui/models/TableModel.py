@@ -385,7 +385,7 @@ class TableModel(QAbstractTableModel):
                 return self.headers[section]
             elif role == Qt.ItemDataRole.DecorationRole:
                 icon_file = get_header_icon(section)
-                icon_path = resource_path(f"resources/icons/table_headers/{icon_file}")
+                icon_path = f"resources/icons/table_headers/{icon_file}"
                 return load_icon(icon_path, color=HEADER_ICON_COLOR)
             elif role == Qt.ItemDataRole.TextAlignmentRole:
                 return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter

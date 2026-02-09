@@ -6,7 +6,7 @@ Launches the stint_tracker process and communicates via stdout/stderr events.
 """
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame,
+    QWidget, QVBoxLayout, QHBoxLayout, QFrame,
     QCheckBox, QLineEdit, QLabel
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QProcess

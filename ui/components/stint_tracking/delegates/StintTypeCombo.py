@@ -6,7 +6,6 @@ Custom delegate for editing stint types with dropdown.
 
 from PyQt6.QtWidgets import QStyledItemDelegate, QWidget, QHBoxLayout, QAbstractItemView
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFontMetrics
 
 from core.database import update_strategy
 from core.errors import log

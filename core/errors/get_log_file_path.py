@@ -5,7 +5,6 @@ The log file is placed in a user-accessible location so non-technical users
 can easily find and send it for debugging purposes.
 """
 
-import os
 from pathlib import Path
 
 

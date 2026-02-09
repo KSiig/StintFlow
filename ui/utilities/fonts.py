@@ -114,9 +114,14 @@ def _load_fonts():
             resource_path('resources/fonts/WorkSans-VariableFont_wght.ttf')
         )
         if font_id == -1:
-            log('ERROR', 'Failed to load font WorkSans', category='ui', action='load_fonts')
+            log('ERROR', 'Failed to load font WorkSans, falling back to Sans Serif', category='ui', action='load_fonts')
+            font_family = 'Sans Serif'
         else:
             # Get the family name
             font_families = QFontDatabase.applicationFontFamilies(font_id)
-            log('INFO', 'Font family loaded successfully', category='ui', action='load_fonts')
-            font_family = font_families[0]
+            if font_families:
+                log('INFO', 'Font family loaded successfully', category='ui', action='load_fonts')
+                font_family = font_families[0]
+            else:
+                log('ERROR', 'Font loaded but no families returned, falling back to Sans Serif', category='ui', action='load_fonts')
+                font_family = 'Sans Serif'

@@ -7,8 +7,6 @@ the console (for immediate feedback) and a log file (for user support).
 
 import logging
 import sys
-from datetime import datetime
-from pathlib import Path
 from .get_log_file_path import get_log_file_path
 
 

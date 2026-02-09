@@ -73,7 +73,7 @@ class StatusDelegate(QStyledItemDelegate):
             text_color = QColor(color_hex)
             
             # Load icon
-            icon_pixmap = load_icon(icon_path, color=text_color.name())
+            icon_pixmap = load_icon(icon_path, color=text_color.name(), size=self.icon_size)
         else:
             # Unknown status - use default color, no icon
             icon_pixmap = None

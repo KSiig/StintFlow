@@ -5,7 +5,7 @@ Handles processing of completed stints and generation of pending stints
 based on mean stint times.
 """
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 from ..table_constants import TableRow, ColumnIndex
 from ..table_utils import create_table_row

@@ -56,7 +56,7 @@ def handle_error(event_string, **kwargs):
         return False
     
     # Parse event string: __prefix__:category:action
-    parts = event_string.split(':')
+    parts = event_string.split(':', 2)
     if len(parts) < 3:
         log('WARNING', f"Malformed error event: {event_string}")
         return False

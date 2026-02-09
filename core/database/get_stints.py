@@ -5,7 +5,6 @@ Query function for loading stint data for a specific session.
 """
 
 from bson.objectid import ObjectId
-from pymongo.errors import PyMongoError
 
 from .connection import get_stints_collection
 from core.errors import log

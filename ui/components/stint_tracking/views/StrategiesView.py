@@ -4,7 +4,7 @@ Strategies view for managing race strategies.
 Displays tabbed interface with main strategy creator and existing strategies.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QTabBar, QStackedWidget, QFrame, QPushButton, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabBar, QStackedWidget, QFrame, QPushButton, QSizePolicy
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
 from bson import ObjectId
@@ -14,7 +14,7 @@ from core.database import create_strategy, get_strategies
 from ui.models import ModelContainer
 from ui.models.stint_helpers import sanitize_stints
 from ui.utilities import load_icon
-from ..strategies import MainTab, StrategyTab
+from ..strategies import StrategyTab
 
 
 class StrategiesView(QWidget):
@@ -131,13 +131,6 @@ class StrategiesView(QWidget):
                 strategies = [default_strategy] if default_strategy else []
             
             self._clear_tabs()
-            
-            # Create MainTab for strategy creation
-            main_tab = MainTab(self.models)
-            main_tab.strategy_created.connect(self._on_strategy_created)
-            
-            log('INFO', 'Main tab added',
-                category='strategies_view', action='load_strategies')
             
             # Create tabs for existing strategies
             for strategy in strategies:

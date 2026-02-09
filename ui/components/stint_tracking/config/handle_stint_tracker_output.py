@@ -20,9 +20,8 @@ def handle_stint_tracker_output(stdout: str, on_stint_created=None,
     """
     try:
         # Handle __event__/__info__ format
-        print("stdout: ", stdout)
         if stdout.startswith('__'):
-            args = stdout.split(':')
+            args = stdout.split(':', 2)
             if len(args) < 3:
                 return
             
