@@ -18,6 +18,7 @@ from .update_team_drivers import update_team_drivers
 from .create_event import create_event
 from .create_session import create_session
 from .create_strategy import create_strategy
+from .upsert_official_stint import upsert_official_stint
 from .connection import (
     stints_col,
     events_col,
@@ -42,6 +43,7 @@ __all__ = [
     'create_event',
     'create_session',
     'create_strategy',
+    'upsert_official_stint',
     'stints_col',
     'events_col',
     'sessions_col',

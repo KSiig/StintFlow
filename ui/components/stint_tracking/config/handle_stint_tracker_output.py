@@ -20,31 +20,14 @@ def handle_stint_tracker_output(stdout: str, on_stint_created=None,
     """
     try:
         # Handle __event__/__info__ format
-        if stdout.startswith('__'):
-            args = stdout.split(':', 2)
-            if len(args) < 3:
-                return
-            
-            event_type = args[0].strip()
-            process = args[1].strip()
-            msg = args[2].strip()
-            
-            if event_type == '__event__':
-                if process == 'stint_tracker':
-                    if msg == 'stint_created' and on_stint_created:
-                        on_stint_created()
-            
-            elif event_type == '__info__':
-                if process == 'stint_tracker':
-                    if msg == 'return_to_garage' and on_return_to_garage:
-                        on_return_to_garage()
-                    elif msg == 'player_in_garage' and on_player_in_garage:
-                        on_player_in_garage()
+        print("stdout: ", stdout)
         
         # Handle log format: "INFO: [category:action] message"
-        elif ': [stint_tracker:' in stdout:
+        if ': [stint_tracker:' in stdout:
             # Parse structured log messages
-            if '[stint_tracker:create_stint]' in stdout and 'Created stint' in stdout:
+            if '[stint_tracker:create_stint]' in stdout and any(
+                marker in stdout for marker in ('Created stint', 'Deduped stint')
+            ):
                 if on_stint_created:
                     on_stint_created()
             elif '[stint_tracker:track_session]' in stdout and 'return to garage' in stdout.lower():
