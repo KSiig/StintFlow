@@ -1,0 +1,430 @@
+"""
+Configuration options widget for stint tracking.
+
+Displays event/session configuration with editable fields and tracking controls.
+Launches the stint_tracker process and communicates via stdout/stderr events.
+"""
+
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+    QCheckBox, QLineEdit, QLabel
+)
+from PyQt6.QtCore import Qt, pyqtSignal, QProcess
+from datetime import datetime
+
+from ui.models import ModelContainer
+from ui.utilities import get_fonts, FONT
+from core.utilities import resource_path
+from core.database import (
+    get_event, get_session, get_sessions, get_team,
+    update_event, update_session, update_team_drivers,
+    create_event, create_session
+)
+from core.errors import log, log_exception
+from ..config import (
+    ConfigLayout, ConfigLabels,
+    create_config_header, create_config_button,
+    create_config_row, create_team_section,
+    handle_stint_tracker_output
+)
+
+
+class ConfigOptions(QWidget):
+    """
+    Configuration panel for stint tracking.
+    
+    Displays event configuration (name, tires, length), session details,
+    driver names, and tracking controls. Manages the stint_tracker process.
+    
+    Signals:
+        stint_created: Emitted when stint_tracker reports a new stint
+    """
+    
+    stint_created = pyqtSignal()
+    
+    def __init__(self, models: ModelContainer):
+        """
+        Initialize configuration options widget.
+        
+        Args:
+            models: Container with selection_model and table_model
+        """
+        super().__init__()
+        
+        self.selection_model = models.selection_model
+        self.table_model = models.table_model
+        self.event = None
+        self.session = None
+        self.team = None
+        self.drivers = []
+        self.inputs = {}
+        self.driver_inputs = []  # List of QLineEdit, not dict
+        self.p = None  # QProcess for stint_tracker
+        
+        # Load stylesheet
+        try:
+            with open(resource_path('resources/styles/config_options.qss'), 'r') as f:
+                self.setStyleSheet(f.read())
+        except Exception as e:
+            log_exception(e, 'Failed to load config_options stylesheet',
+                         category='ui', action='load_stylesheet')
+        
+        # Connect to selection model signals
+        self.selection_model.eventChanged.connect(self._refresh_labels)
+        self.selection_model.sessionChanged.connect(self._refresh_labels)
+        
+        self._setup_ui()
+        self._refresh_labels()
+    
+    def closeEvent(self, event):
+        """Clean up QProcess on widget close."""
+        if self.p and self.p.state() == QProcess.ProcessState.Running:
+            self.p.kill()
+            self.p.waitForFinished()
+        super().closeEvent(event)
+    
+    def _setup_ui(self):
+        """Build the UI layout with all configuration fields."""
+        # Main frame
+        frame = QFrame()
+        frame.setObjectName("ConfigOptions")
+        frame.setFixedWidth(ConfigLayout.FRAME_WIDTH)
+        
+        root_widget_layout = QVBoxLayout(self)
+        root_widget_layout.setContentsMargins(0, 0, 0, 0)
+        root_widget_layout.addWidget(frame)
+        
+        # Create all buttons and controls
+        self._create_buttons()
+        
+        # Main layout
+        root_layout = QVBoxLayout(frame)
+        root_layout.setContentsMargins(0, 0, ConfigLayout.RIGHT_MARGIN, 0)
+        root_layout.setSpacing(ConfigLayout.CONTENT_SPACING)
+        
+        # Add header
+        root_layout.addLayout(create_config_header())
+        
+        # Add configuration rows
+        self._add_config_rows(root_layout)
+        
+        # Add buttons
+        root_layout.addLayout(self._create_button_layout())
+        
+        self.save_btn.hide()
+        self.stop_btn.hide()
+        root_layout.addStretch()
+    
+    def _add_config_rows(self, layout: QVBoxLayout):
+        """Add all configuration row widgets to layout."""
+        # Create and store input field references
+        for field_id, title in [
+            ("event_name", "Event name"),
+            ("session_name", "Session name"),
+            ("tires", "Starting tires"),
+            ("length", "Race length")
+        ]:
+            card, input_field = create_config_row(title)
+            self.inputs[field_id] = input_field
+            layout.addWidget(card)
+        
+        # Add team/driver section
+        team_card, driver_inputs, drivers = create_team_section()
+        self.driver_inputs = driver_inputs
+        self.drivers = drivers
+        layout.addWidget(team_card)
+    
+    def _create_buttons(self):
+        """Create all buttons and controls."""
+        # Action buttons
+        self.edit_btn = create_config_button(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg")
+        self.save_btn = create_config_button(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg")
+        self.clone_btn = create_config_button(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg")
+        self.create_session_btn = create_config_button(ConfigLabels.BTN_NEW_SESSION, width_type="full")
+        self.start_btn = create_config_button(ConfigLabels.BTN_START_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
+        self.stop_btn = create_config_button(ConfigLabels.BTN_STOP_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
+        self.start_btn.setObjectName("TrackButton")
+        self.stop_btn.setObjectName("TrackButton")
+        
+        # Practice checkbox and warning label
+        self.practice_cb = QCheckBox(text="Practice")
+        self.lbl_return_to_grg = QLabel("Please return to garage!")
+        self.practice_cb.setFont(get_fonts(FONT.input_field))
+        self.lbl_return_to_grg.setFont(get_fonts(FONT.header_input_hint))
+        self.lbl_return_to_grg.hide()
+        
+        # Connect button signals
+        self.edit_btn.clicked.connect(self._toggle_edit)
+        self.save_btn.clicked.connect(lambda: (self._save_config(), self._toggle_edit()))
+        self.clone_btn.clicked.connect(self._clone_event)
+        self.create_session_btn.clicked.connect(self._create_session)
+        self.stop_btn.clicked.connect(self._toggle_track)
+        self.start_btn.clicked.connect(self._toggle_track)
+    
+    def _create_button_layout(self) -> QHBoxLayout:
+        """Create the button layout with all controls."""
+        btn_layout = QVBoxLayout()
+        btn_layout.setSpacing(ConfigLayout.BUTTON_SPACING)
+        
+        # Top column: edit/save/clone buttons
+        btn_layout_save_clone = QHBoxLayout()
+        btn_layout_save_clone.addWidget(self.edit_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.save_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.clone_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.start_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_layout_save_clone.addWidget(self.stop_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        
+        # Right column: tracking controls
+        btn_tracking_layout = QVBoxLayout()
+        btn_tracking_layout.setSpacing(8)
+        btn_tracking_layout.addWidget(self.create_session_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addWidget(self.lbl_return_to_grg, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addStretch()
+        
+        btn_layout.addWidget(self.practice_cb)
+        btn_layout.addLayout(btn_layout_save_clone)
+        btn_layout.addLayout(btn_tracking_layout)
+        
+        return btn_layout
+    
+    def _refresh_labels(self):
+        """Reload event/session data and update input fields."""
+        try:
+            # Load event data
+            self.event = get_event(self.selection_model.event_id)
+            if not self.event:
+                log('WARNING', 'No event found for current selection',
+                    category='config_options', action='refresh_labels')
+                return
+            
+            # Load session data
+            self.session = get_session(self.selection_model.session_id)
+            if not self.session:
+                # Fall back to last session for this event
+                sessions = list(get_sessions(self.event['_id']))
+                if sessions:
+                    self.session = sessions[-1]
+                    self.selection_model.set_session(
+                        str(self.session['_id']),
+                        self.session['name']
+                    )
+            
+            # Reload team data to pick up driver changes
+            self.team = get_team()
+            if self.team:
+                self.drivers = self.team.get('drivers', [])
+                # Update driver input fields if they exist
+                for i, driver in enumerate(self.drivers):
+                    if i < len(self.driver_inputs):
+                        self.driver_inputs[i].setText(driver)
+            
+            # Update input fields
+            if self.event:
+                self.inputs['event_name'].setText(self.event.get('name', ''))
+                self.inputs['tires'].setText(str(self.event.get('tires', '')))
+                self.inputs['length'].setText(self.event.get('length', ''))
+            
+            if self.session:
+                self.inputs['session_name'].setText(self.session.get('name', ''))
+        
+        except Exception as e:
+            log_exception(e, 'Failed to refresh configuration labels',
+                         category='config_options', action='refresh_labels')
+    
+    def _toggle_edit(self):
+        """Toggle between edit and view modes for configuration fields."""
+        # Edit mode -> View mode
+        if self.save_btn.isVisible():
+            self.save_btn.hide()
+            self.clone_btn.show()
+            self.edit_btn.show()
+            for child in self.findChildren(QLineEdit):
+                child.setReadOnly(True)
+                child.setProperty('editable', False)
+                child.style().unpolish(child)
+                child.style().polish(child)
+        # View mode -> Edit mode
+        else:
+            self.edit_btn.hide()
+            self.clone_btn.hide()
+            self.save_btn.show()
+            for child in self.findChildren(QLineEdit):
+                child.setReadOnly(False)
+                child.setProperty('editable', True)
+                child.style().unpolish(child)
+                child.style().polish(child)
+    
+    def _save_config(self):
+        """Save configuration changes to database."""
+        try:
+            # Update event
+            update_event(
+                str(self.selection_model.event_id),
+                name=self.inputs['event_name'].text(),
+                tires=self.inputs['tires'].text(),
+                length=self.inputs['length'].text()
+            )
+            
+            # Update session
+            update_session(
+                str(self.selection_model.session_id),
+                name=self.inputs['session_name'].text()
+            )
+            
+            # Update drivers
+            drivers = [line_edit.text() for line_edit in self.driver_inputs]
+            if self.team:
+                update_team_drivers(str(self.team['_id']), drivers)
+                self.drivers = drivers  # Update local driver list
+            
+            # Refresh table
+            self.table_model.update_data()
+            
+            log('INFO', 'Configuration saved successfully',
+                category='config_options', action='save_config')
+        
+        except Exception as e:
+            log_exception(e, 'Failed to save configuration',
+                         category='config_options', action='save_config')
+    
+    def _clone_event(self):
+        """Clone current event and create a new session."""
+        try:
+            # Clone event (remove _id to create new document)
+            event_data = dict(self.event)
+            if '_id' in event_data:
+                del event_data['_id']
+            event_data['name'] = event_data.get('name', 'Event') + " - Clone"
+            
+            result = create_event(event_data)
+            if not result:
+                log('ERROR', 'Failed to create cloned event',
+                    category='config_options', action='clone_event')
+                return
+            
+            # Create practice session for new event
+            session_data = {
+                "race_id": result.inserted_id,
+                "name": "practice"
+            }
+            session_result = create_session(session_data)
+            if not session_result:
+                log('ERROR', 'Failed to create session for cloned event',
+                    category='config_options', action='clone_event')
+                return
+            
+            # Update selection to new event/session
+            new_event = get_event(str(result.inserted_id))
+            new_session = get_session(str(session_result.inserted_id))
+            
+            if new_event and new_session:
+                self.selection_model.set_event(str(new_event['_id']), new_event['name'])
+                self.selection_model.set_session(str(new_session['_id']), new_session['name'])
+            
+            log('INFO', 'Event cloned successfully',
+                category='config_options', action='clone_event')
+        
+        except Exception as e:
+            log_exception(e, 'Failed to clone event',
+                         category='config_options', action='clone_event')
+    
+    def _create_session(self):
+        """Create a new session for the current event."""
+        try:
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            session_name = "Practice - " + now
+            
+            session_data = {
+                "race_id": self.event['_id'],
+                "name": session_name
+            }
+            
+            result = create_session(session_data)
+            if not result:
+                log('ERROR', 'Failed to create new session',
+                    category='config_options', action='create_session')
+                return
+            
+            # Update selection to new session
+            self.selection_model.set_session(str(result.inserted_id), session_name)
+            
+            log('INFO', f'Created new session: {session_name}',
+                category='config_options', action='create_session')
+        
+        except Exception as e:
+            log_exception(e, 'Failed to create session',
+                         category='config_options', action='create_session')
+    
+    def _toggle_track(self):
+        """Toggle stint tracking on/off."""
+        # Start tracking
+        if self.stop_btn.isHidden():
+            self.start_btn.hide()
+            self.stop_btn.show()
+            self._start_process()
+        # Stop tracking
+        else:
+            self.stop_btn.hide()
+            self.start_btn.show()
+            if self.p:
+                self.p.kill()
+                self.p = None
+    
+    def _start_process(self):
+        """Launch the stint_tracker process."""
+        try:
+            self.p = QProcess()
+            self.p.readyReadStandardOutput.connect(self._handle_stdout)
+            self.p.readyReadStandardError.connect(self._handle_stderr)
+            
+            is_practice = self.practice_cb.isChecked()
+            process_args = [
+                '-u',
+                'processors/stint_tracker/run.py',
+                '--session-id', str(self.selection_model.session_id),
+                '--drivers', *self.drivers
+            ]
+            if is_practice:
+                process_args.append('--practice')
+            
+            self.p.start("python3", process_args)
+            log('INFO', f'Started stint tracker process with args: {process_args}',
+                category='config_options', action='start_process')
+        
+        except Exception as e:
+            log_exception(e, 'Failed to start stint tracker process',
+                         category='config_options', action='start_process')
+    
+    def _handle_stderr(self):
+        """Handle stderr output from stint_tracker process."""
+        if not self.p:
+            return
+        
+        data = self.p.readAllStandardError()
+        stderr = bytes(data).decode("utf8")
+        log('ERROR', f'Stint tracker stderr: {stderr}',
+            category='config_options', action='handle_stderr')
+    
+    def _handle_stdout(self):
+        """Handle stdout output from stint_tracker process."""
+        if not self.p:
+            return
+        
+        data = self.p.readAllStandardOutput()
+        stdout = bytes(data).decode("utf8")
+        
+        self._handle_output(stdout)
+    
+    def _handle_output(self, stdout: str):
+        """
+        Parse structured event messages from stint_tracker.
+        
+        Args:
+            stdout: Event message in format __event__:process:message
+        """
+        handle_stint_tracker_output(
+            stdout,
+            on_stint_created=lambda: self.stint_created.emit(),
+            on_return_to_garage=lambda: self.lbl_return_to_grg.show(),
+            on_player_in_garage=lambda: self.lbl_return_to_grg.hide()
+        )

@@ -1,0 +1,48 @@
+/* ============================================================
+   Session Picker - ComboBoxes
+   ============================================================ */
+
+QPushButton#ComboBox {
+  background-color: transparent;
+  color: #D1D5DC;
+  border: 1px solid #2a3f44;
+  border-radius: 8px;
+  padding-left: 34px;
+  text-align: left;
+}
+
+QPushButton#ComboBox:hover {
+  background-color: #0f1b1f;
+}
+
+/* Dropdown list */
+#ComboBoxPopup {
+  background-color: #1F2937;
+  color: #D1D5DC;
+  padding: 4px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+}
+
+QPushButton#ComboBoxPopupItem {
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: transparent;
+  border: none;
+  color: #D1D5DC;
+  text-align: left;
+}
+
+QPushButton#ComboBoxPopupItem:hover {
+  background-color: #374151;
+}
+
+/* Container frame */
+QFrame#ComboBoxes {
+  border-top: 1px solid #374151;
+  background-color: #101f23;
+}
+
+QWidget#StintSelection {
+  background-color: #101f23;
+}

@@ -1,0 +1,151 @@
+/* ============================================
+   Stint Table Stylesheet
+   ============================================ */
+
+/* --- Frame Container --- */
+QFrame#StintTableFrame {
+  background-color: #101f23;
+  padding: 8px;
+  border: 1px solid #1e2939;
+  border-radius: 8px;
+}
+
+QFrame#StintTableFrame > QAbstractButton, 
+QFrame#StintTableFrame > QLabel {
+  background-color: #101f23;
+  border: none;
+}
+
+/* --- Table View --- */
+QTableView {
+  border: none;
+  background-color: #101f23;
+  gridline-color: transparent;
+  show-decoration-selected: 0;
+  selection-background-color: #1a2d35;
+  selection-color: #FFFFFF;
+}
+
+QTableView::item {
+  border-bottom: 1px solid #15232b;
+  padding-left: 30px;
+  color: #FFFFFF;
+}
+
+QTableView::item:hover {
+  background-color: #162a30;
+}
+
+QTableView::item:selected {
+  background-color: #1a2d35;
+}
+
+QTableView::item:selected:hover {
+  background-color: #1f3540;
+}
+
+QTableView::item:focus {
+  background-color: #1a2d35;
+  outline: none;
+}
+
+QTableView::corner {
+  background-color: #101f23;
+  border: none;
+}
+
+/* --- Header View --- */
+QHeaderView {
+  background-color: #101f23;
+  border: none;
+}
+
+QHeaderView::section {
+  background-color: #101f23;
+  color: #FFFFFF;
+  border: none;
+  padding: 4px;
+}
+
+QHeaderView::section:horizontal {
+  padding-left: 8px;
+  border-bottom: 1px solid #15232b;
+}
+
+QHeaderView::section:hover {
+  background-color: #162a30;
+}
+
+QHeaderView::section:pressed {
+  background-color: #1a2d35;
+}
+
+/* --- Custom Header Elements --- */
+#StintTableCornerHeaderLabel, 
+#StintTableCornerHeader {
+  background-color: #101f23;
+  border: none;
+}
+
+/* --- Scrollbars --- */
+QScrollBar:vertical {
+  background-color: #101f23;
+  width: 12px;
+  border: none;
+  border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+  background-color: #364153;
+  border-radius: 6px;
+  min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+  background-color: #455a64;
+}
+
+QScrollBar::handle:vertical:pressed {
+  background-color: #546e7a;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+  height: 0px;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+  background: none;
+}
+
+QScrollBar:horizontal {
+  background-color: #101f23;
+  height: 12px;
+  border: none;
+  border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal {
+  background-color: #364153;
+  border-radius: 6px;
+  min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+  background-color: #455a64;
+}
+
+QScrollBar::handle:horizontal:pressed {
+  background-color: #546e7a;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+  width: 0px;
+}
+
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+  background: none;
+}
