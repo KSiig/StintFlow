@@ -2,36 +2,39 @@
    Session Picker - ComboBoxes
    ============================================================ */
 
-QComboBox#ComboBox {
+QPushButton#ComboBox {
   background-color: transparent;
   color: #D1D5DC;
   border: 1px solid #2a3f44;
   border-radius: 8px;
   padding-left: 34px;
+  text-align: left;
+}
+
+QPushButton#ComboBox:hover {
+  background-color: #0f1b1f;
 }
 
 /* Dropdown list */
-QComboBox#ComboBox QAbstractItemView {
+#ComboBoxPopup {
   background-color: #1F2937;
-  selection-background-color: #374151;
-  selection-color: #F9FAFB;
   color: #D1D5DC;
   padding: 4px;
   border: 1px solid #374151;
   border-radius: 8px;
 }
 
-QComboBox#ComboBox QAbstractItemView::item {
+QPushButton#ComboBoxPopupItem {
   padding: 8px 12px;
   border-radius: 4px;
+  background-color: transparent;
+  border: none;
+  color: #D1D5DC;
+  text-align: left;
 }
 
-QComboBox#ComboBox QAbstractItemView::item:hover {
+QPushButton#ComboBoxPopupItem:hover {
   background-color: #374151;
-}
-
-QComboBox#ComboBox QAbstractItemView::item:selected {
-  background-color: #4B5563;
 }
 
 /* Container frame */

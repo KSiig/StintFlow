@@ -30,6 +30,7 @@ class DropdownButton(QWidget):
         button_object_name: str = "DropdownButton",
         popup_object_name: str = "DropdownPopup",
         item_object_name: str = "DropdownPopupItem",
+        load_styles: bool = True,
         parent=None
     ):
         """
@@ -45,7 +46,8 @@ class DropdownButton(QWidget):
         """
         super().__init__(parent)
         
-        self._setup_styles()
+        if load_styles:
+            self._setup_styles()
         self.items = items
         self.button_object_name = button_object_name
         self.popup_object_name = popup_object_name
@@ -98,6 +100,37 @@ class DropdownButton(QWidget):
     def set_value(self, value: str):
         """Set the current value displayed on the button."""
         self.btn.setText(value)
+
+    def set_text_alignment_left(self, padding_left: int = 0) -> None:
+        """Left-align the text inside the button with optional padding."""
+        if padding_left > 0:
+            self.btn.setStyleSheet(
+                f"text-align: left; padding-left: {padding_left}px;"
+            )
+            return
+
+        self.btn.setStyleSheet("text-align: left;")
+
+    def set_items(self, items: list[str]) -> None:
+        """Replace popup items and keep current value when possible."""
+        self.items = items
+        current_value = self.btn.text()
+        self.popup.setParent(None)
+        self.popup.deleteLater()
+        self.popup = DropdownPopup(
+            items=items,
+            popup_object_name=self.popup_object_name,
+            item_object_name=self.item_object_name,
+            parent=self
+        )
+        self.popup.valueChanged.connect(self._on_value_changed)
+
+        if current_value in items:
+            self.btn.setText(current_value)
+        elif items:
+            self.btn.setText(items[0])
+        else:
+            self.btn.setText("")
     
     def get_value(self) -> str:
         """Get the current value displayed on the button."""
@@ -157,6 +190,7 @@ class DropdownPopup(QWidget):
         for item in items:
             btn = QPushButton(item if item else "(None)")
             btn.setObjectName(item_object_name)
+            btn.setStyleSheet("text-align: left;")
             btn.clicked.connect(lambda checked, value=item: self._select_value(value))
             layout.addWidget(btn)
             self.buttons.append(btn)

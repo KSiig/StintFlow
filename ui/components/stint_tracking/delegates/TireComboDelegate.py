@@ -6,17 +6,19 @@ Custom delegate for editing tire changes with a popup selector.
 
 import copy
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QPushButton, QComboBox, QLabel,
-    QGridLayout, QSizePolicy, QAbstractItemView, QStyledItemDelegate
+    QWidget, QHBoxLayout, QPushButton, QLabel,
+    QGridLayout, QSizePolicy, QAbstractItemView, QStyledItemDelegate, QFrame, QVBoxLayout
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QSize
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QPixmap
 
 from core.utilities import resource_path
 from core.database import update_strategy
-from core.errors import log
+from core.errors import log, log_exception
 from ui.models.TableRoles import TableRoles
 from ui.models.stint_helpers import sanitize_stints
+from ui.components.common import DropdownButton
+from ui.utilities import load_icon
 
 
 class TireComboDelegate(QStyledItemDelegate):
@@ -75,9 +77,9 @@ class TireComboDelegate(QStyledItemDelegate):
             if not view:
                 return
             
-            # Position popup below the cell
-            rect = view.visualRect(index)
-            pos = view.viewport().mapToGlobal(rect.bottomLeft())
+            # Position popup at bottom-left of the button
+            pos = btn.mapToGlobal(btn.rect().bottomLeft())
+            pos.setY(pos.y() + 4)
             
             # Load current tire values
             value = index.data(TableRoles.TiresRole)
@@ -168,18 +170,32 @@ class TirePopup(QWidget):
     def __init__(self, parent=None):
         """Initialize tire popup widget."""
         super().__init__(parent, Qt.WindowType.Popup)
-        layout = QGridLayout(self)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+        self.setWindowFlag(Qt.WindowType.NoDropShadowWindowHint, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+        container = QFrame(self)
+        container.setObjectName("TirePopupContainer")
+
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        outer_layout.setSpacing(0)
+        outer_layout.addWidget(container)
+
+        layout = QGridLayout(container)
         
-        SIZE_BTN = QSize(24, 24)
-        SIZE_ICON = QSize(16, 16)
+        SIZE_BTN = QSize(36, 36)
+        SIZE_ICON = QSize(24, 24)
         
         # Create quick-set buttons
-        btn_x = QPushButton("X")
-        btn_x.setStyleSheet("font-weight: bold;")
+        btn_x = QPushButton()
+        btn_x.setIcon(QIcon(load_icon('resources/icons/tires/x.svg', size=SIZE_ICON.height() + 4, color="#D1D5DC")))
         btn_medium = QPushButton()
-        btn_medium.setIcon(QIcon(resource_path('resources/icons/tires/medium.png')))
+        medium_pixmap = QPixmap(resource_path('resources/icons/tires/medium.png'))
+        btn_medium.setIcon(QIcon(medium_pixmap.scaledToHeight(SIZE_ICON.height(), Qt.TransformationMode.SmoothTransformation)))
         btn_wet = QPushButton()
-        btn_wet.setIcon(QIcon(resource_path('resources/icons/tires/wet.png')))
+        wet_pixmap = QPixmap(resource_path('resources/icons/tires/wet.png'))
+        btn_wet.setIcon(QIcon(wet_pixmap.scaledToHeight(SIZE_ICON.height(), Qt.TransformationMode.SmoothTransformation)))
         
         # Connect quick-set buttons
         btn_x.clicked.connect(lambda: self.set_all_tires(None))
@@ -190,27 +206,36 @@ class TirePopup(QWidget):
         for btn in (btn_medium, btn_wet, btn_x):
             btn.setFixedSize(SIZE_BTN)
             btn.setIconSize(SIZE_ICON)
-        
+            btn.setObjectName("TirePopupQuickSetButton")
+
+        btn_x.setIconSize(QSize(SIZE_ICON.width() + 3, SIZE_ICON.height() + 3))
+
         # Add quick-set buttons to layout
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(0)
         btn_layout.addWidget(btn_x)
         btn_layout.addWidget(btn_medium)
         btn_layout.addWidget(btn_wet)
+        btn_layout.addStretch()
         layout.addLayout(btn_layout, 0, 1)
         
         # Create tire selection combos
         self.boxes = {}
+        dropdown_items = ["", "Medium", "Wet", "Used medium", "Used wet"]
         for i, tire in enumerate(["FL", "FR", "RL", "RR"]):
             row = (i // 2) + 1  # 0,0,1,1 -> 1,1,2,2
             col = (i % 2) * 2   # 0,2,0,2
             
-            label = QLabel(tire)
-            cb = QComboBox()
-            cb.addItems(["", "Medium", "Wet", "Used medium", "Used wet"])
-            cb.currentIndexChanged.connect(lambda _: self.dataChanged.emit())
+            # label = QLabel(tire)
+            cb = DropdownButton(
+                items=dropdown_items,
+                current_value="",
+                parent=container,
+                button_object_name="TirePopupDropdown",
+            )
+            cb.valueChanged.connect(lambda _: self.dataChanged.emit())
             
-            layout.addWidget(label, row, col)
+            # layout.addWidget(label, row, col)
             layout.addWidget(cb, row, col + 1)
             
             self.boxes[tire] = cb
@@ -227,10 +252,9 @@ class TirePopup(QWidget):
             tire_compound = data[tire.lower()]['outgoing']['compound'].capitalize()
             
             if tire_changed:
-                index = self.boxes[tire].findText(tire_compound)
-                self.boxes[tire].setCurrentIndex(index)
+                self.boxes[tire].set_value(tire_compound)
             else:
-                self.boxes[tire].setCurrentIndex(0)
+                self.boxes[tire].set_value("")
     
     def values(self) -> dict:
         """
@@ -239,7 +263,7 @@ class TirePopup(QWidget):
         Returns:
             Dict mapping tire names to selected compounds
         """
-        return {k: v.currentText() for k, v in self.boxes.items()}
+        return {k: v.get_value() for k, v in self.boxes.items()}
     
     def set_all_tires(self, compound: str = None):
         """
@@ -250,8 +274,7 @@ class TirePopup(QWidget):
         """
         for tire in self.boxes:
             if compound:
-                index = self.boxes[tire].findText(compound.capitalize())
-                self.boxes[tire].setCurrentIndex(index)
+                self.boxes[tire].set_value(compound.capitalize())
             else:
-                self.boxes[tire].setCurrentIndex(0)
+                self.boxes[tire].set_value("")
             self.dataChanged.emit()

@@ -117,7 +117,7 @@ class ApplicationWindow(QMainWindow):
         # Create strategies view
         strategies_view = StrategiesView(models)
         self.navigation_model.add_widget(StrategiesView, strategies_view)
-        self.navigation_model.set_active_widget(strategies_view)
+        self.navigation_model.set_active_widget(overview_view)
     
     def _assemble_layout(self) -> None:
         """Assemble all layout components into the main window."""

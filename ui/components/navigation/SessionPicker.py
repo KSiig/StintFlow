@@ -21,7 +21,7 @@ from ui.models import ModelContainer
 from core.utilities import resource_path
 from core.errors import log, log_exception
 from core.database import get_events, get_sessions
-from ..common import UpwardComboBox
+from ..common import DataDropdownButton
 from .constants import (
     FRAME_TOP_MARGIN,
     FRAME_BOTTOM_MARGIN,
@@ -97,7 +97,7 @@ class SessionPicker(QWidget):
         root_layout = QVBoxLayout(frame)
         root_layout.setContentsMargins(FRAME_LEFT_MARGIN, 0, FRAME_RIGHT_MARGIN, 0)
         root_layout.setSpacing(COMBO_SPACING)
-        root_layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        root_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         # Create combo boxes
         self.events = self._create_combo_box()
@@ -115,27 +115,25 @@ class SessionPicker(QWidget):
         root_layout.addWidget(self.events)
         root_layout.addWidget(self.sessions)
     
-    def _create_combo_box(self) -> UpwardComboBox:
+    def _create_combo_box(self) -> DataDropdownButton:
         """
         Create a configured combo box for the session picker.
         
         Returns:
-            Configured UpwardComboBox with standard styling and properties
+            Configured DataDropdownButton with standard styling and properties
         """
-        combo = UpwardComboBox()
-        combo.setEditable(False)
-        combo.setObjectName("ComboBox")
+        combo = DataDropdownButton()
         combo.setFont(get_fonts(FONT.combo_input))
+        combo.set_text_alignment_left(padding_left=34)
         combo.setSizePolicy(
-            QSizePolicy.Policy.Minimum,
+            QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Fixed
         )
         combo.setFixedHeight(COMBO_HEIGHT)
-        combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         
         return combo
     
-    def _add_combo_icon(self, combo_box: UpwardComboBox, icon_path: str) -> None:
+    def _add_combo_icon(self, combo_box: DataDropdownButton, icon_path: str) -> None:
         """
         Add an icon to a combo box positioned inside the left edge.
         
