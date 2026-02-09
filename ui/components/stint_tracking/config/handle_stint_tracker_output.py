@@ -4,7 +4,7 @@ Parse and handle stint tracker process output.
 Processes structured event messages from the stint_tracker process.
 """
 
-from core.errors import log_exception
+from core.errors import log, log_exception
 
 
 def handle_stint_tracker_output(stdout: str, on_stint_created=None, 
@@ -19,8 +19,9 @@ def handle_stint_tracker_output(stdout: str, on_stint_created=None,
         on_player_in_garage: Callback function when player is in garage
     """
     try:
-        # Handle __event__/__info__ format
-        print("stdout: ", stdout)
+        message = stdout.strip()
+        if message:
+            log('DEBUG', message, category='stint_tracker', action='process_output')
         
         # Handle log format: "INFO: [category:action] message"
         if ': [stint_tracker:' in stdout:
