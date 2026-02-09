@@ -4,12 +4,13 @@ Create stint record in database.
 Builds stint document from game state and inserts into MongoDB.
 """
 
-from typing import Any, Optional
+from typing import Any
 from bson import ObjectId
-from core.database.connection import get_stints_collection
+from core.database import upsert_official_stint
 from core.errors import log, log_exception
 from ..tire_management import get_tire_state, detect_tire_changes
 from ..tire_management.constants import TIRE_POSITIONS
+from .normalize_pit_time import normalize_pit_time
 
 
 def create_stint(
@@ -20,7 +21,7 @@ def create_stint(
     session_id: str,
     driver_name: str,
     tires_coming_in: dict
-) -> Optional[str]:
+) -> str | None:
     """
     Create a stint record in the database.
     
@@ -72,23 +73,38 @@ def create_stint(
         
         tire_data['tires_changed'] = detect_tire_changes(tires_outgoing)
         
+        # Normalize pit end time for dedupe across multiple trackers
+        normalized_time = normalize_pit_time(remaining_time)
+        if not normalized_time:
+            log('WARNING', f'Invalid pit end time format: {remaining_time}',
+                category='stint_tracker', action='create_stint')
+            normalized_time = remaining_time
+
+        stint_key = f'{session_id}:{normalized_time}'
+
         # Build stint document
         stint = {
             "session_id": ObjectId(session_id),
             "driver": driver_name,
             "pit_end_time": remaining_time,
+            "pit_end_time_bucket": normalized_time,
+            "stint_key": stint_key,
+            "official": True,
             "tire_data": tire_data
         }
-        
-        # Insert into database
-        stints_col = get_stints_collection()
-        result = stints_col.insert_one(stint)
-        
-        stint_id = str(result.inserted_id)
-        
-        log('INFO', f'Created stint {stint_id} for driver {driver_name}',
-            category='stint_tracker', action='create_stint')
-        
+
+        stint_id, was_inserted = upsert_official_stint(stint, stint_key)
+
+        if not stint_id:
+            return None
+
+        if was_inserted:
+            log('INFO', f'Created stint {stint_id} for driver {driver_name}',
+                category='stint_tracker', action='create_stint')
+        else:
+            log('INFO', f'Deduped stint {stint_id} for driver {driver_name}',
+                category='stint_tracker', action='create_stint')
+
         return stint_id
         
     except Exception as e:

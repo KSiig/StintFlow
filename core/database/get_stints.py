@@ -33,7 +33,13 @@ def get_stints(session_id: str) -> list[dict]:
         
         # Query database
         stints_col = get_stints_collection()
-        cursor = stints_col.find({"session_id": session_obj_id})
+        cursor = stints_col.find({
+            "session_id": session_obj_id,
+            "$or": [
+                {"official": True},
+                {"official": {"$exists": False}}
+            ]
+        })
         
         # Materialize results
         stints = list(cursor)
