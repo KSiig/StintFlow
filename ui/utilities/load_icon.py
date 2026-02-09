@@ -16,7 +16,8 @@ def load_icon(icon_path: str, size: int = 16, color: str = "#05fd7e") -> QPixmap
     Safely load an icon from a file path with error handling and colorization.
     
     Args:
-        icon_path: Path to the icon file (relative to resources directory)
+        icon_path: Path to the icon file (relative to resources directory or absolute path).
+                   If relative, it will be resolved via resource_path().
         size: Size to scale the icon to (height in pixels)
         color: Hex color code to apply to the icon (e.g., "#05fd7e")
         
