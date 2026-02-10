@@ -65,6 +65,7 @@ class SettingsView(QWidget):
         layout.setSpacing(16)
 
         mongo_frame = QFrame()
+        mongo_frame.setObjectName('MongoFrame')
         mongo_layout = QVBoxLayout(mongo_frame)
         mongo_layout.setContentsMargins(0, 0, 0, 0)
         mongo_layout.setSpacing(12)
@@ -88,10 +89,6 @@ class SettingsView(QWidget):
         mongo_layout.addLayout(form_layout)
         layout.addWidget(mongo_frame)
 
-        note = QLabel('Restart the app to apply changes.')
-        note.setFont(get_fonts(FONT.header_input_hint))
-        layout.addWidget(note)
-
         hint = QLabel('Connection string overrides host and credentials when set.')
         hint.setFont(get_fonts(FONT.header_input_hint))
         layout.addWidget(hint)
@@ -104,16 +101,45 @@ class SettingsView(QWidget):
         button_layout.setSpacing(8)
 
         save_button = QPushButton('Save')
-        reload_button = QPushButton('Reload')
+        self.reload_button = QPushButton('Reload')
         save_button.clicked.connect(self._save_settings)
-        reload_button.clicked.connect(self._load_settings)
+        self.reload_button.clicked.connect(self._restart_app)
 
         button_layout.addWidget(save_button)
-        button_layout.addWidget(reload_button)
+        button_layout.addWidget(self.reload_button)
         button_layout.addStretch()
+        self.reload_button.hide()  # Hide reload button for now, as restart is required to apply changes
 
         layout.addLayout(button_layout)
         layout.addStretch()
+
+    def _restart_app(self) -> None:
+        """Restart the application using the current interpreter (WindowButtons pattern)."""
+        import sys
+        from pathlib import Path
+        from PyQt6.QtCore import QProcess
+        from PyQt6.QtWidgets import QApplication
+        from core.errors import log, log_exception
+        try:
+            executable = sys.executable
+            script_path = Path(sys.argv[0]).resolve()
+            if script_path.suffix.lower() == '.py':
+                program = executable
+                args = [str(script_path), *sys.argv[1:]]
+            else:
+                program = executable
+                args = list(sys.argv[1:])
+            started = QProcess.startDetached(program, args)
+            if not started:
+                log('ERROR', 'Failed to start restart process',
+                    category='settings', action='restart')
+                return
+            log('INFO', 'Restarting application from settings',
+                category='settings', action='restart')
+            QApplication.instance().quit()
+        except Exception as exc:
+            log_exception(exc, 'Failed to restart application',
+                          category='settings', action='restart')
 
     def _add_input(
         self,
@@ -172,6 +198,7 @@ class SettingsView(QWidget):
 
             current_settings['mongodb'] = mongo_settings
             save_user_settings(current_settings)
+            self.reload_button.show()  # Show reload button to indicate restart is needed
 
             if self.status_label:
                 self.status_label.setText('Saved. Restart the app to apply changes.')

@@ -5,11 +5,23 @@
   border-radius: 8px;
 }
 
-#SettingsFrame > *, QLabel, QLineEdit {
+#MongoFrame, QLabel, QLineEdit {
   background-color: transparent;
 }
 
 QLineEdit {
   background-color: #202b2f;
   padding: 4px;
+}
+
+QPushButton {
+  background-color: #202b2f;
+  color: #FFFFFF;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+QPushButton:hover {
+  background-color: #2c3e44;
 }
