@@ -17,6 +17,13 @@ QLabel {
   background-color: #101f23;
 }
 
+QFrame#ConfigOptions > QLabel#InfoLabel {
+  background-color: #58411b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #fe9a00;
+}
+
 /* --- Labels --- */
 QLabel#SettingTitle {
   color: #99A1AF;

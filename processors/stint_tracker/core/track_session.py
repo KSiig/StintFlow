@@ -106,10 +106,10 @@ def track_session(
             if is_in_garage(player_scoring):
                 log('INFO', 'Player in garage - tracking enabled',
                     category='stint_tracker', action='track_session')
-                print('__info__:stint_tracker:player_in_garage')
                 tracking_enabled = True
             else:
-                print('__info__:stint_tracker:return_to_garage')
+                log('INFO', 'Return to garage - tracking disabled',
+                    category='stint_tracker', action='track_session')
                 time.sleep(1)
                 continue
         else:

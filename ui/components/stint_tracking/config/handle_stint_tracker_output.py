@@ -21,7 +21,7 @@ def handle_stint_tracker_output(stdout: str, on_stint_created=None,
     try:
         message = stdout.strip()
         if message:
-            log('DEBUG', message, category='stint_tracker', action='process_output')
+            log('INFO', message, category='stint_tracker', action='process_output')
         
         # Handle log format: "INFO: [category:action] message"
         if ': [stint_tracker:' in stdout:
