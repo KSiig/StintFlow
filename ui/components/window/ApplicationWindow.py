@@ -16,6 +16,7 @@ from ..navigation import NavigationMenu
 from .WindowButtons import WindowButtons
 from ..common import DraggableArea
 from ..stint_tracking import OverviewView, ConfigView, StrategiesView
+from ..settings import SettingsView
 from ui.models import ModelContainer, SelectionModel, NavigationModel
 from ui.utilities import ResizeController
 from .layout_factory import (
@@ -117,6 +118,10 @@ class ApplicationWindow(QMainWindow):
         # Create strategies view
         strategies_view = StrategiesView(models)
         self.navigation_model.add_widget(StrategiesView, strategies_view)
+
+        # Create settings view
+        settings_view = SettingsView(models)
+        self.navigation_model.add_widget(SettingsView, settings_view)
         self.navigation_model.set_active_widget(overview_view)
     
     def _assemble_layout(self) -> None:

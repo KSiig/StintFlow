@@ -38,7 +38,7 @@ class MenuItemConfig:
     is_active: bool = False
 
 
-def create_menu_item(label: str, callback: Callable, icon_path: str = None) -> MenuItemConfig:
+def create_menu_item(label: str, callback: Callable, icon_path: str = None, menu_spacing = MENU_SPACING * 2) -> MenuItemConfig:
     """
     Create a navigation menu item with optional icon.
     
@@ -63,7 +63,7 @@ def create_menu_item(label: str, callback: Callable, icon_path: str = None) -> M
     if icon_path:
         # Create layout with icon and label
         layout = QHBoxLayout()
-        layout.setContentsMargins(MENU_SPACING * 2, 8, 0, 8)
+        layout.setContentsMargins(menu_spacing, 8, 0, 8)
         layout.setSpacing(8)
         
         # Icon
@@ -86,7 +86,7 @@ def create_menu_item(label: str, callback: Callable, icon_path: str = None) -> M
         item = QLabel(label)
         item.setFont(get_fonts(FONT.menu_section))
         layout = QHBoxLayout()
-        layout.setContentsMargins(MENU_SPACING * 2, 8, 0, 8)
+        layout.setContentsMargins(menu_spacing, 8, 0, 8)
         layout.addWidget(item)
         layout.addStretch()
         container.setLayout(layout)

@@ -20,6 +20,7 @@ from ui.models import ModelContainer
 from core.utilities import resource_path
 from core.errors import log_exception
 from ..stint_tracking import OverviewView, ConfigView, StrategiesView
+from ..settings import SettingsView
 from .SessionPicker import SessionPicker
 from .menu_item_factory import MenuItemConfig, create_menu_item, update_menu_item_state
 from .constants import (
@@ -32,7 +33,8 @@ from .constants import (
     ICON_TIMER,
     ICON_EYE,
     ICON_COG,
-    ICON_TARGET
+    ICON_TARGET,
+    ICON_SETTINGS
 )
 
 
@@ -77,7 +79,7 @@ class NavigationMenu(QWidget):
         
         menu_layout = QVBoxLayout(frame)
         menu_layout.setSpacing(MENU_SPACING)
-        menu_layout.setContentsMargins(0, 8, 0, 8)
+        menu_layout.setContentsMargins(0, 8, 0, 0)
         
         # Add title and icon at the top
         self._add_title_and_icon(menu_layout)
@@ -107,6 +109,13 @@ class NavigationMenu(QWidget):
         self._set_active_menu_item(overview_item)
         
         menu_layout.addStretch()
+
+        # Settings item (bottom)
+        settings_item = create_menu_item("Settings", lambda: self._switch_to_settings(), ICON_SETTINGS, menu_spacing=32)
+        settings_item.window_class = SettingsView
+        settings_item.widget.setObjectName("MenuItemSettings")
+        self._menu_items[SettingsView] = settings_item
+        menu_layout.addWidget(settings_item.widget)
         
         # Add session picker at the bottom
         self.session_picker = SessionPicker(models=self.models)
@@ -168,6 +177,16 @@ class NavigationMenu(QWidget):
             if strategies_widget:
                 self.models.navigation_model.set_active_widget(strategies_widget)
                 item_config = self._menu_items.get(StrategiesView)
+                if item_config:
+                    self._set_active_menu_item(item_config)
+
+    def _switch_to_settings(self) -> None:
+        """Switch to the Settings window and update active menu item."""
+        if self.models and self.models.navigation_model:
+            settings_widget = self.models.navigation_model.widgets.get(SettingsView)
+            if settings_widget:
+                self.models.navigation_model.set_active_widget(settings_widget)
+                item_config = self._menu_items.get(SettingsView)
                 if item_config:
                     self._set_active_menu_item(item_config)
     

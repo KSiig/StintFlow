@@ -26,6 +26,7 @@ ICON_TIMER = "resources/icons/nav_menu/timer.svg"
 ICON_EYE = "resources/icons/nav_menu/eye.svg"
 ICON_COG = "resources/icons/nav_menu/cog.svg"
 ICON_TARGET = "resources/icons/nav_menu/target.svg"
+ICON_SETTINGS = "resources/icons/nav_menu/settings.svg"
 
 
 # ============================================================
