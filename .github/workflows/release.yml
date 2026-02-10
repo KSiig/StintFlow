@@ -3,8 +3,8 @@ run-name: Release tag ${{ github.ref }}
 on:
   push:
     # Pattern matched against refs/tags
-    # tags:        
-    #   - '*'
+    tags:        
+      - '*'
 
 jobs:
   build:
@@ -29,8 +29,6 @@ jobs:
       run: pyinstaller StintFlow.spec
     - name: zip executable
       run: zip -r StintFlow.zip dist/StintFlow
-    - name: list directory
-      run: ls -la
-    # - uses: ncipollo/release-action@v1
-    #   with:
-    #     artifacts: "dist/*"
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "StintFlow.zip"
