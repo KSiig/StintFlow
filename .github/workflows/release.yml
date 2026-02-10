@@ -17,8 +17,8 @@ jobs:
     - uses: actions/setup-python@v6
       with:
         python-version: '3.14' 
-    - name: PyInstaller Action
-      uses: Martin005/pyinstaller-action@v1.2.0
+    - name: Install PyInstaller
+      run: pip install pyinstaller
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
