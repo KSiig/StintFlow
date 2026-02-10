@@ -49,3 +49,30 @@ QWidget#MenuItem[active="true"] * {
 QWidget#MenuItem * {
   background-color: transparent;
 }
+
+QWidget#MenuItemSettings {
+  background-color: transparent;
+  border-radius: 4px;
+  padding: 8px;
+  margin-left: 4px;
+  margin-right: 16px;
+}
+
+/* Active state - highlighted with green background */
+QWidget#MenuItemSettings[active="true"] {
+  background-color: #05fd7e;
+}
+
+/* Active state text - dark color for contrast on green background */
+QWidget#MenuItemSettings[active="true"] QLabel {
+  color: #04080B;
+}
+
+/* Ensure children inherit transparent background */
+QWidget#MenuItemSettings[active="true"] * {
+  background-color: transparent;
+}
+
+QWidget#MenuItemSettings * {
+  background-color: transparent;
+}

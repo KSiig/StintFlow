@@ -18,11 +18,12 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from core.errors import log, log_exception
+from core.utilities import load_user_settings
 
 
 # MongoDB connection configuration
-MONGODB_HOST = os.getenv('MONGODB_HOST', 'localhost:27017')
-DATABASE_NAME = os.getenv('MONGODB_DATABASE', 'stintflow')
+DEFAULT_MONGODB_HOST = 'localhost:27017'
+DEFAULT_DATABASE_NAME = 'stintflow'
 CONNECTION_TIMEOUT_MS = 5000  # 5 seconds
 SERVER_SELECTION_TIMEOUT_MS = 5000  # 5 seconds
 MAX_POOL_SIZE = 10  # Suitable for desktop application
@@ -30,6 +31,8 @@ MAX_POOL_SIZE = 10  # Suitable for desktop application
 # Global MongoDB client (initialized once)
 _client: MongoClient | None = None
 _db: Database | None = None
+_db_name: str | None = None
+_client_config: dict | None = None
 
 
 def _validate_host(host: str) -> bool:
@@ -42,13 +45,16 @@ def _validate_host(host: str) -> bool:
     Returns:
         True if valid, False otherwise
     """
-    if not host or ':' not in host:
+    if not host:
         return False
-    
+
+    if ':' not in host:
+        return True
+
     parts = host.split(':')
     if len(parts) != 2:
         return False
-    
+
     try:
         port = int(parts[1])
         return 1 <= port <= 65535
@@ -71,26 +77,97 @@ def _get_client() -> MongoClient:
         ConnectionFailure: If connection cannot be established
         ValueError: If MONGODB_HOST format is invalid
     """
-    global _client
+    global _client, _client_config, _db, _db_name
     
-    # Validate host format
-    if not _validate_host(MONGODB_HOST):
-        error_msg = f'Invalid MongoDB host format: {MONGODB_HOST} (expected format: hostname:port)'
+    settings = load_user_settings()
+    mongo_settings = settings.get('mongodb', {}) if isinstance(settings, dict) else {}
+
+    uri = mongo_settings.get('uri')
+    host = mongo_settings.get('host')
+    username = mongo_settings.get('username')
+    password = mongo_settings.get('password')
+    auth_source = mongo_settings.get('auth_source')
+
+    if isinstance(uri, str):
+        uri = uri.strip()
+    if isinstance(host, str):
+        host = host.strip()
+    if isinstance(username, str):
+        username = username.strip()
+    if isinstance(password, str):
+        password = password.strip()
+    if isinstance(auth_source, str):
+        auth_source = auth_source.strip()
+
+    uri = uri or os.getenv('MONGODB_URI')
+    host = host or os.getenv('MONGODB_HOST', DEFAULT_MONGODB_HOST)
+    username = username or os.getenv('MONGODB_USERNAME')
+    password = password or os.getenv('MONGODB_PASSWORD')
+    auth_source = auth_source or os.getenv('MONGODB_AUTH_SOURCE')
+
+    # Validate host format when using host-based connection
+    if not uri and not _validate_host(host):
+        error_msg = f'Invalid MongoDB host format: {host} (expected hostname or hostname:port)'
         log('ERROR', error_msg, category='database', action='validate_host')
         raise ValueError(error_msg)
+
+    current_config = {
+        'uri': uri,
+        'host': host,
+        'username': username,
+        'password': password,
+        'auth_source': auth_source
+    }
     
     # Create new client if none exists or test existing connection
-    if _client is None:
+    if _client is None or _client_config != current_config:
+        if _client is not None and _client_config != current_config:
+            try:
+                _client.close()
+            except Exception as e:
+                log_exception(e, 'Failed to close existing MongoDB connection',
+                             category='database', action='disconnect')
+            _client = None
+            _db = None
+            _db_name = None
+
+        _client_config = current_config
+
         try:
-            log('INFO', f'Connecting to MongoDB at {MONGODB_HOST}', 
-                category='database', action='connect')
-            
-            _client = MongoClient(
-                MONGODB_HOST,
-                connectTimeoutMS=CONNECTION_TIMEOUT_MS,
-                serverSelectionTimeoutMS=SERVER_SELECTION_TIMEOUT_MS,
-                maxPoolSize=MAX_POOL_SIZE
-            )
+            if uri:
+                log('INFO', 'Connecting to MongoDB using connection string',
+                    category='database', action='connect')
+            else:
+                log('INFO', f'Connecting to MongoDB at {host}', 
+                    category='database', action='connect')
+
+            if uri:
+                _client = MongoClient(
+                    uri,
+                    connectTimeoutMS=CONNECTION_TIMEOUT_MS,
+                    serverSelectionTimeoutMS=SERVER_SELECTION_TIMEOUT_MS,
+                    maxPoolSize=MAX_POOL_SIZE
+                )
+            else:
+                auth_kwargs = {}
+                if username and password:
+                    auth_kwargs = {
+                        'username': username,
+                        'password': password
+                    }
+                    if auth_source:
+                        auth_kwargs['authSource'] = auth_source
+                elif username or password:
+                    log('WARNING', 'MongoDB username/password incomplete; ignoring credentials',
+                        category='database', action='connect')
+                
+                _client = MongoClient(
+                    host,
+                    connectTimeoutMS=CONNECTION_TIMEOUT_MS,
+                    serverSelectionTimeoutMS=SERVER_SELECTION_TIMEOUT_MS,
+                    maxPoolSize=MAX_POOL_SIZE,
+                    **auth_kwargs
+                )
             
             # Test the connection
             _client.server_info()
@@ -98,7 +175,7 @@ def _get_client() -> MongoClient:
                 category='database', action='connect')
                 
         except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-            log_exception(e, f'Failed to connect to MongoDB at {MONGODB_HOST}', 
+            log_exception(e, 'Failed to connect to MongoDB', 
                          category='database', action='connect')
             _client = None
             raise
@@ -127,12 +204,21 @@ def _get_database() -> Database:
     Returns:
         MongoDB Database instance
     """
-    global _db
+    global _db, _db_name
     
-    if _db is None:
+    settings = load_user_settings()
+    mongo_settings = settings.get('mongodb', {}) if isinstance(settings, dict) else {}
+
+    database_name = mongo_settings.get('database')
+    if isinstance(database_name, str):
+        database_name = database_name.strip()
+    database_name = database_name or os.getenv('MONGODB_DATABASE', DEFAULT_DATABASE_NAME)
+
+    if _db is None or _db_name != database_name:
         client = _get_client()
-        _db = client[DATABASE_NAME]
-        log('INFO', f'Using database: {DATABASE_NAME}', 
+        _db = client[database_name]
+        _db_name = database_name
+        log('INFO', f'Using database: {database_name}',
             category='database', action='get_database')
     
     return _db
