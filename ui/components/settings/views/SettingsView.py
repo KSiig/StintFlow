@@ -42,7 +42,7 @@ class SettingsView(QWidget):
         self._load_settings()
 
     def _setup_styles(self) -> None:
-        """Load and apply navigation menu stylesheet."""
+        """Load and apply Settings view stylesheet."""
         try:
             with open(resource_path('resources/styles/settings.qss'), 'r') as f:
                 self.setStyleSheet(f.read())
