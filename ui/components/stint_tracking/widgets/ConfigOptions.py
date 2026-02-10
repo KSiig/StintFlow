@@ -14,7 +14,7 @@ from datetime import datetime
 
 from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT
-from core.utilities import resource_path
+from core.utilities import resource_path, get_stint_tracker_command
 from core.database import (
     get_event, get_session, get_sessions, get_team,
     update_event, update_session, update_team_drivers,
@@ -378,17 +378,16 @@ class ConfigOptions(QWidget):
             self.p.readyReadStandardError.connect(self._handle_stderr)
             
             is_practice = self.practice_cb.isChecked()
-            process_args = [
-                '-u',
-                'processors/stint_tracker/run.py',
+            program, process_args = get_stint_tracker_command()
+            process_args += [
                 '--session-id', str(self.selection_model.session_id),
                 '--drivers', *self.drivers
             ]
             if is_practice:
                 process_args.append('--practice')
             
-            self.p.start("python3", process_args)
-            log('INFO', f'Started stint tracker process with args: {process_args}',
+            self.p.start(program, process_args)
+            log('INFO', f'Started stint tracker process: {program} {process_args}',
                 category='config_options', action='start_process')
         
         except Exception as e:
