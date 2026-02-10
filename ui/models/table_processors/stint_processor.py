@@ -193,3 +193,5 @@ def _subtract_time_from_pit_time(pit_time_str: str, delta: timedelta) -> str:
     
     result_datetime = pit_datetime - delta_timedelta
     return result_datetime.time().strftime("%H:%M:%S")
+
+

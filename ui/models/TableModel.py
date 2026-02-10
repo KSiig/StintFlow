@@ -14,6 +14,7 @@ from core.database import get_stints, get_event
 from core.errors import log
 from core.utilities import resource_path
 from ui.components.stint_tracking import get_header_icon
+from datetime import datetime
 
 from .TableRoles import TableRoles
 from .table_constants import ColumnIndex
@@ -141,6 +142,7 @@ class TableModel(QAbstractTableModel):
         
         # Get stints for current session
         stints = get_stints(self.selection_model.session_id)
+        stints = sorted(stints, key=self._parse_pit_time, reverse=True)
         
         # Extract tire and meta data
         self._tires = [stint.get("tire_data", {}) for stint in stints]
@@ -202,6 +204,12 @@ class TableModel(QAbstractTableModel):
             top_left = self.index(0, 0)
             bottom_right = self.index(self.rowCount() - 1, self.columnCount() - 1)
             self.dataChanged.emit(top_left, bottom_right, [])
+
+    def _parse_pit_time(self, stint: dict) -> datetime:
+        """Parse a stint pit end time into a sortable datetime value."""
+        pit_time_str = stint.get('pit_end_time', '00:00:00')
+        pit_time = datetime.strptime(pit_time_str, "%H:%M:%S").time()
+        return datetime.combine(datetime.min, pit_time)
     
     def set_editable(self, editable: bool, partial: bool = False) -> None:
         """
@@ -346,7 +354,11 @@ class TableModel(QAbstractTableModel):
             return Qt.ItemFlag.NoItemFlags
         
         # Determine if this cell should be editable
-        is_editable = self.editable and (
+        editable_columns = {
+            ColumnIndex.STINT_TYPE,
+            ColumnIndex.TIRES_CHANGED
+        }
+        is_editable = self.editable and index.column() in editable_columns and (
             not self.partial or is_completed_row(self._data, index.row())
         )
         

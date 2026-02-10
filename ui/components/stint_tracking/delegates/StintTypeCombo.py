@@ -4,11 +4,12 @@ Stint type combo delegate for stint table.
 Custom delegate for editing stint types with dropdown.
 """
 
-from PyQt6.QtWidgets import QStyledItemDelegate, QWidget, QHBoxLayout, QAbstractItemView
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtWidgets import QStyledItemDelegate, QWidget, QHBoxLayout, QAbstractItemView, QSizePolicy
+from PyQt6.QtCore import Qt, QTimer
 
-from core.database import update_strategy
+from core.database import update_strategy, update_stint
 from core.errors import log
+from ui.models.TableRoles import TableRoles
 from ui.models.stint_helpers import sanitize_stints
 from ui.utilities import get_fonts, FONT
 from ui.components.common import DropdownButton
@@ -43,6 +44,10 @@ class StintTypeCombo(QStyledItemDelegate):
         """Create custom editor widget with button and popup."""
         editor = QWidget(parent)
         editor.setAutoFillBackground(True)
+        editor.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
         # Set the editor's palette to match the cell's background
         editor.setPalette(option.palette)
         # Explicitly set background color via stylesheet (only for the editor, not children)
@@ -61,6 +66,10 @@ class StintTypeCombo(QStyledItemDelegate):
             current_value=str(index.data()) or "",
             parent=editor
         )
+        dropdown.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
         dropdown.btn.setFont(get_fonts(FONT.table_cell))
         dropdown.btn.setStyleSheet("text-align: left; padding-left: 8px;")
         
@@ -76,6 +85,10 @@ class StintTypeCombo(QStyledItemDelegate):
         
         # Store reference
         editor.dropdown = dropdown
+
+        if not self.strategy_id:
+            QTimer.singleShot(0, lambda: dropdown.btn.click()) 
+            dropdown.valueChanged.connect(lambda: self.closeEditor.emit(editor))
         
         return editor
     
@@ -87,10 +100,9 @@ class StintTypeCombo(QStyledItemDelegate):
             widget = widget.parent()
         return None
     
-    def sizeHint(self, option, index):
-        """Return size hint for the editor, 50px wider than default."""
-        hint = super().sizeHint(option, index)
-        return QSize(hint.width() + 50, hint.height())
+    def updateEditorGeometry(self, editor, option, index):
+        """Ensure the editor fills the full cell rect."""
+        editor.setGeometry(option.rect)
     
     def setEditorData(self, editor, index):
         """Load data into editor from model."""
@@ -114,6 +126,25 @@ class StintTypeCombo(QStyledItemDelegate):
             row_data, tire_data = model.get_all_data()
             sanitized_data = sanitize_stints(row_data, tire_data)
             update_strategy(self.strategy_id, sanitized_data)
+        elif self.update_doc:
+            row_data, tire_data = model.get_all_data()
+            sanitized_data = sanitize_stints(row_data, tire_data)
+            rows_to_update = min(len(sanitized_data.get('tires', [])), model.rowCount())
+
+            updated_count = 0
+            for row_index in range(rows_to_update):
+                meta = model.data(model.index(row_index, 0), TableRoles.MetaRole)
+                if not meta or 'id' not in meta:
+                    continue
+
+                stint_id = meta['id']
+                row = sanitized_data['tires'][row_index]
+                if update_stint(stint_id, row):
+                    updated_count += 1
+
+            if updated_count == 0:
+                log('WARNING', 'No stints updated from stint type change',
+                    category='stint_type_combo', action='set_model_data')
         else:
             log('DEBUG', 'Database update skipped (update_doc=False or no strategy_id)',
                 category='stint_type_combo', action='set_model_data')

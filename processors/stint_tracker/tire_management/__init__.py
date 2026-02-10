@@ -12,7 +12,6 @@ from .constants import (
     TIRE_POSITIONS, 
     TIRE_INDEX_MAP,
     COMPOUND_MAP,
-    NEW_TIRE_THRESHOLD, 
     WEAR_COMPARISON_EPSILON
 )
 
@@ -24,6 +23,5 @@ __all__ = [
     'TIRE_POSITIONS',
     'TIRE_INDEX_MAP',
     'COMPOUND_MAP',
-    'NEW_TIRE_THRESHOLD',
     'WEAR_COMPARISON_EPSILON'
 ]

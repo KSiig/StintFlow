@@ -4,15 +4,14 @@ Detect which tires were changed during pit stop.
 Compares incoming and outgoing tire states to identify changes.
 """
 
-from .constants import TIRE_POSITIONS, NEW_TIRE_THRESHOLD
+from .constants import TIRE_POSITIONS
 
 
 def detect_tire_changes(tires_outgoing: dict) -> dict:
     """
     Detect which tires were changed during the pit stop.
     
-    A tire is considered changed if the outgoing wear is 1.00 or very close
-    to 1.00 (brand new tire).
+    A tire is considered changed if the outgoing wear is 1.00 
     
     Args:
         tires_outgoing: Tire state when leaving pits
@@ -37,6 +36,6 @@ def detect_tire_changes(tires_outgoing: dict) -> dict:
             tires_changed[tire_pos] = False
         else:
             # Tire is new if wear is >= threshold (accounts for float precision)
-            tires_changed[tire_pos] = outgoing_wear >= NEW_TIRE_THRESHOLD
+            tires_changed[tire_pos] = outgoing_wear == 1.00
     
     return tires_changed
