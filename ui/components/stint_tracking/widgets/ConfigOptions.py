@@ -14,7 +14,7 @@ from datetime import datetime
 
 from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT
-from core.utilities import resource_path
+from core.utilities import resource_path, get_stint_tracker_command
 from core.database import (
     get_event, get_session, get_sessions, get_team,
     update_event, update_session, update_team_drivers,
@@ -60,6 +60,7 @@ class ConfigOptions(QWidget):
         self.inputs = {}
         self.driver_inputs = []  # List of QLineEdit, not dict
         self.p = None  # QProcess for stint_tracker
+        self._tracking_active = False
         
         # Load stylesheet
         try:
@@ -366,6 +367,7 @@ class ConfigOptions(QWidget):
         else:
             self.stop_btn.hide()
             self.start_btn.show()
+            self._tracking_active = False
             if self.p:
                 self.p.kill()
                 self.p = None
@@ -376,19 +378,29 @@ class ConfigOptions(QWidget):
             self.p = QProcess()
             self.p.readyReadStandardOutput.connect(self._handle_stdout)
             self.p.readyReadStandardError.connect(self._handle_stderr)
+            self.p.errorOccurred.connect(self._handle_process_error)
+            self.p.finished.connect(self._handle_process_finished)
             
             is_practice = self.practice_cb.isChecked()
-            process_args = [
-                '-u',
-                'processors/stint_tracker/run.py',
+            program, process_args = get_stint_tracker_command()
+            process_args += [
                 '--session-id', str(self.selection_model.session_id),
                 '--drivers', *self.drivers
             ]
             if is_practice:
                 process_args.append('--practice')
             
-            self.p.start("python3", process_args)
-            log('INFO', f'Started stint tracker process with args: {process_args}',
+            self.p.start(program, process_args)
+            if not self.p.waitForStarted():
+                error_message = self.p.errorString()
+                log('ERROR', f'Failed to start stint tracker: {error_message}',
+                    category='config_options', action='start_process')
+                self._revert_tracking_state()
+                self.p = None
+                return
+
+            self._tracking_active = True
+            log('INFO', f'Started stint tracker process: {program} {process_args}',
                 category='config_options', action='start_process')
         
         except Exception as e:
@@ -428,3 +440,30 @@ class ConfigOptions(QWidget):
             on_return_to_garage=lambda: self.lbl_return_to_grg.show(),
             on_player_in_garage=lambda: self.lbl_return_to_grg.hide()
         )
+
+    def _handle_process_error(self, error):
+        """Handle process-level errors and revert the UI state."""
+        if not self.p:
+            return
+
+        error_message = self.p.errorString()
+        log('ERROR', f'Stint tracker process error: {error_message}',
+            category='config_options', action='process_error')
+        if self._tracking_active:
+            self._revert_tracking_state()
+            self.p = None
+
+    def _handle_process_finished(self, exit_code, exit_status):
+        """Handle process exit to keep UI state in sync."""
+        if not self._tracking_active:
+            return
+
+        log('WARNING', f'Stint tracker exited: code={exit_code}, status={exit_status}',
+            category='config_options', action='process_finished')
+        self._revert_tracking_state()
+        self.p = None
+
+    def _revert_tracking_state(self):
+        """Revert tracking UI state if the process fails to start."""
+        self.stop_btn.hide()
+        self.start_btn.show()
