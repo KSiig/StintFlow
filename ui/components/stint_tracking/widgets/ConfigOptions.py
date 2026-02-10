@@ -7,7 +7,7 @@ Launches the stint_tracker process and communicates via stdout/stderr events.
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame,
-    QCheckBox, QLineEdit, QLabel
+    QCheckBox, QLineEdit, QLabel, QApplication
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QProcess
 from datetime import datetime
@@ -149,10 +149,11 @@ class ConfigOptions(QWidget):
         
         # Practice checkbox and warning label
         self.practice_cb = QCheckBox(text="Practice")
-        self.lbl_return_to_grg = QLabel("Please return to garage!")
+        self.lbl_info = QLabel()
         self.practice_cb.setFont(get_fonts(FONT.input_field))
-        self.lbl_return_to_grg.setFont(get_fonts(FONT.header_input_hint))
-        self.lbl_return_to_grg.hide()
+        self.lbl_info.setFont(get_fonts(FONT.header_input))
+        self.lbl_info.setObjectName("InfoLabel")
+        self.lbl_info.hide()
         
         # Connect button signals
         self.edit_btn.clicked.connect(self._toggle_edit)
@@ -179,7 +180,7 @@ class ConfigOptions(QWidget):
         btn_tracking_layout = QVBoxLayout()
         btn_tracking_layout.setSpacing(8)
         btn_tracking_layout.addWidget(self.create_session_btn, alignment=Qt.AlignmentFlag.AlignTop)
-        btn_tracking_layout.addWidget(self.lbl_return_to_grg, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        btn_tracking_layout.addWidget(self.lbl_info, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
         btn_tracking_layout.addStretch()
         
         btn_layout.addWidget(self.practice_cb)
@@ -365,8 +366,7 @@ class ConfigOptions(QWidget):
             self._start_process()
         # Stop tracking
         else:
-            self.stop_btn.hide()
-            self.start_btn.show()
+            self._revert_tracking_state()
             self._tracking_active = False
             if self.p:
                 self.p.kill()
@@ -437,9 +437,26 @@ class ConfigOptions(QWidget):
         handle_stint_tracker_output(
             stdout,
             on_stint_created=lambda: self.stint_created.emit(),
-            on_return_to_garage=lambda: self.lbl_return_to_grg.show(),
-            on_player_in_garage=lambda: self.lbl_return_to_grg.hide()
+            on_return_to_garage=lambda: self._show_info_lbl("Please return to garage!"),
+            on_player_in_garage=self._reset_info_lbl
         )
+
+    def _show_info_lbl(self, text):
+        """Show return to garage warning and flash taskbar icon."""
+        self.lbl_info.show()
+        self.lbl_info.setText(text)
+        self._flash_taskbar()
+
+    def _reset_info_lbl(self):
+        """Hide return to garage warning."""
+        self.lbl_info.setText("")
+        self.lbl_info.hide()
+
+    def _flash_taskbar(self):
+        """Request taskbar icon attention (flash orange on Windows) using QApplication.alert."""
+        window = self.window()
+        if window:
+            QApplication.alert(window, 0)
 
     def _handle_process_error(self, error):
         """Handle process-level errors and revert the UI state."""
@@ -467,3 +484,4 @@ class ConfigOptions(QWidget):
         """Revert tracking UI state if the process fails to start."""
         self.stop_btn.hide()
         self.start_btn.show()
+        self.lbl_info.hide()
