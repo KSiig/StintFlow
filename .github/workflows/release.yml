@@ -28,7 +28,7 @@ jobs:
     - name: Build executable
       run: pyinstaller StintFlow.spec
     - name: Zip build output
-      run: Compress-Archive -Path build/* -DestinationPath StintFlow.zip
+      run: Compress-Archive -Path dist/* -DestinationPath StintFlow.zip
       shell: pwsh
     - uses: ncipollo/release-action@v1
       with:
