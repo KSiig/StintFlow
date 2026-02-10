@@ -1,11 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
+
+import os
+
+def winpath(path):
+    return path.replace('/', os.sep)
+
 a = Analysis(
-    ['main.py'],
+    [winpath('main.py')],
     pathex=[],
     binaries=[],
-    datas=[('resources', 'resources')],
+    datas=[(winpath('resources'), winpath('resources'))],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -17,8 +23,9 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
+    
 a_stint = Analysis(
-    ['processors/stint_tracker/run.py'],
+    [winpath('processors/stint_tracker/run.py')],
     pathex=[],
     binaries=[],
     datas=[],
@@ -49,7 +56,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['resources/favicons/favico.ico'],
+    icon=[winpath('resources/favicons/favico.ico')],
 )
 exe_stint = EXE(
     pyz_stint,
