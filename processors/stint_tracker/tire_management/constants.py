@@ -20,9 +20,6 @@ COMPOUND_MAP = {
     0: "Medium",
     1: "Wet"
 }
-# Wear value threshold for detecting new tires
-# Tires with wear >= this value are considered new
-NEW_TIRE_THRESHOLD = 0.99
 
 # Float comparison tolerance for tire wear values
 WEAR_COMPARISON_EPSILON = 0.01

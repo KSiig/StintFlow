@@ -9,11 +9,11 @@ from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QPushButton,
     QGridLayout, QSizePolicy, QAbstractItemView, QStyledItemDelegate, QFrame, QVBoxLayout
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QSize
+from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer
 from PyQt6.QtGui import QIcon, QPixmap
 
 from core.utilities import resource_path
-from core.database import update_strategy
+from core.database import update_strategy, update_stint
 from core.errors import log
 from ui.models.TableRoles import TableRoles
 from ui.models.stint_helpers import sanitize_stints
@@ -48,6 +48,10 @@ class TireComboDelegate(QStyledItemDelegate):
         """Create custom editor widget with button and popup."""
         editor = QWidget(parent)
         editor.setAutoFillBackground(True)
+        editor.setSizePolicy(
+            QSizePolicy.Policy.Maximum,
+            QSizePolicy.Policy.Maximum
+        )
         # Set the editor's palette to match the cell's background
         editor.setPalette(option.palette)
         # Explicitly set background color via stylesheet (only for the editor, not children)
@@ -95,7 +99,10 @@ class TireComboDelegate(QStyledItemDelegate):
         # Store references for later access
         editor.popup = popup
         editor.btn = btn
-        
+
+        if not self.strategy_id:
+            QTimer.singleShot(0, show_popup) 
+
         return editor
     
     def setEditorData(self, editor, index):
@@ -134,9 +141,19 @@ class TireComboDelegate(QStyledItemDelegate):
             row_data, tire_data = model.get_all_data()
             sanitized_data = sanitize_stints(row_data, tire_data)
             update_strategy(self.strategy_id, sanitized_data)
+        elif self.update_doc:
+            row_data, tire_data = model.get_all_data()
+            sanitized_data = sanitize_stints(row_data, tire_data)
+            stint_id = model.data(index, TableRoles.MetaRole)['id']
+            row = sanitized_data['tires'][index.row()]
+            update_stint(stint_id, row)
         else:
             log('INFO', 'Database update skipped (update_doc=False or no strategy_id)',
                 category='tire_combo_delegate', action='set_model_data')
+
+    def updateEditorGeometry(self, editor, option, index):
+        """Ensure the editor fills the full cell rect."""
+        editor.setGeometry(option.rect)
     
     def _update_button_text(self, btn: QPushButton, index):
         """Update button text showing tire count."""

@@ -27,6 +27,7 @@ from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT, load_icon
 from core.errors import log
 from core.utilities import resource_path
+from ..delegates import TireComboDelegate, StintTypeCombo
 
 from ..constants import (
     COLUMN_WIDTHS,
@@ -281,13 +282,16 @@ class StintTable(QWidget):
         
         self.table.model().set_editable(True, True)
         
-        # Import delegates
-        from ..delegates import TireComboDelegate
-        
         # Set tire combo delegate for "Tires changed" column
         self.table.setItemDelegateForColumn(
             4,  # Tires changed column
             TireComboDelegate(self.table, update_doc=True)
+        )
+
+        # Set stint type combo delegate for "Stint type" column
+        self.table.setItemDelegateForColumn(
+            0,  # Stint type column
+            StintTypeCombo(self.table, update_doc=True)
         )
     
     def _refresh_editors(self) -> None:

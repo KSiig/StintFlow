@@ -13,12 +13,21 @@ Usage:
 """
 
 import os
+import warnings
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from core.errors import log, log_exception
 from core.utilities import load_user_settings
+
+
+# Suppress CosmosDB compatibility warnings from PyMongo.
+warnings.filterwarnings(
+    'ignore',
+    message='You appear to be connected to a CosmosDB cluster.*',
+    category=UserWarning
+)
 
 
 # MongoDB connection configuration
