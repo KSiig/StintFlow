@@ -11,6 +11,7 @@ from .DropdownButton import DropdownButton
 from .DataDropdownButton import DataDropdownButton
 from .SectionHeader import SectionHeader
 from .LabeledInputRow import LabeledInputRow
+from .ConfigButton import ConfigButton
 
 __all__ = [
     'ClickableWidget',
@@ -19,5 +20,6 @@ __all__ = [
     'DropdownButton',
     'DataDropdownButton',
     'SectionHeader',
-    'LabeledInputRow'
+    'LabeledInputRow',
+    'ConfigButton'
 ]

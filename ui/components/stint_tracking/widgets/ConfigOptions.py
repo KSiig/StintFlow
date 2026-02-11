@@ -23,11 +23,10 @@ from core.database import (
 from core.errors import log, log_exception
 from ..config import (
     ConfigLayout, ConfigLabels,
-    create_config_button,
     create_team_section,
     handle_stint_tracker_output
 )
-from ui.components.common import SectionHeader, LabeledInputRow
+from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton
 
 
 class ConfigOptions(QWidget):
@@ -146,12 +145,12 @@ class ConfigOptions(QWidget):
     def _create_buttons(self):
         """Create all buttons and controls."""
         # Action buttons
-        self.edit_btn = create_config_button(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg")
-        self.save_btn = create_config_button(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg")
-        self.clone_btn = create_config_button(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg")
-        self.create_session_btn = create_config_button(ConfigLabels.BTN_NEW_SESSION, width_type="full")
-        self.start_btn = create_config_button(ConfigLabels.BTN_START_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
-        self.stop_btn = create_config_button(ConfigLabels.BTN_STOP_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
+        self.edit_btn = ConfigButton(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg")
+        self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg")
+        self.clone_btn = ConfigButton(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg")
+        self.create_session_btn = ConfigButton(ConfigLabels.BTN_NEW_SESSION, width_type="full")
+        self.start_btn = ConfigButton(ConfigLabels.BTN_START_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
+        self.stop_btn = ConfigButton(ConfigLabels.BTN_STOP_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
         self.start_btn.setObjectName("TrackButton")
         self.stop_btn.setObjectName("TrackButton")
         

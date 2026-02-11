@@ -1,0 +1,33 @@
+#Setting {
+  background-color: transparent;
+}
+
+/* --- Labels --- */
+QLabel#SettingTitle {
+  color: #FFFFFF;
+  background-color: transparent;
+}
+
+/* --- Input Fields --- */
+QLineEdit {
+  border-radius: 4px;
+  padding: 8px 16px 8px 12px;
+  border: 1px solid #364153;
+  color: #FFFFFF;
+  background-color: #1d2a2c;
+}
+
+QLineEdit:hover {
+  border: 1px solid #455a64;
+}
+
+QLineEdit:focus {
+  border: 1px solid #05fd7e;
+  background-color: #1e2f32;
+}
+
+QLineEdit:disabled {
+  color: #747982;
+  background-color: #151f22;
+  border: 1px solid #2a3942;
+}
