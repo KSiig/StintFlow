@@ -290,7 +290,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
         doc = {
             "stint_type": stint_type,
             "name": name,
-            "status": status == "completed ✅",
+            "status": status == "Completed",
             "pit_end_time": _normalize_time(pit_end_time),
             "tires_changed": int(tires_changed),
             "tires_left": int(tires_left),
@@ -302,7 +302,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
     # propagate last valid tire set to rows without tire data
     last_tire_set = 0
     for i in range(len(rows)):
-        tire = tires[i] if i < len(tires) else none
+        tire = tires[i] if i < len(tires) else None
         if tire:
             sanitized_tires.append(tires[i])
             last_tire_set = i
