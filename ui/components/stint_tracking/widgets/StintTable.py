@@ -93,6 +93,10 @@ class StintTable(QWidget):
         
         # Wrap table in QFrame for background styling
         table_frame = QFrame(self)
+        table_frame.setSizePolicy(
+            QSizePolicy.Policy.Minimum,
+            QSizePolicy.Policy.Expanding
+        )
         table_frame.setObjectName("StintTableFrame")
         frame_layout = QHBoxLayout(table_frame)
         frame_layout.setContentsMargins(0, 0, 0, 0)
@@ -102,7 +106,19 @@ class StintTable(QWidget):
         container = QHBoxLayout(self)
         container.setContentsMargins(0, 0, 0, 0)
         container.addWidget(table_frame)
-        
+        # Placeholder label for empty state (initialized but hidden)
+        self._placeholder_label = QLabel("No stints found for the session, head to the config menu to get started!")
+        self._placeholder_label.setObjectName("StintTablePlaceholder")
+        self._placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._placeholder_label.setStyleSheet("color: #99A1AF; font-size: 16px; padding: 32px;")
+        self._placeholder_label.hide()
+        self._placeholder_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+
+        self._placeholder_label.setMinimumWidth(self.table.minimumWidth())
+        frame_layout.addWidget(self._placeholder_label, 1)
         # Configure table model (if available)
         if self.table_model is not None:
             self.table_model.update_data()
@@ -120,6 +136,7 @@ class StintTable(QWidget):
         # Setup auto-update
         if auto_update:
             self.selection_model.sessionChanged.connect(self.refresh_table)
+
     
     def _load_stylesheet(self) -> None:
         """Load QSS stylesheet for stint table."""
@@ -304,6 +321,8 @@ class StintTable(QWidget):
         if self.table.model() is None:
             return
         
+        self._hide_placeholder()  # Ensure table is visible when refreshing editors
+        
         for row in range(self.table.model().rowCount()):
             index = self.table.model().index(row, 0)  # stint_type column
             cell_text = str(index.data())
@@ -316,28 +335,45 @@ class StintTable(QWidget):
     def refresh_table(self) -> None:
         """
         Refresh table data and column configuration.
-        
-        Updates model data and reconfigures columns if column count changed.
+        Shows placeholder message if no stints found.
         """
         # Early return if no table_model available
         if self.table_model is None:
             return
-            
+
+        # Update model data
+        self.table_model.update_data()
+
+        # Check for empty model
+        if self.table_model.rowCount() == 0:
+            self._show_placeholder()
+        else:
+            self._hide_placeholder()
+
         # Check if columns need reconfiguration
         if self.table.model():
             column_count = self.table.model().columnCount()
             if self._column_count != column_count:
                 self._set_column_widths()
-        
+
         # Set model on first load
         if self.table.model() is None:
             self.table.setModel(self.table_model)
             if self.table.model() is not None:  # Verify model was set successfully
                 self._column_count = self.table.model().columnCount()
                 self._set_column_widths()
-        else:
-            # Update existing model
-            self.table_model.update_data()
+
+    def _show_placeholder(self):
+        """Show placeholder message when no stints are found."""
+        self.table.hide()
+        self._placeholder_label.show()
+
+    def _hide_placeholder(self):
+        """Hide placeholder message and show table."""
+        
+        self._placeholder_label.hide()
+        self.table.show()
+        self._set_column_widths()
     
     def _set_column_widths(self) -> None:
         """Configure fixed column widths based on COLUMN_WIDTHS constant."""
@@ -348,7 +384,10 @@ class StintTable(QWidget):
             self.table.setColumnWidth(col, width)
         
         # Calculate minimum table width
-        min_width = hh.length() + VERTICAL_HEADER_WIDTH + self.MIN_WIDTH_EXTRA_PADDING
+        # This is a hack, since the header length is not reliably available until the table is shown.
+        header_length = hh.length() or 816
+        min_width = header_length + VERTICAL_HEADER_WIDTH + self.MIN_WIDTH_EXTRA_PADDING
+        print("Calculating minimum table width...", min_width, "Header length:", header_length)
         self.table.setMinimumWidth(min_width)
         
         # Disable header interactions
