@@ -17,7 +17,7 @@ from core.database import update_strategy, update_stint
 from core.errors import log
 from ui.models.TableRoles import TableRoles
 from ui.models.stint_helpers import sanitize_stints
-from ui.components.common import DropdownButton
+from ui.components.common import DropdownButton, ConfigButton
 from ui.utilities import load_icon
 
 
@@ -63,7 +63,7 @@ class TireComboDelegate(QStyledItemDelegate):
         layout.setSpacing(0)
         
         # Create button showing tire count
-        btn = QPushButton(editor)
+        btn = ConfigButton(parent=editor, width_type="third")
         btn.setObjectName("TirePicker")
         btn.setSizePolicy(
             QSizePolicy.Policy.Maximum,

@@ -24,7 +24,7 @@ class ConfigButton(QPushButton):
 
     def __init__(
         self,
-        text: str,
+        text: str = "",
         icon_path: str = None,
         icon_size: int = 16,
         icon_color: str = "#FFFFFF",
