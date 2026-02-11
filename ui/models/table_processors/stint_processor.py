@@ -28,7 +28,7 @@ def convert_stints_to_table(
     starting_tires: str,
     starting_time: str,
     count_tire_changes_fn
-) -> list[TableRow]:
+) -> tuple[list[TableRow], timedelta]:
     """
     Convert stint documents to table row format.
     
@@ -42,7 +42,7 @@ def convert_stints_to_table(
         List of rows with completed and pending stints
     """
     if not stints:
-        return []
+        return [], timedelta(0)
     
     # Process completed stints
     rows, tires_left, stint_times = process_completed_stints(
@@ -53,7 +53,7 @@ def convert_stints_to_table(
     if stint_times:
         generate_pending_stints(rows, stint_times, tires_left)
     
-    return rows
+    return rows, calc_mean_stint_time(stint_times)
 
 
 def process_completed_stints(

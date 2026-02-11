@@ -197,7 +197,7 @@ class StrategiesView(QWidget):
             strategy_name = name if name else f"Strategy {self.tab_bar.count() + 1}"
             
             # Get and sanitize table data
-            row_data, tire_data = self.table_model.get_all_data()
+            row_data, tire_data, mean_stint_time = self.table_model.get_all_data()
             sanitized_data = sanitize_stints(row_data, tire_data)
 
             if not row_data:
@@ -213,7 +213,8 @@ class StrategiesView(QWidget):
             strategy = {
                 "session_id": ObjectId(self.selection_model.session_id),
                 "name": strategy_name,
-                "model_data": sanitized_data
+                "model_data": sanitized_data,
+                "mean_stint_time_seconds": int(mean_stint_time.total_seconds()) if mean_stint_time else 0
             }
             
             # Create strategy in database

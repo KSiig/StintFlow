@@ -4,6 +4,7 @@ Strategy display tab.
 Shows an existing strategy with editable stint table.
 """
 
+from datetime import timedelta
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QSizePolicy
 from core.errors import log, log_exception
 from core.utilities import resource_path
@@ -61,17 +62,19 @@ class StrategyTab(QWidget):
             layout = QHBoxLayout(self)
             layout.setContentsMargins(0, 0, 0, 0)
 
+            models = ModelContainer(
+                selection_model=self.selection_model,
+                table_model=self.table_model
+            )
+
             # StrategySettings component for top half
-            strategy_settings = StrategySettings(self)
+            strategy_settings = StrategySettings(self, models)
             strategy_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             layout.addWidget(strategy_settings, stretch=1)
 
             # Create StintTable with editing enabled
             self.stint_table = StintTable(
-                models=ModelContainer(
-                    selection_model=self.selection_model,
-                    table_model=self.table_model
-                ),
+                models=models,
                 focus=True,
                 auto_update=False,
                 allow_editors=False
@@ -93,6 +96,7 @@ class StrategyTab(QWidget):
             model_data = self.strategy.get('model_data', {})
             stints = model_data.get('rows', [])
             tires = model_data.get('tires', [])
+            mean_stint_time_seconds = model_data.get('mean_stint_time_seconds', 0)
             
             if not stints:
                 log('INFO', f'No stints in strategy {self.strategy_name}',
@@ -103,7 +107,7 @@ class StrategyTab(QWidget):
             rows = mongo_docs_to_rows(stints)
             
             # Update table model with strategy data (including tire metadata)
-            self.table_model.update_data(data=rows, tires=tires)
+            self.table_model.update_data(data=rows, tires=tires, mean_stint_time=timedelta(seconds=mean_stint_time_seconds))
 
             # Set custom delegates with strategy_id for database updates
             self._setup_strategy_delegates()

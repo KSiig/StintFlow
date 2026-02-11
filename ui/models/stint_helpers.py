@@ -5,8 +5,7 @@ Utility functions for converting stint types, calculating stint lengths,
 and managing tire data.
 """
 
-from datetime import datetime, date, timedelta
-
+from datetime import datetime, date, timedelta, time
 
 def get_stint_type(stint_amount: int) -> str:
     """
@@ -225,7 +224,6 @@ def timedelta_to_time(td: timedelta):
     Returns:
         datetime.time object with hours modulo 24
     """
-    from datetime import time
     
     total_seconds = int(td.total_seconds())
     hours, remainder = divmod(total_seconds, 3600)
