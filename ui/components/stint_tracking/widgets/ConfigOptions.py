@@ -24,10 +24,10 @@ from core.errors import log, log_exception
 from ..config import (
     ConfigLayout, ConfigLabels,
     create_config_button,
-    create_config_row, create_team_section,
+    create_team_section,
     handle_stint_tracker_output
 )
-from ui.components.common import SectionHeader
+from ui.components.common import SectionHeader, LabeledInputRow
 
 
 class ConfigOptions(QWidget):
@@ -133,8 +133,8 @@ class ConfigOptions(QWidget):
             ("tires", "Starting tires"),
             ("length", "Race length")
         ]:
-            card, input_field = create_config_row(title)
-            self.inputs[field_id] = input_field
+            card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
+            self.inputs[field_id] = card.get_input_field()
             layout.addWidget(card)
         
         # Add team/driver section

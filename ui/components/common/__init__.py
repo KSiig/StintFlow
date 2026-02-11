@@ -10,6 +10,7 @@ from .DraggableArea import DraggableArea
 from .DropdownButton import DropdownButton
 from .DataDropdownButton import DataDropdownButton
 from .SectionHeader import SectionHeader
+from .LabeledInputRow import LabeledInputRow
 
 __all__ = [
     'ClickableWidget',
@@ -17,5 +18,6 @@ __all__ = [
     'DraggableArea',
     'DropdownButton',
     'DataDropdownButton',
-    'SectionHeader'
+    'SectionHeader',
+    'LabeledInputRow'
 ]
