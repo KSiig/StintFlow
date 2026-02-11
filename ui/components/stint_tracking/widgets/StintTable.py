@@ -387,7 +387,7 @@ class StintTable(QWidget):
         # This is a hack, since the header length is not reliably available until the table is shown.
         header_length = hh.length() or 816
         min_width = header_length + VERTICAL_HEADER_WIDTH + self.MIN_WIDTH_EXTRA_PADDING
-        print("Calculating minimum table width...", min_width, "Header length:", header_length)
+
         self.table.setMinimumWidth(min_width)
         
         # Disable header interactions
