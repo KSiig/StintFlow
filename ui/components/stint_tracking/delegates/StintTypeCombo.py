@@ -123,11 +123,11 @@ class StintTypeCombo(QStyledItemDelegate):
         
         # Update database if enabled
         if self.update_doc and self.strategy_id:
-            row_data, tire_data = model.get_all_data()
+            row_data, tire_data, _ = model.get_all_data()
             sanitized_data = sanitize_stints(row_data, tire_data)
             update_strategy(self.strategy_id, sanitized_data)
         elif self.update_doc:
-            row_data, tire_data = model.get_all_data()
+            row_data, tire_data, _ = model.get_all_data()
             sanitized_data = sanitize_stints(row_data, tire_data)
             rows_to_update = min(len(sanitized_data.get('tires', [])), model.rowCount())
 

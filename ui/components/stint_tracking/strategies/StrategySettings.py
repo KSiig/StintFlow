@@ -157,22 +157,14 @@ class StrategySettings(QWidget):
                       prev_row = rows[idx - 1]
                       prev_pit_end_time_str = prev_row.get('pit_end_time')
                       if prev_pit_end_time_str:
-                          try:
-                              h, m, s = map(int, prev_pit_end_time_str.split(":"))
-                              prev_seconds = h * 3600 + m * 60 + s
-                              new_seconds = max(prev_seconds - mean_stint_time_sec, 0)
-                              new_h = new_seconds // 3600
-                              new_m = (new_seconds % 3600) // 60
-                              new_s = new_seconds % 60
-                              row['pit_end_time'] = f"{new_h:02d}:{new_m:02d}:{new_s:02d}"
-                          except Exception as e:
-                              log('ERROR', f'Failed to subtract stint_time from pit_end_time: {prev_pit_end_time_str}', category='strategy_settings', action='pit_end_time_calc')
+                          row['pit_end_time'] = self._get_new_pit_end_time(prev_pit_end_time_str, mean_stint_time_sec)
                   else:
                       # No previous row, optionally set pit_end_time to default or leave unchanged
                       pass
 
             # TODO: Save updated strategy back to database here
             update_strategy(strategy=self.strategy)
+            self._realign_rows(mean_stint_time_sec)
             self.strategy_updated.emit(self.strategy)  # Emit updated strategy data for other components to react
 
             log('INFO', f'StrategySettings saved',
@@ -181,6 +173,48 @@ class StrategySettings(QWidget):
             log('ERROR', f'Exception in _on_save_clicked: {e}', category='strategy_settings', action='save_clicked')
         # Revert to view mode after pressing save
         self._toggle_edit()
+
+    def _get_new_pit_end_time(self, prev_pit_end_time_str: str, mean_stint_time_sec: int) -> str:
+        """Calculate new pit end time by subtracting mean stint time from previous pit end time."""
+        try:
+            h, m, s = map(int, prev_pit_end_time_str.split(":"))
+            prev_seconds = h * 3600 + m * 60 + s
+            new_seconds = max(prev_seconds - mean_stint_time_sec, 0)
+            new_h = new_seconds // 3600
+            new_m = (new_seconds % 3600) // 60
+            new_s = new_seconds % 60
+            return f"{new_h:02d}:{new_m:02d}:{new_s:02d}"
+        except Exception as e:
+            log('ERROR', f'Failed to calculate new pit end time: {prev_pit_end_time_str}', category='strategy_settings', action='calculate_pit_end_time')
+            return prev_pit_end_time_str  # Fallback to original if error occurs
+
+    def _realign_rows(self, mean_stint_time_sec=None):
+        """Realign rows based on new mean stint time calculations."""
+        rows = self.strategy['model_data'].get('rows', [])
+        for idx, row in reversed(list(enumerate(rows))):
+          pit_end_time_str = row.get('pit_end_time')
+          h, m, s = map(int, pit_end_time_str.split(":"))
+          seconds = h * 3600 + m * 60 + s
+          if seconds == 0:
+              del rows[idx]
+          elif seconds > 0:
+              self._add_rows(mean_stint_time_sec)
+              break
+
+    def _add_rows(self, mean_stint_time_sec=None):
+        """Add new rows based on mean stint time until pit_end_time reaches 0 seconds."""
+        rows = self.strategy['model_data'].get('rows', [])
+        last_row = rows[-1] if rows else None
+        while last_row:
+            h, m, s = map(int, last_row.get('pit_end_time', '00:00:00').split(":"))
+            seconds = h * 3600 + m * 60 + s
+            if seconds == 0:
+                break
+            # Create a new row as a copy of the last row (shallow copy)
+            new_row = last_row.copy()
+            new_row['pit_end_time'] = self._get_new_pit_end_time(last_row.get('pit_end_time', '00:00:00'), mean_stint_time_sec)
+            rows.append(new_row)
+            last_row = new_row
 
     def _set_inputs(self, mean_stint_time=None):
         """Set the values of the input fields."""
