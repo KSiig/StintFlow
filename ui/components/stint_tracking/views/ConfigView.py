@@ -4,7 +4,7 @@ Configuration view for stint tracking.
 Displays configuration options and stint tracker side-by-side.
 """
 
-from PyQt6.QtWidgets import QWidget, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QSizePolicy
 
 from ui.models import ModelContainer
 from core.errors import log_exception
@@ -38,17 +38,26 @@ class ConfigView(QWidget):
         self._setup_ui(models)
     
     def _setup_ui(self, models: ModelContainer):
-        """Build the UI layout with configuration options and stint table."""
+        """Build the UI layout with configuration options and stint table, wrapped in a QFrame."""
+        from PyQt6.QtWidgets import QFrame
         try:
-            layout = QHBoxLayout(self)
+            frame = QFrame(self)
+            frame.setObjectName("ConfigViewFrame")
+            frame.setFrameShape(QFrame.Shape.NoFrame)
+            frame.setFrameShadow(QFrame.Shadow.Plain)
+            frame.setSizePolicy(
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Expanding
+            )
+            layout = QHBoxLayout(frame)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(self.SPACING)
-            
+
             # Add ConfigOptions component
             self.config_options = ConfigOptions(models)
             self.config_options.stint_created.connect(self.table_model.update_data)
             layout.addWidget(self.config_options)
-            
+
             # Add stint table (read-only for config view)
             self.stint_table = StintTable(
                 models=models,
@@ -58,7 +67,11 @@ class ConfigView(QWidget):
             )
             layout.addWidget(self.stint_table)
             layout.addStretch()
-        
+
+            main_layout = QHBoxLayout(self)
+            main_layout.setContentsMargins(0, 0, 0, 0)
+            main_layout.addWidget(frame)
+
         except Exception as e:
             log_exception(e, 'Failed to setup ConfigView UI',
                          category='config_view', action='setup_ui')

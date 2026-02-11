@@ -55,6 +55,9 @@ class NavigationMenu(QWidget):
         
         self._setup_styles()
         self._create_layout()
+
+        self.models.selection_model.eventChanged.connect(self._update_event_selection)
+        self.models.selection_model.sessionChanged.connect(self._update_event_selection)
     
     def _setup_styles(self) -> None:
         """Load and apply navigation menu stylesheet."""
@@ -120,6 +123,9 @@ class NavigationMenu(QWidget):
         # Add session picker at the bottom
         self.session_picker = SessionPicker(models=self.models)
         menu_layout.addWidget(self.session_picker)
+
+    def _update_event_selection(self):
+        self.session_picker.reload()
     
     def _add_title_and_icon(self, layout: QVBoxLayout) -> None:
         """

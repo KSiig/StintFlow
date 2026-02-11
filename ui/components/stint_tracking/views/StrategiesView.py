@@ -199,6 +199,11 @@ class StrategiesView(QWidget):
             # Get and sanitize table data
             row_data, tire_data = self.table_model.get_all_data()
             sanitized_data = sanitize_stints(row_data, tire_data)
+
+            if not row_data:
+                log('WARNING', 'No stint data to create strategy',
+                    category='strategies_view', action='create_strategy')
+                return
             
             if not self.selection_model.session_id:
                 log('WARNING', 'No session selected',

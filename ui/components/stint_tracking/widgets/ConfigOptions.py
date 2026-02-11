@@ -238,7 +238,6 @@ class ConfigOptions(QWidget):
         # Edit mode -> View mode
         if self.save_btn.isVisible():
             self.save_btn.hide()
-            self.clone_btn.show()
             self.edit_btn.show()
             for child in self.findChildren(QLineEdit):
                 child.setReadOnly(True)
@@ -248,7 +247,6 @@ class ConfigOptions(QWidget):
         # View mode -> Edit mode
         else:
             self.edit_btn.hide()
-            self.clone_btn.hide()
             self.save_btn.show()
             for child in self.findChildren(QLineEdit):
                 child.setReadOnly(False)
