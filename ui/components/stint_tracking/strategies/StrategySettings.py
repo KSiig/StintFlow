@@ -5,7 +5,7 @@ Displays a placeholder for future strategy settings UI.
 """
 
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from core.utilities import resource_path
 from core.errors import log
@@ -13,18 +13,22 @@ from ui.components.common import LabeledInputRow, SectionHeader, ConfigButton
 from ..config import ConfigLabels
 from ui.components.stint_tracking.config.config_constants import ConfigLayout
 from ui.models import ModelContainer
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 class StrategySettings(QWidget):
     """
     Placeholder widget for strategy settings/info box.
     """
-    def __init__(self, parent=None, models: ModelContainer=None):
+
+    strategy_updated = pyqtSignal(dict)  # Emitted when strategy is updated
+
+    def __init__(self, parent=None, models: ModelContainer=None, strategy=None):
         super().__init__(parent)
 
         self.selection_model = models.selection_model
         self.table_model = models.table_model
         self.inputs = {}
+        self.strategy = strategy
 
         self._setup_styles()
         self._setup_ui()
@@ -124,42 +128,99 @@ class StrategySettings(QWidget):
                     pass
 
     def _on_save_clicked(self):
-        """Placeholder save handler — does not persist changes yet."""
-        log('INFO', 'StrategySettings save clicked (placeholder)',
-            category='strategy_settings', action='save_clicked')
+        """Save handler for mean_stint_time and update related rows."""
+        try:
+            # 1. Retrieve and convert mean_stint_time from input
+            input_widget = self.inputs.get("mean_stint_time")
+            if input_widget is None:
+                log('ERROR', 'mean_stint_time input widget missing', category='strategy_settings', action='save_clicked')
+                return
+            mean_stint_time_str = input_widget.text().strip()
+            # Convert HH:MM:SS to seconds (int)
+            try:
+                h, m, s = map(int, mean_stint_time_str.split(":"))
+                mean_stint_time_sec = h * 3600 + m * 60 + s
+            except Exception as e:
+                log('ERROR', f'Failed to parse mean_stint_time_str: {mean_stint_time_str}', category='strategy_settings', action='parse_time')
+                return
+            if mean_stint_time_sec is None:
+                return
+
+            rows = self.strategy['model_data'].get('rows', [])
+            # for row in rows:
+            #   if not row.get('status'):
+            #       row['stint_time_seconds'] = mean_stint_time_sec
+            
+            for idx, row in enumerate(rows):
+              if not row.get('status'):
+                  row['stint_time_seconds'] = mean_stint_time_sec
+                  # Subtract mean_stint_time_sec from previous row's pit_end_time
+                  if idx > 0:
+                      prev_row = rows[idx - 1]
+                      prev_pit_end_time_str = prev_row.get('pit_end_time')
+                      if prev_pit_end_time_str:
+                          try:
+                              h, m, s = map(int, prev_pit_end_time_str.split(":"))
+                              prev_seconds = h * 3600 + m * 60 + s
+                              new_seconds = max(prev_seconds - mean_stint_time_sec, 0)
+                              new_h = new_seconds // 3600
+                              new_m = (new_seconds % 3600) // 60
+                              new_s = new_seconds % 60
+                              row['pit_end_time'] = f"{new_h:02d}:{new_m:02d}:{new_s:02d}"
+                          except Exception as e:
+                              log('ERROR', f'Failed to subtract stint_time from pit_end_time: {prev_pit_end_time_str}', category='strategy_settings', action='pit_end_time_calc')
+                  else:
+                      # No previous row, optionally set pit_end_time to default or leave unchanged
+                      pass
+
+            # 4. Recalculate pit_end_times (placeholder, to be implemented)
+            # TODO: Implement pit_end_time recalculation logic here
+
+            # 5. Update the table model using update_data
+            # if hasattr(self.table_model, 'update_data'):
+            #     self.table_model.update_data(updated_strategy_doc)
+            # else:
+            #     log('ERROR', 'update_data method not found on table_model', category='strategy_settings', action='save_clicked')
+
+            self.strategy_updated.emit(self.strategy)  # Emit updated strategy data for other components to react
+
+            log('INFO', f'StrategySettings saved mean_stint_time={mean_stint_time_sec}',
+                category='strategy_settings', action='save_clicked')
+        except Exception as e:
+            log('ERROR', f'Exception in _on_save_clicked: {e}', category='strategy_settings', action='save_clicked')
         # Revert to view mode after pressing save
         self._toggle_edit()
 
     def _set_inputs(self, mean_stint_time=None):
         """Set the values of the input fields."""
         if mean_stint_time is not None:
-            mean_stint_time_str = self._format_mean_stint_time(mean_stint_time)
+            mean_stint_time_str = self._format_stint_time(mean_stint_time)
 
             # Ensure the input field exists before setting text
             widget = self.inputs.get("mean_stint_time")
             if widget is not None:
                 widget.setText(mean_stint_time_str)
 
-    def _format_mean_stint_time(self, mean_stint_time) -> str:
-        """Return a H:MM:SS string for the provided mean_stint_time.
+    def _format_stint_time(self, stint_time) -> str:
+        """Return a HH:MM:SS string for the provided stint_time.
 
         Accepts datetime.timedelta, string (possibly containing microseconds),
         or numeric seconds. Falls back to str(value) on unexpected input.
         """
         # Handle timedelta objects by stripping microseconds
-        if isinstance(mean_stint_time, timedelta):
-            return str(mean_stint_time).split('.', 1)[0]
+        if isinstance(stint_time, timedelta):
+            return str(stint_time).split('.', 1)[0]
 
         # Handle string representations like '0:27:07.800000'
-        if isinstance(mean_stint_time, str):
-            return mean_stint_time.split('.', 1)[0]
+        if isinstance(stint_time, str):
+            return stint_time.split('.', 1)[0]
 
         # Try to interpret as seconds (numeric) and format H:MM:SS
         try:
-            total_seconds = int(float(mean_stint_time))
+            total_seconds = int(float(stint_time))
             hours = total_seconds // 3600
             minutes = (total_seconds % 3600) // 60
             seconds = total_seconds % 60
-            return f"{hours}:{minutes:02d}:{seconds:02d}"
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         except Exception:
-            return str(mean_stint_time)
+            return str(stint_time)

@@ -68,8 +68,9 @@ class StrategyTab(QWidget):
             )
 
             # StrategySettings component for top half
-            strategy_settings = StrategySettings(self, models)
+            strategy_settings = StrategySettings(self, models, self.strategy)
             strategy_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            strategy_settings.strategy_updated.connect(self._load_strategy_data)  # Reload table when strategy is updated
             layout.addWidget(strategy_settings, stretch=1)
 
             # Create StintTable with editing enabled
@@ -88,6 +89,11 @@ class StrategyTab(QWidget):
         except Exception as e:
             log_exception(e, 'Failed to setup StrategyTab UI',
                          category='strategy_tab', action='setup_ui')
+
+    def _strategy_updated(self, updated_strategy: dict):
+        """Handle updates to the strategy from StrategySettings."""
+        self.strategy = updated_strategy
+        self._load_strategy_data()  # Reload table with updated strategy data
     
     def _load_strategy_data(self):
         """Load strategy stints from MongoDB and populate table."""
