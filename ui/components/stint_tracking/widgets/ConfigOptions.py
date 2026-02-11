@@ -23,10 +23,11 @@ from core.database import (
 from core.errors import log, log_exception
 from ..config import (
     ConfigLayout, ConfigLabels,
-    create_config_header, create_config_button,
+    create_config_button,
     create_config_row, create_team_section,
     handle_stint_tracker_output
 )
+from ui.components.common import SectionHeader
 
 
 class ConfigOptions(QWidget):
@@ -103,8 +104,15 @@ class ConfigOptions(QWidget):
         root_layout.setContentsMargins(0, 0, ConfigLayout.RIGHT_MARGIN, 0)
         root_layout.setSpacing(ConfigLayout.CONTENT_SPACING)
         
-        # Add header
-        root_layout.addLayout(create_config_header())
+        # Add header using SectionHeader widget
+        header = SectionHeader(
+            title="Race Configuration",
+            icon_path="resources/icons/race_config/settings.svg",
+            icon_color="#05fd7e",
+            icon_size=ConfigLayout.ICON_SIZE,
+            spacing=ConfigLayout.HEADER_SPACING
+        )
+        root_layout.addWidget(header)
         
         # Add configuration rows
         self._add_config_rows(root_layout)

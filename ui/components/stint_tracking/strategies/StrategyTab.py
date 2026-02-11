@@ -4,7 +4,7 @@ Strategy display tab.
 Shows an existing strategy with editable stint table.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QSizePolicy
 from core.errors import log, log_exception
 from core.utilities import resource_path
 from ui.models import TableModel, SelectionModel, ModelContainer
@@ -12,6 +12,7 @@ from ui.models.table_constants import ColumnIndex
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
 from ..widgets import StintTable
 from ..delegates import TireComboDelegate, StintTypeCombo
+from .StrategySettings import StrategySettings
 
 
 class StrategyTab(QWidget):
@@ -57,23 +58,26 @@ class StrategyTab(QWidget):
     def _setup_ui(self):
         """Set up the UI with editable stint table."""
         try:
-            layout = QVBoxLayout(self)
+            layout = QHBoxLayout(self)
             layout.setContentsMargins(0, 0, 0, 0)
-            
+
+            # StrategySettings component for top half
+            strategy_settings = StrategySettings(self)
+            strategy_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            layout.addWidget(strategy_settings, stretch=1)
+
             # Create StintTable with editing enabled
-            # auto_update=False because strategy data doesn't auto-refresh from DB
-            # allow_editors=False because we'll set custom delegates with strategy_id
             self.stint_table = StintTable(
                 models=ModelContainer(
                     selection_model=self.selection_model,
                     table_model=self.table_model
                 ),
-                focus=True,           # Allow keyboard focus and selection
-                auto_update=False,    # Strategy data is static until manually saved
-                allow_editors=False   # We'll set custom delegates with strategy_id
+                focus=True,
+                auto_update=False,
+                allow_editors=False
             )
-            
-            layout.addWidget(self.stint_table)
+            # Stint table fills bottom half
+            layout.addWidget(self.stint_table, stretch=1)
             
             log('DEBUG', f'Strategy tab UI created: {self.strategy_name}',
                 category='strategy_tab', action='setup_ui')

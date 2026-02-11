@@ -9,11 +9,13 @@ from .UpwardComboBox import UpwardComboBox
 from .DraggableArea import DraggableArea
 from .DropdownButton import DropdownButton
 from .DataDropdownButton import DataDropdownButton
+from .SectionHeader import SectionHeader
 
 __all__ = [
     'ClickableWidget',
     'UpwardComboBox',
     'DraggableArea',
     'DropdownButton',
-    'DataDropdownButton'
+    'DataDropdownButton',
+    'SectionHeader'
 ]

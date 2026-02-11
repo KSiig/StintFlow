@@ -25,7 +25,7 @@ from .delegates import DriverPillDelegate, StatusDelegate, TireComboDelegate, St
 # Config helpers - configuration panel utilities
 from .config import (
     StintTrackerEvents, ConfigLayout, ConfigLabels,
-    create_config_header, create_config_button, create_config_label,
+    create_config_button, create_config_label,
     create_config_row, create_team_section, handle_stint_tracker_output
 )
 
@@ -52,7 +52,6 @@ __all__ = [
     'StintTrackerEvents',
     'ConfigLayout',
     'ConfigLabels',
-    'create_config_header',
     'create_config_button',
     'create_config_label',
     'create_config_row',
