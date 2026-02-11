@@ -9,6 +9,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 from core.utilities import resource_path
 from core.errors import log
+from core.database import update_strategy
 from ui.components.common import LabeledInputRow, SectionHeader, ConfigButton
 from ..config import ConfigLabels
 from ui.components.stint_tracking.config.config_constants import ConfigLayout
@@ -147,9 +148,6 @@ class StrategySettings(QWidget):
                 return
 
             rows = self.strategy['model_data'].get('rows', [])
-            # for row in rows:
-            #   if not row.get('status'):
-            #       row['stint_time_seconds'] = mean_stint_time_sec
             
             for idx, row in enumerate(rows):
               if not row.get('status'):
@@ -173,18 +171,11 @@ class StrategySettings(QWidget):
                       # No previous row, optionally set pit_end_time to default or leave unchanged
                       pass
 
-            # 4. Recalculate pit_end_times (placeholder, to be implemented)
-            # TODO: Implement pit_end_time recalculation logic here
-
-            # 5. Update the table model using update_data
-            # if hasattr(self.table_model, 'update_data'):
-            #     self.table_model.update_data(updated_strategy_doc)
-            # else:
-            #     log('ERROR', 'update_data method not found on table_model', category='strategy_settings', action='save_clicked')
-
+            # TODO: Save updated strategy back to database here
+            update_strategy(strategy=self.strategy)
             self.strategy_updated.emit(self.strategy)  # Emit updated strategy data for other components to react
 
-            log('INFO', f'StrategySettings saved mean_stint_time={mean_stint_time_sec}',
+            log('INFO', f'StrategySettings saved',
                 category='strategy_settings', action='save_clicked')
         except Exception as e:
             log('ERROR', f'Exception in _on_save_clicked: {e}', category='strategy_settings', action='save_clicked')
