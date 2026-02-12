@@ -94,6 +94,7 @@ class StrategyTab(QWidget):
         """Handle updates to the strategy from StrategySettings."""
         self.strategy = updated_strategy
         self._load_strategy_data()  # Reload table with updated strategy data
+        self.table_model._recalculate_tires_left()
     
     def _load_strategy_data(self):
         """Load strategy stints from MongoDB and populate table."""
@@ -117,6 +118,7 @@ class StrategyTab(QWidget):
 
             # Set custom delegates with strategy_id for database updates
             self._setup_strategy_delegates()
+            self.table_model._recalculate_tires_left()
             
             log('DEBUG', f'Loaded {len(rows)} stints for strategy {self.strategy_name}',
                 category='strategy_tab', action='load_strategy_data')

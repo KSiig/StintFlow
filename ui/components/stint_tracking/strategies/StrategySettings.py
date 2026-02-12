@@ -14,6 +14,7 @@ from ui.components.common import LabeledInputRow, SectionHeader, ConfigButton
 from ..config import ConfigLabels
 from ui.components.stint_tracking.config.config_constants import ConfigLayout
 from ui.models import ModelContainer
+from ui.models.stint_helpers import get_default_tire_dict
 from datetime import timedelta, datetime
 
 class StrategySettings(QWidget):
@@ -162,10 +163,12 @@ class StrategySettings(QWidget):
                       # No previous row, optionally set pit_end_time to default or leave unchanged
                       pass
 
-            # TODO: Save updated strategy back to database here
-            update_strategy(strategy=self.strategy)
             self._realign_rows(mean_stint_time_sec)
+
+            update_strategy(strategy=self.strategy)
+
             self.strategy_updated.emit(self.strategy)  # Emit updated strategy data for other components to react
+            self.table_model._recalculate_stint_types()
 
             log('INFO', f'StrategySettings saved',
                 category='strategy_settings', action='save_clicked')
@@ -191,12 +194,14 @@ class StrategySettings(QWidget):
     def _realign_rows(self, mean_stint_time_sec=None):
         """Realign rows based on new mean stint time calculations."""
         rows = self.strategy['model_data'].get('rows', [])
+        tires = self.strategy['model_data'].get('tires', [])
         for idx, row in reversed(list(enumerate(rows))):
           pit_end_time_str = row.get('pit_end_time')
           h, m, s = map(int, pit_end_time_str.split(":"))
           seconds = h * 3600 + m * 60 + s
           if seconds == 0:
               del rows[idx]
+              del tires[idx]
           elif seconds > 0:
               self._add_rows(mean_stint_time_sec)
               break
@@ -204,8 +209,12 @@ class StrategySettings(QWidget):
     def _add_rows(self, mean_stint_time_sec=None):
         """Add new rows based on mean stint time until pit_end_time reaches 0 seconds."""
         rows = self.strategy['model_data'].get('rows', [])
+        tires = self.strategy['model_data'].get('tires', [])
         last_row = rows[-1] if rows else None
+        last_tires = tires[-1] if tires else None
+        i = 0
         while last_row:
+            tires_changed = bool(i%2) # Alternate between no change and full change for new rows
             h, m, s = map(int, last_row.get('pit_end_time', '00:00:00').split(":"))
             seconds = h * 3600 + m * 60 + s
             if seconds == 0:
@@ -213,8 +222,14 @@ class StrategySettings(QWidget):
             # Create a new row as a copy of the last row (shallow copy)
             new_row = last_row.copy()
             new_row['pit_end_time'] = self._get_new_pit_end_time(last_row.get('pit_end_time', '00:00:00'), mean_stint_time_sec)
+            new_row['tires_changed'] = 4 if tires_changed else 0
             rows.append(new_row)
             last_row = new_row
+
+            # Also append a copy of the last tires entry to keep arrays aligned
+            tires_dict = get_default_tire_dict(tires_changed=tires_changed)  # Alternate between no change and full change for new rows
+            tires.append(tires_dict)
+            i += 1
 
     def _set_inputs(self, mean_stint_time=None):
         """Set the values of the input fields."""

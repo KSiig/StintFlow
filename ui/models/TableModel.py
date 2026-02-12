@@ -17,7 +17,7 @@ from ui.components.stint_tracking import get_header_icon
 from datetime import datetime, timedelta
 
 from .TableRoles import TableRoles
-from .table_constants import ColumnIndex
+from .table_constants import ColumnIndex, FULL_TIRE_SET, NO_TIRE_CHANGE
 from .table_utils import is_completed_row
 from .table_processors import (
     convert_stints_to_table,
@@ -156,15 +156,19 @@ class TableModel(QAbstractTableModel):
         self._meta = [{"id": stint.get("_id")} for stint in stints]
         
         # Convert stints to table rows using processor
-        rows, mean_stint_time = convert_stints_to_table(
+        rows, mean_stint_time, last_tire_change = convert_stints_to_table(
             stints, total_tires, starting_time, count_tire_changes
         )
         self._data = rows
         self._mean_stint_time = mean_stint_time
         
         # Ensure _tires array matches _data length
+        i = 0 if last_tire_change is NO_TIRE_CHANGE else 1
+
         while len(self._tires) < len(self._data):
-            self._tires.append(get_default_tire_dict(True))
+            tires_changed = bool(i % 2)  # Alternate between no change and full change for new rows
+            self._tires.append(get_default_tire_dict(tires_changed))
+            i += 1
         
         # Calculate stint types and tire counts
         self._recalculate_stint_types()

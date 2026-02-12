@@ -70,6 +70,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
     Returns:
         Dictionary with tire data for all four wheels
     """
+    wear_out = 1 if tires_changed else 0.95
     return {
         "fr": {
             "incoming": {
@@ -79,7 +80,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -93,7 +94,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -107,7 +108,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -121,7 +122,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
