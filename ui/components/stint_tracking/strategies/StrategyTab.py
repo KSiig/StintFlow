@@ -61,6 +61,7 @@ class StrategyTab(QWidget):
         try:
             layout = QHBoxLayout(self)
             layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(12)
 
             models = ModelContainer(
                 selection_model=self.selection_model,

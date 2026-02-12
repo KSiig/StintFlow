@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QProcess
 from datetime import datetime
 
+from .TeamSection import TeamSection
 from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT
 from core.utilities import resource_path, get_stint_tracker_command
@@ -23,7 +24,6 @@ from core.database import (
 from core.errors import log, log_exception
 from ..config import (
     ConfigLayout, ConfigLabels,
-    create_team_section,
     handle_stint_tracker_output
 )
 from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton
@@ -137,10 +137,10 @@ class ConfigOptions(QWidget):
             layout.addWidget(card)
         
         # Add team/driver section
-        team_card, driver_inputs, drivers = create_team_section()
-        self.driver_inputs = driver_inputs
-        self.drivers = drivers
-        layout.addWidget(team_card)
+        team_section = TeamSection()
+        self.driver_inputs = team_section.get_driver_inputs()
+        self.drivers = team_section.get_driver_names()
+        layout.addWidget(team_section)
     
     def _create_buttons(self):
         """Create all buttons and controls."""
