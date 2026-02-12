@@ -19,7 +19,6 @@ def update_strategy(strategy_id: str | ObjectId=None, model_data: dict=None, str
     strategies_col = get_strategies_collection()
 
     if strategy:
-        print("rows: ", len(strategy.get('model_data', {}).get('rows', [])))
         strategies_col.update_one(
             {"_id": strategy["_id"]},
             {"$set": {

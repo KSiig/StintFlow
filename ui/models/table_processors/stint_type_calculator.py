@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt
 from ..TableRoles import TableRoles
 from ..stint_helpers import get_stint_type, get_stint_length, get_default_tire_dict
 from ..table_constants import ColumnIndex
+import copy
 
 # Constants
 FULL_TIRE_SET = 4  # Number of tires in a full set change
@@ -125,35 +126,40 @@ def recalculate_tires_changed(
     new_len = get_stint_length(data[row][ColumnIndex.STINT_TYPE])
     delta = new_len - old_len
     
-    # Snapshot current tire changes
-    old_tire_changes = [
-        {"row": i, "value": data[i][ColumnIndex.TIRES_CHANGED], "tires": tires[i]}
-        for i in range(total_rows) if int(data[i][ColumnIndex.TIRES_CHANGED]) > 0
-    ]
-    
+    old_tire_changes = []
+
+    # First loop — copy rows + column values
+    for i in range(total_rows):
+        if int(data[i][ColumnIndex.TIRES_CHANGED]) > 0:
+            old_tire_changes.append({
+                "row": i,
+                "value": data[i][ColumnIndex.TIRES_CHANGED],
+                "tires": copy.deepcopy(tires[i])
+            })
+
     # Clear all tire changes
     for r in range(total_rows):
         data[r][ColumnIndex.TIRES_CHANGED] = str(NO_TIRE_CHANGE)
         tires[r] = get_default_tire_dict(False)
     
-    # Re-apply tire changes with adjusted positions
-    for tire_change_record in old_tire_changes:
-        old_row = tire_change_record["row"]
-        
+    new_tire_positions = {}
+
+    for record in old_tire_changes:
+        old_row = record["row"]
+
         if row <= old_row < row + old_len:
-            # Tire change was in edited stint → move to new end
             new_row = min(row + new_len - 1, total_rows - 1)
         elif old_row >= row + old_len:
-            # Downstream tire change → shift by delta
             new_row = old_row + delta
         else:
-            # Upstream → no change
             new_row = old_row
-        
-        # Apply if within bounds
+
         if 0 <= new_row < total_rows:
-            data[new_row][ColumnIndex.TIRES_CHANGED] = tire_change_record["value"]
-            tires[new_row] = tire_change_record["tires"]
+            new_tire_positions[new_row] = record
+
+    for new_row, record in new_tire_positions.items():
+        data[new_row][ColumnIndex.TIRES_CHANGED] = record["value"]
+        tires[new_row] = record["tires"]
     
     # Force tire change at end of edited stint
     forced_row = min(row + new_len - 1, total_rows - 1)

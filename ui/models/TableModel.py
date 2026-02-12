@@ -167,7 +167,7 @@ class TableModel(QAbstractTableModel):
 
         while len(self._tires) < len(self._data):
             tires_changed = bool(i % 2)  # Alternate between no change and full change for new rows
-            self._tires.append(get_default_tire_dict(tires_changed))
+            self._tires.append(get_default_tire_dict(not tires_changed))
             i += 1
         
         # Calculate stint types and tire counts
