@@ -23,10 +23,10 @@ from core.database import (
 from core.errors import log, log_exception
 from ..config import (
     ConfigLayout, ConfigLabels,
-    create_config_header, create_config_button,
-    create_config_row, create_team_section,
+    create_team_section,
     handle_stint_tracker_output
 )
+from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton
 
 
 class ConfigOptions(QWidget):
@@ -103,8 +103,15 @@ class ConfigOptions(QWidget):
         root_layout.setContentsMargins(0, 0, ConfigLayout.RIGHT_MARGIN, 0)
         root_layout.setSpacing(ConfigLayout.CONTENT_SPACING)
         
-        # Add header
-        root_layout.addLayout(create_config_header())
+        # Add header using SectionHeader widget
+        header = SectionHeader(
+            title="Race Configuration",
+            icon_path="resources/icons/race_config/settings.svg",
+            icon_color="#05fd7e",
+            icon_size=ConfigLayout.ICON_SIZE,
+            spacing=ConfigLayout.HEADER_SPACING
+        )
+        root_layout.addWidget(header)
         
         # Add configuration rows
         self._add_config_rows(root_layout)
@@ -125,8 +132,8 @@ class ConfigOptions(QWidget):
             ("tires", "Starting tires"),
             ("length", "Race length")
         ]:
-            card, input_field = create_config_row(title)
-            self.inputs[field_id] = input_field
+            card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
+            self.inputs[field_id] = card.get_input_field()
             layout.addWidget(card)
         
         # Add team/driver section
@@ -138,12 +145,12 @@ class ConfigOptions(QWidget):
     def _create_buttons(self):
         """Create all buttons and controls."""
         # Action buttons
-        self.edit_btn = create_config_button(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg")
-        self.save_btn = create_config_button(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg")
-        self.clone_btn = create_config_button(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg")
-        self.create_session_btn = create_config_button(ConfigLabels.BTN_NEW_SESSION, width_type="full")
-        self.start_btn = create_config_button(ConfigLabels.BTN_START_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
-        self.stop_btn = create_config_button(ConfigLabels.BTN_STOP_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
+        self.edit_btn = ConfigButton(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg")
+        self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg")
+        self.clone_btn = ConfigButton(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg")
+        self.create_session_btn = ConfigButton(ConfigLabels.BTN_NEW_SESSION, width_type="full")
+        self.start_btn = ConfigButton(ConfigLabels.BTN_START_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
+        self.stop_btn = ConfigButton(ConfigLabels.BTN_STOP_TRACK, icon_path="resources/icons/race_config/play.svg", icon_color="#1E1F24")
         self.start_btn.setObjectName("TrackButton")
         self.stop_btn.setObjectName("TrackButton")
         

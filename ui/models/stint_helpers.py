@@ -5,8 +5,7 @@ Utility functions for converting stint types, calculating stint lengths,
 and managing tire data.
 """
 
-from datetime import datetime, date, timedelta
-
+from datetime import datetime, date, timedelta, time
 
 def get_stint_type(stint_amount: int) -> str:
     """
@@ -71,6 +70,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
     Returns:
         Dictionary with tire data for all four wheels
     """
+    wear_out = 1 if tires_changed else 0.95
     return {
         "fr": {
             "incoming": {
@@ -80,7 +80,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -94,7 +94,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -108,7 +108,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -122,7 +122,7 @@ def get_default_tire_dict(tires_changed: bool) -> dict:
                 "compound": "Medium"
             },
             "outgoing": {
-                "wear": 1,
+                "wear": wear_out,
                 "flat": False,
                 "detached": False,
                 "compound": "Medium"
@@ -225,7 +225,6 @@ def timedelta_to_time(td: timedelta):
     Returns:
         datetime.time object with hours modulo 24
     """
-    from datetime import time
     
     total_seconds = int(td.total_seconds())
     hours, remainder = divmod(total_seconds, 3600)

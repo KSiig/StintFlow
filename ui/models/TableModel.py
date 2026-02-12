@@ -14,10 +14,10 @@ from core.database import get_stints, get_event
 from core.errors import log
 from core.utilities import resource_path
 from ui.components.stint_tracking import get_header_icon
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .TableRoles import TableRoles
-from .table_constants import ColumnIndex
+from .table_constants import ColumnIndex, FULL_TIRE_SET, NO_TIRE_CHANGE
 from .table_utils import is_completed_row
 from .table_processors import (
     convert_stints_to_table,
@@ -52,7 +52,8 @@ class TableModel(QAbstractTableModel):
         headers: list[dict],
         data: list[list] = None,
         tires: list[dict] = None,
-        meta: list[dict] = None
+        meta: list[dict] = None,
+        mean_stint_time: timedelta = None
     ):
         """
         Initialize the table model.
@@ -63,6 +64,7 @@ class TableModel(QAbstractTableModel):
             data: Optional pre-populated display data
             tires: Optional pre-populated tire metadata
             meta: Optional pre-populated document metadata
+            mean_stint_time: Optional mean stint time for calculations
         """
         super().__init__()
         
@@ -76,10 +78,12 @@ class TableModel(QAbstractTableModel):
             self._data = data
             self._tires = tires or []
             self._meta = meta or []
+            self._mean_stint_time = mean_stint_time or timedelta(0)
         else:
             self._data = []
             self._tires = []
             self._meta = []
+            self._mean_stint_time = timedelta(0)
             self._load_data_from_database()
     
     def clone(self) -> 'TableModel':
@@ -95,22 +99,25 @@ class TableModel(QAbstractTableModel):
             headers=copy.deepcopy(self.headers),
             data=copy.deepcopy(self._data),
             tires=copy.deepcopy(self._tires),
-            meta=copy.deepcopy(self._meta)
+            meta=copy.deepcopy(self._meta),
+            mean_stint_time=copy.deepcopy(self._mean_stint_time)
         )
     
-    def update_data(self, data: list[list] = None, tires: list[dict] = None) -> None:
+    def update_data(self, data: list[list] = None, tires: list[dict] = None, mean_stint_time: timedelta = None) -> None:
         """
         Update model data and trigger view refresh.
         
         Args:
             data: Optional new display data (reloads from DB if not provided)
             tires: Optional new tire metadata
+            mean_stint_time: Optional mean stint time for calculations
         """
         self.beginResetModel()
         
         if data is not None:
             self._data = data
             self._tires = tires or []
+            self._mean_stint_time = mean_stint_time or timedelta(0)
             self._repaint_table()
         else:
             self._load_data_from_database()
@@ -149,13 +156,19 @@ class TableModel(QAbstractTableModel):
         self._meta = [{"id": stint.get("_id")} for stint in stints]
         
         # Convert stints to table rows using processor
-        self._data = convert_stints_to_table(
+        rows, mean_stint_time, last_tire_change = convert_stints_to_table(
             stints, total_tires, starting_time, count_tire_changes
         )
+        self._data = rows
+        self._mean_stint_time = mean_stint_time
         
         # Ensure _tires array matches _data length
+        i = 0 if last_tire_change is NO_TIRE_CHANGE else 1
+
         while len(self._tires) < len(self._data):
-            self._tires.append(get_default_tire_dict(True))
+            tires_changed = bool(i % 2)  # Alternate between no change and full change for new rows
+            self._tires.append(get_default_tire_dict(not tires_changed))
+            i += 1
         
         # Calculate stint types and tire counts
         self._recalculate_stint_types()
@@ -222,14 +235,14 @@ class TableModel(QAbstractTableModel):
         self.editable = editable
         self.partial = partial
     
-    def get_all_data(self) -> tuple[list[list], list[dict]]:
+    def get_all_data(self) -> tuple[list[list], list[dict], timedelta]:
         """
         Get all model data.
         
         Returns:
-            Tuple of (display_data, tire_metadata)
+            Tuple of (display_data, tire_metadata, mean_stint_time)
         """
-        return self._data, self._tires
+        return self._data, self._tires, self._mean_stint_time
     
     # Qt Model Interface Methods
     

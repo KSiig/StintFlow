@@ -40,7 +40,7 @@ def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
         row = [
             doc.get("stint_type"),
             doc.get("name"),
-            "Completed ✅" if doc.get("status") else "Pending ⏳",
+            "Completed" if doc.get("status") else "Pending",
             doc.get("pit_end_time"),
             int(doc.get("tires_changed", 0)),
             int(doc.get("tires_left", 0)),

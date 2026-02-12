@@ -18,9 +18,7 @@ from ..stint_helpers import (
     is_last_stint
 )
 
-# Constants
-FULL_TIRE_SET = 4  # Number of tires in a full set change
-NO_TIRE_CHANGE = 0  # No tires changed
+from ..table_constants import FULL_TIRE_SET, NO_TIRE_CHANGE
 
 
 def convert_stints_to_table(
@@ -28,7 +26,7 @@ def convert_stints_to_table(
     starting_tires: str,
     starting_time: str,
     count_tire_changes_fn
-) -> list[TableRow]:
+) -> tuple[list[TableRow], timedelta, int]:
     """
     Convert stint documents to table row format.
     
@@ -42,10 +40,10 @@ def convert_stints_to_table(
         List of rows with completed and pending stints
     """
     if not stints:
-        return []
+        return [], timedelta(0), 0
     
     # Process completed stints
-    rows, tires_left, stint_times = process_completed_stints(
+    rows, tires_left, stint_times, last_tire_change = process_completed_stints(
         stints, starting_tires, starting_time, count_tire_changes_fn
     )
     
@@ -53,7 +51,9 @@ def convert_stints_to_table(
     if stint_times:
         generate_pending_stints(rows, stint_times, tires_left)
     
-    return rows
+
+
+    return rows, calc_mean_stint_time(stint_times), last_tire_change
 
 
 def process_completed_stints(
@@ -61,7 +61,7 @@ def process_completed_stints(
     starting_tires: str,
     starting_time: str,
     count_tire_changes_fn
-) -> tuple[list[TableRow], int, list[timedelta]]:
+) -> tuple[list[TableRow], int, list[timedelta], int]:
     """
     Process completed stints into table rows.
     
@@ -72,7 +72,7 @@ def process_completed_stints(
         count_tire_changes_fn: Function to count tire changes
         
     Returns:
-        Tuple of (rows, remaining_tires, stint_times)
+        Tuple of (rows, remaining_tires, stint_times, last_tire_change)
     """
     rows = []
     stint_times = []
@@ -117,7 +117,9 @@ def process_completed_stints(
         
         prev_pit_time = stint.get('pit_end_time', '00:00:00')
     
-    return rows, tires_left, stint_times
+    last_tire_change = int(rows[-1][ColumnIndex.TIRES_CHANGED])
+
+    return rows, tires_left, stint_times, last_tire_change
 
 
 def generate_pending_stints(

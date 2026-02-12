@@ -22,3 +22,6 @@ class ColumnIndex:
     TIRES_CHANGED = 4
     TIRES_LEFT = 5
     STINT_TIME = 6
+
+FULL_TIRE_SET = 4  # Number of tires in a full set change
+NO_TIRE_CHANGE = 0  # No tires changed
