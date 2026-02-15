@@ -63,6 +63,16 @@ class FONT(Enum):
         "weight": QFont.Weight.Normal
     }
 
+    ## Dialog fonts ##
+    dialog_header = {
+        "point_size": 12,
+        "weight": QFont.Weight.DemiBold
+    }
+    dialog_msg = {
+        "point_size": 10.5,
+        "weight": QFont.Weight.Normal
+    }
+
     ## Input fonts ##
     input_lbl = {
         "point_size": 9,

@@ -1,22 +1,35 @@
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QDialogButtonBox, 
-    QWidget, QFrame, QGraphicsDropShadowEffect
+    QDialog, QVBoxLayout, QLabel,
+    QWidget, QFrame, QGraphicsDropShadowEffect, QSizePolicy, 
+    QPushButton, QHBoxLayout
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QColor
 
 from core.utilities import resource_path
 from core.errors import log
+from ui.utilities import FONT, get_fonts, load_icon
 
 class PopUp(QDialog):
-    def __init__(self, title, message, buttons=None, icon_type="info", parent=None):
+
+    def __init__(self, title, message, buttons=None, type="info", parent=None):
         super().__init__(parent)
         self._setup_styles()
+
+        # Icon map is now accessible throughout the instance
+        self._icon_map = {
+            "info": ("resources/icons/popup/info.svg", "#3b82f6"),
+            "error": ("resources/icons/popup/circle-x.svg", "#ef4444"),
+            "warning": ("resources/icons/popup/triangle-alert.svg", "#f59e0b"),
+            "critical": ("resources/icons/popup/circle-alert.svg", "#dc2626")
+        }
+        icon_path, self._icon_color = self._icon_map.get(type, ("resources/icons/popup/info.svg", "#3b82f6"))
+        self.setFixedSize(510, 248)  # Set a default size for the popup
 
         # 1. Make the actual Dialog window invisible/transparent
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
+
         # 2. The Main Layout (this holds the shadow-space)
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(20, 20, 20, 20) # Space for shadow
@@ -25,22 +38,70 @@ class PopUp(QDialog):
         self.container = QFrame()
         self.container.setObjectName("ContentFrame")
         self.container_layout = QVBoxLayout(self.container)
-        self.container_layout.setContentsMargins(15, 15, 15, 15)
-        
-        # Apply your background colors to the container instead of the dialog
-        self._apply_container_style(icon_type)
+        self.container_layout.setContentsMargins(28, 28, 28, 28)
 
-        # 4. Add UI Elements to the container_layout
+        # Set the left border to match the icon color
+        self.container.setStyleSheet(f"""
+            QFrame#ContentFrame {{
+                background-color: white;
+                border-radius: 8px;
+                border-left: 2px solid {self._icon_color};
+            }}
+        """)
+
+        # 4. Add UI Elements to the container_layout in order: icon, title, message, button
+        # --- Icon (SVG, centered, type-based) ---
+        icon_frame = QFrame()
+        icon_frame.setObjectName("IconFrame")
+        icon_layout = QVBoxLayout(icon_frame)
+        icon_layout.setContentsMargins(0, 0, 0, 0) 
+        icon_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.icon_label = QLabel()
+        self.icon_label.setFixedSize(32, 32)
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.icon_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._set_icon(type)
+        icon_layout.addWidget(self.icon_label)
+        self.container_layout.addWidget(icon_frame)
+
+        self.container_layout.addSpacing(8)  # Space between icon and title
+
+        # --- Title ---
+        self.title_label = QLabel(title)
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.title_label.setFont(get_fonts(FONT.dialog_header))
+        self.container_layout.addWidget(self.title_label)
+
+        # --- Message ---
         self.label = QLabel(message)
         self.label.setWordWrap(True)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.label.setFont(get_fonts(FONT.dialog_msg))
         self.container_layout.addWidget(self.label)
 
-        if buttons is None: buttons = ["Ok"]
-        self.button_box = QDialogButtonBox()
+        # --- Button(s) ---
+        if buttons is None:
+            buttons = ["Ok"]
+        button_row = QWidget()
+        button_row.setObjectName("ButtonRow")
+        button_layout = QHBoxLayout(button_row)
+        button_layout.setContentsMargins(0, 16, 0, 0)
+        button_layout.setSpacing(16)
+        button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         for btn_text in buttons:
-            button = self.button_box.addButton(btn_text, QDialogButtonBox.ButtonRole.AcceptRole)
-            button.clicked.connect(lambda _, b=btn_text: self._handle_click(b))
-        self.container_layout.addWidget(self.button_box)
+            _, color = self._icon_map.get(type, ("", "#3b82f6"))
+            btn = QPushButton(btn_text)
+            btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {color};
+                border-radius: 4px;
+                padding: 6px 12px;
+                color: white;
+            }}
+        """)
+            btn.clicked.connect(lambda _, b=btn_text: self._handle_click(b))
+            button_layout.addWidget(btn)
+        self.container_layout.addWidget(button_row)
 
         # Add container to main layout
         self.main_layout.addWidget(self.container)
@@ -55,6 +116,12 @@ class PopUp(QDialog):
 
         self.setMinimumWidth(390) # Adjusted for the 20px margins
 
+    def _set_icon(self, type: str):
+        """Set the icon pixmap and color based on the popup type."""
+        icon_path, color = self._icon_map.get(type, ("resources/icons/popup/info.svg", "#3b82f6"))
+        icon_pixmap = load_icon(icon_path, size=32, color=color)
+        self.icon_label.setPixmap(icon_pixmap)
+
     def _setup_styles(self) -> None:
         """Load and apply popup stylesheet."""
         try:
@@ -63,24 +130,6 @@ class PopUp(QDialog):
         except FileNotFoundError:
             log('WARNING', 'Popup stylesheet not found', 
                 category='popup', action='load_stylesheet')
-
-    def _apply_container_style(self, icon_type: str):
-        colors = {
-            "warning": "#ffe082",
-            "error": "#ff8a80",
-            "info": "#bbdefb"
-        }
-        bg_color = colors.get(icon_type, "#e8f4fd")
-        
-        # We style the container, giving it a border and radius
-        self.container.setStyleSheet(f"""
-            QFrame#ContentFrame {{
-                background-color: {bg_color};
-                border: 1px solid rgba(0,0,0,0.1);
-                border-radius: 8px;
-            }}
-            QLabel {{ color: #333; font-size: 14px; }}
-        """)
 
     def showEvent(self, event):
         super().showEvent(event)

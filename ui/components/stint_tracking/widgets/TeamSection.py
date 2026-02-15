@@ -87,26 +87,26 @@ class TeamSection(QWidget):
             self.driver_inputs.append(line_edit)
         else:
             dialog = PopUp(
-                title="Warning",
-                message="Maximum of 6 drivers allowed.",
+                title="Unable to add more rows",
+                message="Maximum of 6 drivers allowed in a team.",
                 buttons=["Ok"],
-                icon_type="warning",
+                type="warning",
                 parent=self
             )
             dialog.exec()
 
     def _remove_row(self):
-        """Remove the last driver input row."""
-        if self.driver_inputs:
+        """Remove the last driver input row, but always leave at least one."""
+        if len(self.driver_inputs) > 1:
             line_edit = self.driver_inputs.pop()
             self.driver_box.removeWidget(line_edit)
             line_edit.deleteLater()
         else:
             dialog = PopUp(
-                title="Warning",
-                message="No more driver rows to remove.",
+                title="Can't remove more rows",
+                message="You need at least one driver in a team.",
                 buttons=["Ok"],
-                icon_type="warning",
+                type="warning",
                 parent=self
             )
             dialog.exec()
