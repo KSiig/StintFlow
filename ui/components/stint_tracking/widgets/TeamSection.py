@@ -9,7 +9,7 @@ from ui.utilities import get_fonts, FONT
 from core.database import get_team
 from ..config.create_config_label import create_config_label
 from ..config.config_constants import ConfigLayout
-from ui.components.common import ConfigButton
+from ui.components.common import ConfigButton, PopUp
 
 class TeamSection(QWidget):
     """
@@ -79,11 +79,21 @@ class TeamSection(QWidget):
         return self.drivers
 
     def _add_row(self):
-        """Add a new driver input row."""
-        line_edit = QLineEdit()
-        line_edit.setFont(get_fonts(FONT.input_field))
-        self.driver_box.addWidget(line_edit)
-        self.driver_inputs.append(line_edit)
+        """Add a new driver input row (max 6)."""
+        if len(self.driver_inputs) < 6:
+            line_edit = QLineEdit()
+            line_edit.setFont(get_fonts(FONT.input_field))
+            self.driver_box.addWidget(line_edit)
+            self.driver_inputs.append(line_edit)
+        else:
+            dialog = PopUp(
+                title="Warning",
+                message="Maximum of 6 drivers allowed.",
+                buttons=["Ok"],
+                icon_type="warning",
+                parent=self
+            )
+            dialog.exec()
 
     def _remove_row(self):
         """Remove the last driver input row."""
@@ -91,3 +101,17 @@ class TeamSection(QWidget):
             line_edit = self.driver_inputs.pop()
             self.driver_box.removeWidget(line_edit)
             line_edit.deleteLater()
+        else:
+            dialog = PopUp(
+                title="Warning",
+                message="No more driver rows to remove.",
+                buttons=["Ok"],
+                icon_type="warning",
+                parent=self
+            )
+            dialog.exec()
+
+    def _set_active(self, active):
+        """Enable or disable the add/remove buttons."""
+        self.btn_add.setEnabled(active)
+        self.btn_remove.setEnabled(active)

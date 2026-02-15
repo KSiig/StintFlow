@@ -137,10 +137,11 @@ class ConfigOptions(QWidget):
             layout.addWidget(card)
         
         # Add team/driver section
-        team_section = TeamSection()
-        self.driver_inputs = team_section.get_driver_inputs()
-        self.drivers = team_section.get_driver_names()
-        layout.addWidget(team_section)
+        self.team_section = TeamSection()
+        self.team_section._set_active(False)  # Start with add/remove buttons disabled
+        self.driver_inputs = self.team_section.get_driver_inputs()
+        self.drivers = self.team_section.get_driver_names()
+        layout.addWidget(self.team_section)
     
     def _create_buttons(self):
         """Create all buttons and controls."""
@@ -246,6 +247,7 @@ class ConfigOptions(QWidget):
         if self.save_btn.isVisible():
             self.save_btn.hide()
             self.edit_btn.show()
+            self.team_section._set_active(False)  # Disable add/remove buttons
             for child in self.findChildren(QLineEdit):
                 child.setReadOnly(True)
                 child.setProperty('editable', False)
@@ -255,6 +257,7 @@ class ConfigOptions(QWidget):
         else:
             self.edit_btn.hide()
             self.save_btn.show()
+            self.team_section._set_active(True)  # Enable add/remove buttons
             for child in self.findChildren(QLineEdit):
                 child.setReadOnly(False)
                 child.setProperty('editable', True)
