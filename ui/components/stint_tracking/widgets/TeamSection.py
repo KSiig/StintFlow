@@ -7,8 +7,7 @@ Displays a section with driver name input fields and add/remove buttons.
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLineEdit, QSizePolicy, QHBoxLayout
 from ui.utilities import get_fonts, FONT
 from core.database import get_team
-from ..config.create_config_label import create_config_label
-from ..config.config_constants import ConfigLayout
+from ..config import create_config_label, ConfigLayout, fetch_team_from_lmu
 from ui.components.common import ConfigButton, PopUp
 
 class TeamSection(QWidget):
@@ -30,11 +29,14 @@ class TeamSection(QWidget):
         title_row.addStretch(1)
         self.btn_add = ConfigButton("", icon_path="resources/icons/race_config/plus.svg", width_type="min", icon_size=16)
         self.btn_remove = ConfigButton("", icon_path="resources/icons/race_config/minus.svg", width_type="min", icon_size=16)
+        self.btn_fetch = ConfigButton("", icon_path="resources/icons/race_config/cloud-sync.svg", width_type="min", icon_size=16)
         self.btn_add.clicked.connect(self._add_row)
         self.btn_remove.clicked.connect(self._remove_row)
+        self.btn_fetch.clicked.connect(self._fetch_drivers)
 
         title_row.addWidget(self.btn_add)
         title_row.addWidget(self.btn_remove)
+        title_row.addWidget(self.btn_fetch)
 
         main_box = QVBoxLayout(self)
         main_box.setContentsMargins(0, 0, 0, 0)
@@ -111,7 +113,30 @@ class TeamSection(QWidget):
             )
             dialog.exec()
 
+    def _fetch_drivers(self):
+        """Fetch driver names from the database and populate input fields."""
+        team = fetch_team_from_lmu()
+        if team:
+            self.clear_drivers()
+            self.drivers = team
+            for driver in self.drivers:
+                line_edit = QLineEdit(driver)
+                line_edit.setFont(get_fonts(FONT.input_field))
+                line_edit.setReadOnly(True)
+                self.driver_box.addWidget(line_edit)
+                self.driver_inputs.append(line_edit)
+        else:
+            dialog = PopUp(
+                title="No team data found",
+                message="Unable to fetch drivers because no team data is available.",
+                buttons=["Ok"],
+                type="error",
+                parent=self
+            )
+            dialog.exec()
+
     def _set_active(self, active):
         """Enable or disable the add/remove buttons."""
         self.btn_add.setEnabled(active)
         self.btn_remove.setEnabled(active)
+        self.btn_fetch.setEnabled(active)
