@@ -34,7 +34,8 @@ from ..constants import (
     VERTICAL_HEADER_WIDTH,
     VERTICAL_HEADER_LABEL
 )
-from ..delegates import DriverPillDelegate, StatusDelegate
+from ..delegates import DriverPillDelegate, StatusDelegate, ActionsDelegate
+# Import the new ActionsDelegate
 from ..table import SpacedHeaderView
 from ui.models.table_constants import ColumnIndex
 
@@ -65,7 +66,8 @@ class StintTable(QWidget):
         models: ModelContainer,
         focus: bool = False,
         auto_update: bool = True,
-        allow_editors: bool = False
+        allow_editors: bool = False,
+        enable_actions: bool = False
     ):
         """
         Initialize the stint table.
@@ -81,15 +83,13 @@ class StintTable(QWidget):
         self.selection_model = models.selection_model
         self.table_model = models.table_model
         self._column_count = 0
+        self.enable_actions = enable_actions
         
         # Load stylesheet
         self._load_stylesheet()
         
         # Create table
         self.table = self._create_table(focus)
-        
-        # Set custom delegates for styled columns
-        self._setup_delegates()
         
         # Wrap table in QFrame for background styling
         table_frame = QFrame(self)
@@ -124,11 +124,19 @@ class StintTable(QWidget):
             self.table_model.update_data()
             self.refresh_table()  # Initial load
             
+            # Set custom delegates for styled columns
+            self._setup_delegates()
+            
             # Setup editors if needed
             if allow_editors:
                 self._setup_editors()
             else:
                 self.table_model.editorsNeedRefresh.connect(self._refresh_editors)
+            
+            # Setup actions if needed
+            # if self.enable_actions:
+            #     self.table.model().set_editable(True, True)
+            #     self._enable_actions()
         else:
             log('WARNING', 'TableModel not available - table will be empty',
                 category='stint_table', action='init')
@@ -137,7 +145,7 @@ class StintTable(QWidget):
         if auto_update:
             self.selection_model.sessionChanged.connect(self.refresh_table)
 
-    
+
     def _load_stylesheet(self) -> None:
         """Load QSS stylesheet for stint table."""
         try:
@@ -278,6 +286,16 @@ class StintTable(QWidget):
         """Configure custom delegates for styled columns."""
         self.table.setItemDelegateForColumn(ColumnIndex.DRIVER, DriverPillDelegate(self.table))
         self.table.setItemDelegateForColumn(ColumnIndex.STATUS, StatusDelegate(self.table))
+        # self.table.setItemDelegateForColumn(ColumnIndex.ACTIONS, ActionsDelegate(self.table))
+        self.actions_delegate = ActionsDelegate(self.table)
+
+        self.table.setItemDelegateForColumn(
+            ColumnIndex.ACTIONS,
+            self.actions_delegate
+        )
+
+        self.actions_delegate.editClicked.connect(lambda: print("Edit action triggered"))
+        self.actions_delegate.deleteClicked.connect(lambda: print("Delete action triggered"))
     
     def _setup_horizontal_header(self, table: QTableView) -> None:
         """
@@ -394,3 +412,18 @@ class StintTable(QWidget):
         hh.setSectionsMovable(False)
         hh.setCascadingSectionResizes(False)
         hh.setHighlightSections(False)
+
+    # def _enable_actions(self):
+    #     """Enable the ActionsDelegate for the Actions column in all rows."""
+    #     if self.table.model() is None:
+    #         return
+    #     row_count = self.table.model().rowCount()
+    #     flags = self.table.model().flags(self.table.model().index(0, ColumnIndex.ACTIONS))
+    #     print("flags for Actions column:", flags)
+    #     print(f"Enabling ActionsDelegate for {row_count} rows")
+    #     for row in range(row_count):
+    #         print(f"Enabling ActionsDelegate for row {row}")
+    #         self.table.openPersistentEditor(self.table.model().index(row, ColumnIndex.ACTIONS))
+    #     print("Actions column enabled with ActionsDelegate for all rows")
+    #     print(self.table.itemDelegateForColumn(ColumnIndex.ACTIONS))
+

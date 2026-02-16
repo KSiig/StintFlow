@@ -39,7 +39,8 @@ def create_table_row(
         pit_time,
         str(tires_changed),
         str(tires_left),
-        stint_time
+        stint_time,
+        "test" # Placeholder for actions column
     ]
 
 

@@ -12,7 +12,8 @@ TABLE_HEADERS = [
     {"title": "Pit end time", "icon": "clock.svg"},
     {"title": "Tires changed", "icon": "arrow-left-right.svg"},
     {"title": "Tires left", "icon": "life-buoy.svg"},
-    {"title": "Stint time", "icon": "timer.svg"}
+    {"title": "Stint time", "icon": "timer.svg"},
+    {"title": "Actions", "icon": "timer.svg"}
 ]
 
 # Column widths (in pixels)
@@ -24,6 +25,7 @@ COLUMN_WIDTHS = {
     4: 128,   # Tires changed
     5: 96,   # Tires left
     6: 128,  # Stint time
+    7: 128,  # Actions
 }
 
 # Vertical header (row numbers)
