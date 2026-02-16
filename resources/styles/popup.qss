@@ -1,0 +1,12 @@
+QLabel {
+  background-color: transparent;
+  color: black;
+}
+
+QFrame#IconFrame {
+  background-color: transparent;
+}
+
+QWidget#ButtonRow {
+  background-color: transparent;
+}
