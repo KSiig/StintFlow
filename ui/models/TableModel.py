@@ -369,8 +369,7 @@ class TableModel(QAbstractTableModel):
         # Determine if this cell should be editable
         editable_columns = {
             ColumnIndex.STINT_TYPE,
-            ColumnIndex.TIRES_CHANGED,
-            ColumnIndex.ACTIONS
+            ColumnIndex.TIRES_CHANGED
         }
         is_editable = self.editable and index.column() in editable_columns and (
             not self.partial or is_completed_row(self._data, index.row())

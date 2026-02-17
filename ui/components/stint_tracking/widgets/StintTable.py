@@ -294,7 +294,7 @@ class StintTable(QWidget):
             self.actions_delegate
         )
 
-        self.actions_delegate.editClicked.connect(lambda: print("Edit action triggered"))
+        self.actions_delegate.excludeClicked.connect(lambda: print("Edit action triggered"))
         self.actions_delegate.deleteClicked.connect(lambda: print("Delete action triggered"))
     
     def _setup_horizontal_header(self, table: QTableView) -> None:

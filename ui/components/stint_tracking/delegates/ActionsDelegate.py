@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QStyledItemDelegate, QStyleOptionButton, QStyle
+from PyQt6.QtWidgets import QStyledItemDelegate, QStyleOptionButton, QStyle, QToolTip
 from PyQt6.QtCore import Qt, QRect, pyqtSignal, QRectF
 from PyQt6.QtGui import QMouseEvent, QColor, QPixmap, QPainter
 from ui.utilities.load_icon import load_icon
@@ -8,7 +8,7 @@ from core.utilities import resource_path
 
 
 class ActionsDelegate(QStyledItemDelegate):
-    editClicked = pyqtSignal(int)
+    excludeClicked = pyqtSignal(int)
     deleteClicked = pyqtSignal(int)
     buttonClicked = pyqtSignal(str, int)
 
@@ -28,13 +28,14 @@ class ActionsDelegate(QStyledItemDelegate):
         # default button map: list of dicts with name and optional icon path
         self.button_width = 20
         self.spacing = 4
-        self.left_margin = 20
+        # track excluded rows by model row index
+        self.excluded_rows: set[int] = set()
         self.buttons = [
-            {"name": "edit", "icon": "resources/icons/race_config/square-pen.svg"},
-            {"name": "delete", "icon": "resources/icons/race_config/square-pen.svg"},
+            {"name": "exclude", "icon": "resources/icons/table_cells/circle.svg"},
+            {"name": "delete", "icon": "resources/icons/table_cells/trash.svg"},
         ]
 
-    def _draw_button(self, painter, style, rect: QRect, svg_name: str | None = None, text: str = ""):
+    def _draw_button(self, painter, style, rect: QRect, svg_name: str | None = None, text: str = "", row_index: int | None = None):
         """Private helper: draw a push button (background) and optionally an SVG icon or text.
 
         Args:
@@ -49,6 +50,11 @@ class ActionsDelegate(QStyledItemDelegate):
 
         # Draw icon or text
         if svg_name:
+            # allow override for excluded state (toggle icon)
+            if row_index is not None and svg_name.endswith('circle.svg'):
+                if row_index in self.excluded_rows:
+                    svg_name = 'resources/icons/table_cells/circle-off.svg'
+
             icon_size = int(min(rect.width(), rect.height()) - 6)
             icon_x = rect.left() + (rect.width() - icon_size) // 2
             icon_y = rect.top() + (rect.height() - icon_size) // 2
@@ -75,7 +81,7 @@ class ActionsDelegate(QStyledItemDelegate):
         Rects are horizontally laid out starting from the left edge with `self.spacing`.
         """
         rects = []
-        x = option_rect.left() + self.left_margin + self.spacing
+        x = option_rect.left() + self.spacing
         height = self.button_width
         y = option_rect.top() + option_rect.height() // 2 - height // 2
 
@@ -84,6 +90,49 @@ class ActionsDelegate(QStyledItemDelegate):
             x += self.button_width + self.spacing
 
         return rects
+
+    def helpEvent(self, event, view, option, index):
+        """Show configurable tooltips for buttons when hovered.
+
+        The `buttons` map may include a `tooltip` entry which can be a string
+        or a dict with keys `included`/`excluded` to provide state-dependent text.
+        """
+        try:
+            pos = event.pos()
+        except Exception:
+            return super().helpEvent(event, view, option, index)
+
+        rects = self._button_rects(option.rect)
+        row = index.row()
+        for btn, rect in zip(self.buttons, rects):
+            if rect.contains(pos):
+                tip = btn.get('tooltip')
+                name = btn.get('name', '')
+
+                # Resolve tooltip value
+                if isinstance(tip, dict):
+                    # support keys 'included'/'excluded' for stateful tooltips
+                    if name == 'exclude':
+                        if row in self.excluded_rows:
+                            text = tip.get('excluded') or tip.get('off') or tip.get('included')
+                        else:
+                            text = tip.get('included') or tip.get('on') or tip.get('excluded')
+                    else:
+                        text = tip.get('text') or ''
+                elif isinstance(tip, str):
+                    text = tip
+                else:
+                    # default tooltips
+                    if name == 'exclude':
+                        text = 'Include in mean' if row in self.excluded_rows else 'Exclude from mean'
+                    else:
+                        text = name.capitalize()
+
+                if text:
+                    QToolTip.showText(event.globalPos(), text, view)
+                    return True
+
+        return super().helpEvent(event, view, option, index)
 
     def paint(self, painter, option, index):
         """Draw buttons inside the cell."""
@@ -95,10 +144,11 @@ class ActionsDelegate(QStyledItemDelegate):
         rects = self._button_rects(option.rect)
         style = option.widget.style()
 
+        row = index.row()
         for btn, rect in zip(self.buttons, rects):
             svg = btn.get("icon")
             text = btn.get("name", "")
-            self._draw_button(painter, style, rect, svg_name=svg, text="" if svg else text)
+            self._draw_button(painter, style, rect, svg_name=svg, text="" if svg else text, row_index=row)
 
     def editorEvent(self, event, model, option, index):
         """Handle mouse click events."""
@@ -111,12 +161,23 @@ class ActionsDelegate(QStyledItemDelegate):
                 for i, rect in enumerate(rects):
                     if rect.contains(pos):
                         name = self.buttons[i].get("name", "")
+                        row = index.row()
+                        # toggle excluded state locally and trigger repaint
+                        if name == "exclude":
+                            if row in self.excluded_rows:
+                                self.excluded_rows.remove(row)
+                            else:
+                                self.excluded_rows.add(row)
+                            # request view repaint
+                            if option.widget is not None:
+                                option.widget.viewport().update()
+
                         # emit both generic and specific signals when applicable
-                        self.buttonClicked.emit(name, index.row())
-                        if name == "edit":
-                            self.editClicked.emit(index.row())
+                        self.buttonClicked.emit(name, row)
+                        if name == "exclude":
+                            self.excludeClicked.emit(row)
                         elif name == "delete":
-                            self.deleteClicked.emit(index.row())
+                            self.deleteClicked.emit(row)
                         return True
 
         return False
