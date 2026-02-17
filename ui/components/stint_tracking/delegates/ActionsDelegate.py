@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QStyledItemDelegate, QStyleOptionButton, QStyle
 from PyQt6.QtCore import Qt, QRect, pyqtSignal, QRectF
-from PyQt6.QtGui import QMouseEvent, QColor
+from PyQt6.QtGui import QMouseEvent, QColor, QPixmap, QPainter
+from ui.utilities.load_icon import load_icon
 from PyQt6.QtSvg import QSvgRenderer
 import os
 from core.utilities import resource_path
@@ -11,7 +12,7 @@ class ActionsDelegate(QStyledItemDelegate):
     deleteClicked = pyqtSignal(int)
     buttonClicked = pyqtSignal(str, int)
 
-    def __init__(self, parent=None, background_color: str = "#0e4c35", text_color: str = "#ffffff"):
+    def __init__(self, parent=None, background_color: str = "#0e4c35", text_color: str = "#B0B0B0"):
         """
         Initialize the delegate.
         
@@ -24,12 +25,10 @@ class ActionsDelegate(QStyledItemDelegate):
         self.background_color = QColor(background_color)
         self.text_color = QColor(text_color)
         self.border_radius = 4
-        self.padding_horizontal = 12
-        self.padding_vertical = 4
-        self.left_margin = 8  # Space from left edge
         # default button map: list of dicts with name and optional icon path
         self.button_width = 20
-        self.spacing = 8
+        self.spacing = 4
+        self.left_margin = 20
         self.buttons = [
             {"name": "edit", "icon": "resources/icons/race_config/square-pen.svg"},
             {"name": "delete", "icon": "resources/icons/race_config/square-pen.svg"},
@@ -45,22 +44,19 @@ class ActionsDelegate(QStyledItemDelegate):
             svg_name: resource path (relative) to an SVG to render inside the button
             text: fallback text to draw if no svg is provided or found
         """
-        # Draw button background using style
-        opt = QStyleOptionButton()
-        opt.rect = rect
-        opt.state = QStyle.StateFlag.State_Enabled
-        style.drawControl(QStyle.ControlElement.CE_PushButton, opt, painter)
+        # Transparent background: do not draw the standard pushbutton background
+        # (we only render icon/text so the button area appears transparent)
 
         # Draw icon or text
         if svg_name:
-            svg_path = resource_path(svg_name)
-            if os.path.exists(svg_path):
-                renderer = QSvgRenderer(svg_path)
-                icon_size = min(rect.width(), rect.height()) - 6
-                icon_x = rect.left() + (rect.width() - icon_size) // 2
-                icon_y = rect.top() + (rect.height() - icon_size) // 2
-                icon_rect = QRectF(icon_x, icon_y, icon_size, icon_size)
-                renderer.render(painter, icon_rect)
+            icon_size = int(min(rect.width(), rect.height()) - 6)
+            icon_x = rect.left() + (rect.width() - icon_size) // 2
+            icon_y = rect.top() + (rect.height() - icon_size) // 2
+
+            # Use shared utility to load + colorize icon
+            pix = load_icon(svg_name, size=icon_size, color=self.text_color.name())
+            if not pix.isNull():
+                painter.drawPixmap(int(icon_x), int(icon_y), pix)
                 return
 
         # fallback: draw text if provided, otherwise a small placeholder
@@ -79,7 +75,7 @@ class ActionsDelegate(QStyledItemDelegate):
         Rects are horizontally laid out starting from the left edge with `self.spacing`.
         """
         rects = []
-        x = option_rect.left() + self.spacing
+        x = option_rect.left() + self.left_margin + self.spacing
         height = self.button_width
         y = option_rect.top() + option_rect.height() // 2 - height // 2
 
