@@ -27,7 +27,7 @@ from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT, load_icon
 from core.errors import log
 from core.utilities import resource_path
-from ..delegates import TireComboDelegate, StintTypeCombo
+from ..delegates import TireComboDelegate, StintTypeCombo, BackgroundRespectingDelegate
 
 from ..constants import (
     COLUMN_WIDTHS,
@@ -79,6 +79,8 @@ class StintTable(QWidget):
             allow_editors: Whether to enable tire combo editors (default: False)
         """
         super().__init__()
+        
+
         
         self.selection_model = models.selection_model
         self.table_model = models.table_model
@@ -170,13 +172,16 @@ class StintTable(QWidget):
             Configured QTableView instance
         """
         table = QTableView(self)
-        table.setShowGrid(True)  # Enable grid to show row borders
+        table.setShowGrid(False)  # Disable grid to avoid visible borders between cells
         table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         table.setSizePolicy(
             QSizePolicy.Policy.Minimum,
             QSizePolicy.Policy.Expanding
         )
         table.setObjectName("StintsTable")
+
+        # Use default delegate that paints model BackgroundRole before content
+        table.setItemDelegate(BackgroundRespectingDelegate(table))
         
         # Replace horizontal header with custom spaced header
         custom_header = SpacedHeaderView(Qt.Orientation.Horizontal, table)

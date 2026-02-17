@@ -5,6 +5,7 @@ from ui.utilities.load_icon import load_icon
 from PyQt6.QtSvg import QSvgRenderer
 import os
 from core.utilities import resource_path
+from ui.models.TableRoles import TableRoles
 
 
 class ActionsDelegate(QStyledItemDelegate):
@@ -28,14 +29,12 @@ class ActionsDelegate(QStyledItemDelegate):
         # default button map: list of dicts with name and optional icon path
         self.button_width = 20
         self.spacing = 4
-        # track excluded rows by model row index
-        self.excluded_rows: set[int] = set()
         self.buttons = [
             {"name": "exclude", "icon": "resources/icons/table_cells/circle.svg"},
             {"name": "delete", "icon": "resources/icons/table_cells/trash.svg"},
         ]
 
-    def _draw_button(self, painter, style, rect: QRect, svg_name: str | None = None, text: str = "", row_index: int | None = None):
+    def _draw_button(self, painter, style, rect: QRect, svg_name: str | None = None, text: str = "", excluded: bool = False):
         """Private helper: draw a push button (background) and optionally an SVG icon or text.
 
         Args:
@@ -51,9 +50,8 @@ class ActionsDelegate(QStyledItemDelegate):
         # Draw icon or text
         if svg_name:
             # allow override for excluded state (toggle icon)
-            if row_index is not None and svg_name.endswith('circle.svg'):
-                if row_index in self.excluded_rows:
-                    svg_name = 'resources/icons/table_cells/circle-off.svg'
+            if svg_name.endswith('circle.svg') and excluded:
+                svg_name = 'resources/icons/table_cells/circle-off.svg'
 
             icon_size = int(min(rect.width(), rect.height()) - 6)
             icon_x = rect.left() + (rect.width() - icon_size) // 2
@@ -104,6 +102,11 @@ class ActionsDelegate(QStyledItemDelegate):
 
         rects = self._button_rects(option.rect)
         row = index.row()
+        model = index.model()
+        meta = None
+        if model is not None:
+            meta = model.data(model.index(row, 0), TableRoles.MetaRole)
+        excluded = bool(meta.get('excluded')) if isinstance(meta, dict) else False
         for btn, rect in zip(self.buttons, rects):
             if rect.contains(pos):
                 tip = btn.get('tooltip')
@@ -113,7 +116,7 @@ class ActionsDelegate(QStyledItemDelegate):
                 if isinstance(tip, dict):
                     # support keys 'included'/'excluded' for stateful tooltips
                     if name == 'exclude':
-                        if row in self.excluded_rows:
+                        if excluded:
                             text = tip.get('excluded') or tip.get('off') or tip.get('included')
                         else:
                             text = tip.get('included') or tip.get('on') or tip.get('excluded')
@@ -124,7 +127,7 @@ class ActionsDelegate(QStyledItemDelegate):
                 else:
                     # default tooltips
                     if name == 'exclude':
-                        text = 'Include in mean' if row in self.excluded_rows else 'Exclude from mean'
+                        text = 'Include in mean' if excluded else 'Exclude from mean'
                     else:
                         text = name.capitalize()
 
@@ -145,10 +148,17 @@ class ActionsDelegate(QStyledItemDelegate):
         style = option.widget.style()
 
         row = index.row()
+        model = index.model()
+        # fetch meta for this row via MetaRole (model returns None if missing)
+        meta = None
+        if model is not None:
+            meta = model.data(model.index(row, 0), TableRoles.MetaRole)
+        excluded = bool(meta.get('excluded')) if isinstance(meta, dict) else False
+
         for btn, rect in zip(self.buttons, rects):
             svg = btn.get("icon")
             text = btn.get("name", "")
-            self._draw_button(painter, style, rect, svg_name=svg, text="" if svg else text, row_index=row)
+            self._draw_button(painter, style, rect, svg_name=svg, text="" if svg else text, excluded=excluded)
 
     def editorEvent(self, event, model, option, index):
         """Handle mouse click events."""
@@ -158,16 +168,18 @@ class ActionsDelegate(QStyledItemDelegate):
                 pos = event.position().toPoint()
 
                 rects = self._button_rects(option.rect)
+                model = index.model()
                 for i, rect in enumerate(rects):
                     if rect.contains(pos):
                         name = self.buttons[i].get("name", "")
                         row = index.row()
-                        # toggle excluded state locally and trigger repaint
-                        if name == "exclude":
-                            if row in self.excluded_rows:
-                                self.excluded_rows.remove(row)
-                            else:
-                                self.excluded_rows.add(row)
+                        # toggle excluded state via model MetaRole
+                        if name == "exclude" and model is not None:
+                            meta = model.data(model.index(row, 0), TableRoles.MetaRole) or {}
+                            if not isinstance(meta, dict):
+                                meta = {}
+                            meta['excluded'] = not bool(meta.get('excluded'))
+                            model.setData(model.index(row, 0), meta, role=TableRoles.MetaRole)
                             # request view repaint
                             if option.widget is not None:
                                 option.widget.viewport().update()

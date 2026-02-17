@@ -27,6 +27,7 @@ QTableView {
 }
 
 QTableView::item {
+  background-color: transparent;
   border-bottom: 1px solid #15232b;
   padding-left: 30px;
   color: #FFFFFF;

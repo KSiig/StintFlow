@@ -8,6 +8,7 @@ Orchestrates data loading, editing, and display using separate processor modules
 import copy
 
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex, pyqtSignal
+from PyQt6.QtGui import QColor, QBrush
 
 from ui.utilities import get_fonts, FONT, load_icon
 from core.database import get_stints, get_event
@@ -153,7 +154,7 @@ class TableModel(QAbstractTableModel):
         
         # Extract tire and meta data
         self._tires = [stint.get("tire_data", {}) for stint in stints]
-        self._meta = [{"id": stint.get("_id")} for stint in stints]
+        self._meta = [{"id": stint.get("_id"), "excluded": True} for stint in stints]
         
         # Convert stints to table rows using processor
         rows, mean_stint_time, last_tire_change = convert_stints_to_table(
@@ -297,6 +298,12 @@ class TableModel(QAbstractTableModel):
         
         if role == Qt.ItemDataRole.DisplayRole:
             return self._data[row][col]
+
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            # Use row meta to determine excluded state and tint entire row
+            meta = self._meta[row] if row < len(self._meta) else None
+            if isinstance(meta, dict) and meta.get('excluded'):
+                return QColor('#281F23')
         
         elif role == Qt.ItemDataRole.FontRole:
             return get_fonts(FONT.text_table_cell)
@@ -329,7 +336,7 @@ class TableModel(QAbstractTableModel):
         Returns:
             True if data was updated, False otherwise
         """
-        if not index.isValid() or role not in (Qt.ItemDataRole.EditRole, TableRoles.TiresRole):
+        if not index.isValid() or role not in (Qt.ItemDataRole.EditRole, TableRoles.TiresRole, TableRoles.MetaRole):
             return False
         
         row = index.row()
@@ -339,10 +346,18 @@ class TableModel(QAbstractTableModel):
             self._data[row][col] = value
         
         elif role == TableRoles.TiresRole:
+            while row >= len(self._tires):
+                self._tires.append({})
             self._tires[row] = value
             # Update tire change count
             tires_changed = sum(value.get('tires_changed', {}).values())
             self._data[row][ColumnIndex.TIRES_CHANGED] = str(tires_changed)
+
+        elif role == TableRoles.MetaRole:
+            # Ensure meta list is large enough and store value
+            while row >= len(self._meta):
+                self._meta.append({})
+            self._meta[row] = value
         
         # Notify view
         self.dataChanged.emit(

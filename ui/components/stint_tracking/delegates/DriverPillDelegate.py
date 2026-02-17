@@ -8,6 +8,8 @@ from PyQt6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
 from PyQt6.QtCore import Qt, QModelIndex, QRect
 from PyQt6.QtGui import QPainter, QColor, QPen
 
+from .delegate_utils import paint_model_background
+
 
 class DriverPillDelegate(QStyledItemDelegate):
     """
@@ -44,6 +46,9 @@ class DriverPillDelegate(QStyledItemDelegate):
         """
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Paint any model-provided background (e.g. excluded-row tint)
+        paint_model_background(painter, option, index)
         
         # Get the text
         text = index.data(Qt.ItemDataRole.DisplayRole)

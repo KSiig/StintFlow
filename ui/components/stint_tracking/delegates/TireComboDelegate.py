@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer
 from PyQt6.QtGui import QIcon, QPixmap
+from .delegate_utils import paint_model_background
 
 from core.utilities import resource_path
 from core.database import update_strategy, update_stint
@@ -154,6 +155,11 @@ class TireComboDelegate(QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         """Ensure the editor fills the full cell rect."""
         editor.setGeometry(option.rect)
+
+    def paint(self, painter, option, index):
+        """Ensure model-provided background is painted, then default rendering."""
+        paint_model_background(painter, option, index)
+        super().paint(painter, option, index)
     
     def _update_button_text(self, btn: QPushButton, index):
         """Update button text showing tire count."""
