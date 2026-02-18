@@ -300,7 +300,6 @@ class StintTable(QWidget):
         )
 
         self.actions_delegate.excludeClicked.connect(lambda: print("Edit action triggered"))
-        self.actions_delegate.deleteClicked.connect(lambda: print("Delete action triggered"))
     
     def _setup_horizontal_header(self, table: QTableView) -> None:
         """
@@ -417,18 +416,3 @@ class StintTable(QWidget):
         hh.setSectionsMovable(False)
         hh.setCascadingSectionResizes(False)
         hh.setHighlightSections(False)
-
-    # def _enable_actions(self):
-    #     """Enable the ActionsDelegate for the Actions column in all rows."""
-    #     if self.table.model() is None:
-    #         return
-    #     row_count = self.table.model().rowCount()
-    #     flags = self.table.model().flags(self.table.model().index(0, ColumnIndex.ACTIONS))
-    #     print("flags for Actions column:", flags)
-    #     print(f"Enabling ActionsDelegate for {row_count} rows")
-    #     for row in range(row_count):
-    #         print(f"Enabling ActionsDelegate for row {row}")
-    #         self.table.openPersistentEditor(self.table.model().index(row, ColumnIndex.ACTIONS))
-    #     print("Actions column enabled with ActionsDelegate for all rows")
-    #     print(self.table.itemDelegateForColumn(ColumnIndex.ACTIONS))
-

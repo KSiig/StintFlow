@@ -154,7 +154,14 @@ class TableModel(QAbstractTableModel):
         
         # Extract tire and meta data
         self._tires = [stint.get("tire_data", {}) for stint in stints]
-        self._meta = [{"id": stint.get("_id"), "excluded": True} for stint in stints]
+        # Persist simple meta: ensure id is string and include 'excluded' flag
+        self._meta = [
+            {
+                "id": str(stint.get("_id")),
+                "excluded": bool(stint.get("excluded", False))
+            }
+            for stint in stints
+        ]
         
         # Convert stints to table rows using processor
         rows, mean_stint_time, last_tire_change = convert_stints_to_table(

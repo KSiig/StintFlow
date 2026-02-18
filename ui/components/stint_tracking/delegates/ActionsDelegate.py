@@ -6,6 +6,7 @@ from PyQt6.QtSvg import QSvgRenderer
 import os
 from core.utilities import resource_path
 from ui.models.TableRoles import TableRoles
+from core.database import update_stint_meta
 
 
 class ActionsDelegate(QStyledItemDelegate):
@@ -183,6 +184,14 @@ class ActionsDelegate(QStyledItemDelegate):
                             # request view repaint
                             if option.widget is not None:
                                 option.widget.viewport().update()
+                            # Persist excluded flag to database if we have an id
+                            try:
+                                stint_id = meta.get('id')
+                                if stint_id:
+                                    update_stint_meta(str(stint_id), excluded=bool(meta.get('excluded')))
+                            except Exception:
+                                # Don't let DB errors block UI; log via core.errors if needed
+                                pass
 
                         # emit both generic and specific signals when applicable
                         self.buttonClicked.emit(name, row)

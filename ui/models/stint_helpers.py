@@ -271,7 +271,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
     sanitized_tires = []
 
     for row in rows:
-        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time = row
+        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time, _ = row
 
         # Convert stint_time to seconds
         if isinstance(stint_time, timedelta):
