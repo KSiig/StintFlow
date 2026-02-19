@@ -47,13 +47,15 @@ def convert_stints_to_table(
         stints, starting_tires, starting_time, count_tire_changes_fn
     )
     
+    mean_stint_time = calc_mean_stint_time(stint_times)
+    
     # Generate pending stints
     if stint_times:
-        generate_pending_stints(rows, stint_times, tires_left)
+        generate_pending_stints(rows, mean_stint_time, tires_left)
     
 
 
-    return rows, calc_mean_stint_time(stint_times), last_tire_change
+    return rows, mean_stint_time, last_tire_change
 
 
 def process_completed_stints(
@@ -83,7 +85,9 @@ def process_completed_stints(
     for i, stint in enumerate(stints):
         # Calculate stint duration
         stint_time = calculate_stint_time(prev_pit_time, stint.get('pit_end_time', '00:00:00'))
-        stint_times.append(stint_time)
+        # Only include this stint in mean calculation if it's not marked excluded
+        if not stint.get('excluded', False):
+            stint_times.append(stint_time)
         
         # Count tire changes
         tire_data = stint.get('tire_data', {})
@@ -124,7 +128,7 @@ def process_completed_stints(
 
 def generate_pending_stints(
     rows: list[TableRow],
-    stint_times: list[timedelta],
+    mean_stint_time: timedelta,
     starting_tires_left: int
 ) -> None:
     """
@@ -132,10 +136,9 @@ def generate_pending_stints(
     
     Args:
         rows: Existing table rows (will be modified)
-        stint_times: List of completed stint durations
+        mean_stint_time: Mean duration of completed stints
         starting_tires_left: Remaining tires after completed stints
     """
-    mean_stint_time = calc_mean_stint_time(stint_times)
     
     # Get last pit time from last completed stint
     current_pit_time = rows[-1][ColumnIndex.PIT_END_TIME]

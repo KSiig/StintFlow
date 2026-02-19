@@ -6,7 +6,8 @@ from PyQt6.QtSvg import QSvgRenderer
 import os
 from core.utilities import resource_path
 from ui.models.TableRoles import TableRoles
-from core.database import update_stint_meta
+from core.database import update_stint
+from core.errors import log
 
 
 class ActionsDelegate(QStyledItemDelegate):
@@ -188,10 +189,12 @@ class ActionsDelegate(QStyledItemDelegate):
                             try:
                                 stint_id = meta.get('id')
                                 if stint_id:
-                                    update_stint_meta(str(stint_id), excluded=bool(meta.get('excluded')))
-                            except Exception:
-                                # Don't let DB errors block UI; log via core.errors if needed
-                                pass
+                                    # use generic update_stint which accepts a partial doc
+                                    update_stint(str(stint_id), {"excluded": bool(meta.get('excluded'))})
+                            except Exception as e:
+                                # Log the failure so users/devs can investigate
+                                log('ERROR', f'Failed to persist excluded flag for stint {stint_id}: {e}',
+                                    category='actions_delegate', action='persist_excluded')
 
                         # emit both generic and specific signals when applicable
                         self.buttonClicked.emit(name, row)
