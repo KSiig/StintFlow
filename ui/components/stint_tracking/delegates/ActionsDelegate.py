@@ -185,6 +185,12 @@ class ActionsDelegate(QStyledItemDelegate):
                             # request view repaint
                             if option.widget is not None:
                                 option.widget.viewport().update()
+                            # Recalculate mean and pending rows in-model (lightweight)
+                            try:
+                                if hasattr(model, 'update_mean_and_pending'):
+                                    model.update_mean_and_pending()
+                            except Exception:
+                                pass
                             # Persist excluded flag to database if we have an id
                             try:
                                 stint_id = meta.get('id')
