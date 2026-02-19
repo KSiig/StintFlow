@@ -36,7 +36,8 @@ class OverviewView(QWidget):
             models=models,
             focus=True,          # Allow keyboard focus and selection
             auto_update=True,    # Refresh when session changes
-            allow_editors=True   # Enable tire combo editors
+            allow_editors=True,   # Enable tire combo editors
+            enable_actions=True   # Enable actions column
         )
         
         layout.addWidget(stint_table)

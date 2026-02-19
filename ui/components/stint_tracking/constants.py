@@ -24,6 +24,7 @@ COLUMN_WIDTHS = {
     4: 128,   # Tires changed
     5: 96,   # Tires left
     6: 128,  # Stint time
+    7: 128,  # Actions
 }
 
 # Vertical header (row numbers)

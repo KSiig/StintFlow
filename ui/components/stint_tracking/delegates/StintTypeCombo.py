@@ -6,6 +6,7 @@ Custom delegate for editing stint types with dropdown.
 
 from PyQt6.QtWidgets import QStyledItemDelegate, QWidget, QHBoxLayout, QAbstractItemView, QSizePolicy
 from PyQt6.QtCore import Qt, QTimer
+from .delegate_utils import paint_model_background
 
 from core.database import update_strategy, update_stint
 from core.errors import log
@@ -103,6 +104,11 @@ class StintTypeCombo(QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         """Ensure the editor fills the full cell rect."""
         editor.setGeometry(option.rect)
+
+    def paint(self, painter, option, index):
+        """Paint model background then default content."""
+        paint_model_background(painter, option, index)
+        super().paint(painter, option, index)
     
     def setEditorData(self, editor, index):
         """Load data into editor from model."""

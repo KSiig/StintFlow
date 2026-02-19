@@ -23,7 +23,7 @@ def fetch_team_from_lmu():
         response.raise_for_status()
 
         log('DEBUG', 'Successfully retrieved tire management data',
-            category='config_options', action='get_tire_management_data')
+            category='fetch_team', action='get_tire_management_data')
         res_json = response.json()
         driver_names = res_json.get('teamInfo', {}).get('driverNames', [])
         decoded_names = []
@@ -34,14 +34,16 @@ def fetch_team_from_lmu():
                 decoded_names.append(name)
             else:
                 decoded_names.append(str(name_bytes))
-        print("Decoded Driver Names:", decoded_names)
+        log('DEBUG', f'Decoded Driver Names: {decoded_names}',
+            category='fetch_team', action='get_tire_management_data')
         return decoded_names
 
         
     except requests.RequestException as e:
         log('WARNING', f'Failed to retrieve tire management data: {str(e)}',
-            category='config_options', action='get_tire_management_data')
+            category='fetch_team', action='get_tire_management_data')
         return None
     except Exception as e:
         log_exception(e, 'Unexpected error retrieving tire management data',
-                     category='config_options', action='get_tire_management_data')
+                     category='fetch_team', action='get_tire_management_data')
+        return None

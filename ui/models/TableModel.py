@@ -8,6 +8,7 @@ Orchestrates data loading, editing, and display using separate processor modules
 import copy
 
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex, pyqtSignal
+from PyQt6.QtGui import QColor, QBrush
 
 from ui.utilities import get_fonts, FONT, load_icon
 from core.database import get_stints, get_event
@@ -24,8 +25,10 @@ from .table_processors import (
     count_tire_changes,
     recalculate_tires_left,
     recalculate_stint_types,
-    recalculate_tires_changed
+    recalculate_tires_changed,
+    generate_pending_stints,
 )
+from .stint_helpers import calculate_stint_time, calc_mean_stint_time
 from .stint_helpers import get_default_tire_dict
 
 # Constants
@@ -153,7 +156,14 @@ class TableModel(QAbstractTableModel):
         
         # Extract tire and meta data
         self._tires = [stint.get("tire_data", {}) for stint in stints]
-        self._meta = [{"id": stint.get("_id")} for stint in stints]
+        # Persist simple meta: ensure id is string and include 'excluded' flag
+        self._meta = [
+            {
+                "id": str(stint.get("_id")),
+                "excluded": bool(stint.get("excluded", False))
+            }
+            for stint in stints
+        ]
         
         # Convert stints to table rows using processor
         rows, mean_stint_time, last_tire_change = convert_stints_to_table(
@@ -217,6 +227,78 @@ class TableModel(QAbstractTableModel):
             top_left = self.index(0, 0)
             bottom_right = self.index(self.rowCount() - 1, self.columnCount() - 1)
             self.dataChanged.emit(top_left, bottom_right, [])
+
+    def update_mean_and_pending(self) -> None:
+        """Recalculate mean stint time and regenerate pending rows only.
+
+        This is a lightweight alternative to `update_data()` intended to run
+        when a single row's `excluded` flag changes. It recalculates the mean
+        from DB (honoring `excluded`) and rebuilds only the pending rows.
+        """
+        # Recompute mean from DB stints
+        if not self.selection_model.session_id:
+            return
+
+        try:
+            # Determine starting time from event if available
+            event = get_event(self.selection_model.event_id)
+            starting_time = event.get('length', DEFAULT_RACE_LENGTH) if event else DEFAULT_RACE_LENGTH
+
+            # Determine how many completed rows we currently have in self._data
+            completed_count = 0
+            for i, row in enumerate(self._data):
+                if "Completed" in str(row[ColumnIndex.STATUS]):
+                    completed_count = i + 1
+                else:
+                    break
+
+            # If no completed rows, nothing to regenerate
+            if completed_count == 0:
+                self._mean_stint_time = timedelta(0)
+                return
+
+            # Build stint_times from existing completed rows and meta (honor excluded).
+            # Use the already-calculated `STINT_TIME` from `self._data` when possible
+            stint_times = []
+            for i in range(completed_count):
+                # Try to parse the formatted stint_time (HH:MM:SS) from the row
+                stint_time_str = str(self._data[i][ColumnIndex.STINT_TIME])
+                st_time = None
+                try:
+                    h, m, s = map(int, stint_time_str.split(':'))
+                    st_time = timedelta(hours=h, minutes=m, seconds=s)
+                except Exception:
+                    # Fallback: compute from pit times if the formatted value is missing/malformed
+                    try:
+                        prev_pit = starting_time if i == 0 else str(self._data[i - 1][ColumnIndex.PIT_END_TIME])
+                        pit_time = str(self._data[i][ColumnIndex.PIT_END_TIME])
+                        st_time = calculate_stint_time(prev_pit, pit_time)
+                    except Exception:
+                        st_time = timedelta(0)
+
+                meta = self._meta[i] if i < len(self._meta) else None
+                if not (isinstance(meta, dict) and meta.get('excluded', False)):
+                    stint_times.append(st_time)
+
+            new_mean = calc_mean_stint_time(stint_times)
+            self._mean_stint_time = new_mean
+
+            # Determine tires_left from last completed row
+            last_completed = self._data[completed_count - 1]
+            try:
+                tires_left = int(last_completed[ColumnIndex.TIRES_LEFT])
+            except Exception:
+                tires_left = 0
+
+            # Trim to completed rows and generate pending rows
+            self._data = self._data[:completed_count]
+            generate_pending_stints(self._data, self._mean_stint_time, tires_left)
+
+            # Notify view of the change
+            self._repaint_table()
+
+        except Exception as e:
+            log('ERROR', f'Failed to update mean/pending rows: {e}', category='table_model', action='update_mean_and_pending')
 
     def _parse_pit_time(self, stint: dict) -> datetime:
         """Parse a stint pit end time into a sortable datetime value."""
@@ -297,6 +379,12 @@ class TableModel(QAbstractTableModel):
         
         if role == Qt.ItemDataRole.DisplayRole:
             return self._data[row][col]
+
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            # Use row meta to determine excluded state and tint entire row
+            meta = self._meta[row] if row < len(self._meta) else None
+            if isinstance(meta, dict) and meta.get('excluded'):
+                return QColor('#281F23')
         
         elif role == Qt.ItemDataRole.FontRole:
             return get_fonts(FONT.text_table_cell)
@@ -329,7 +417,7 @@ class TableModel(QAbstractTableModel):
         Returns:
             True if data was updated, False otherwise
         """
-        if not index.isValid() or role not in (Qt.ItemDataRole.EditRole, TableRoles.TiresRole):
+        if not index.isValid() or role not in (Qt.ItemDataRole.EditRole, TableRoles.TiresRole, TableRoles.MetaRole):
             return False
         
         row = index.row()
@@ -339,10 +427,18 @@ class TableModel(QAbstractTableModel):
             self._data[row][col] = value
         
         elif role == TableRoles.TiresRole:
+            while row >= len(self._tires):
+                self._tires.append({})
             self._tires[row] = value
             # Update tire change count
             tires_changed = sum(value.get('tires_changed', {}).values())
             self._data[row][ColumnIndex.TIRES_CHANGED] = str(tires_changed)
+
+        elif role == TableRoles.MetaRole:
+            # Ensure meta list is large enough and store value
+            while row >= len(self._meta):
+                self._meta.append({})
+            self._meta[row] = value
         
         # Notify view
         self.dataChanged.emit(

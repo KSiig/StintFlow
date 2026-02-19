@@ -2,6 +2,7 @@
    Color Palette
    ============================================================ */
 /* Background: #04080B (dark navy) */
+/* Widget background: #101F23 (light navy) */
 /* Text: #D1D5DC (light gray) */
 /* Secondary: #828282 (medium gray) */
 /* Accent: #1E2A33 (hover state) */

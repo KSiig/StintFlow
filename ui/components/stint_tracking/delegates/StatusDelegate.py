@@ -10,6 +10,7 @@ from PyQt6.QtGui import QPainter, QColor
 
 from ui.utilities import load_icon
 from core.utilities import resource_path
+from .delegate_utils import paint_model_background
 
 
 class StatusDelegate(QStyledItemDelegate):
@@ -52,6 +53,9 @@ class StatusDelegate(QStyledItemDelegate):
         """
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Paint any model-provided background (e.g. excluded-row tint)
+        paint_model_background(painter, option, index)
         
         # Get the status text
         text = index.data(Qt.ItemDataRole.DisplayRole)
