@@ -291,6 +291,8 @@ class StintTable(QWidget):
         """Configure custom delegates for styled columns."""
         self.table.setItemDelegateForColumn(ColumnIndex.DRIVER, DriverPillDelegate(self.table))
         self.table.setItemDelegateForColumn(ColumnIndex.STATUS, StatusDelegate(self.table))
+        # Set a delegate for the Tires-changed column so we can show attention state
+        self.table.setItemDelegateForColumn(ColumnIndex.TIRES_CHANGED, TireComboDelegate(self.table))
         # self.table.setItemDelegateForColumn(ColumnIndex.ACTIONS, ActionsDelegate(self.table))
         self.actions_delegate = ActionsDelegate(self.table)
 

@@ -6,11 +6,11 @@ Custom delegate for editing tire changes with a popup selector.
 
 import copy
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QPushButton,
+    QWidget, QHBoxLayout, QPushButton, QToolTip,
     QGridLayout, QSizePolicy, QAbstractItemView, QStyledItemDelegate, QFrame, QVBoxLayout
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer, QPoint, QRect
+from PyQt6.QtGui import QIcon, QPixmap, QPen, QColor, QPolygon
 from .delegate_utils import paint_model_background
 
 from core.utilities import resource_path
@@ -157,9 +157,120 @@ class TireComboDelegate(QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
     def paint(self, painter, option, index):
-        """Ensure model-provided background is painted, then default rendering."""
+        """Ensure model-provided background is painted, then default rendering.
+
+        Also draws an orange attention border when any incoming tire compound
+        is recorded as "Unknown" in the model's Tire data (TableRoles.TiresRole).
+        """
         paint_model_background(painter, option, index)
         super().paint(painter, option, index)
+
+        # Draw attention border if any incoming compound is "Unknown"
+        tire_data = index.data(TableRoles.TiresRole)
+        unknown_found = False
+        # triangle width used for layout; define early so both branches can use it
+        tri_w = min(14, option.rect.width() // 6)
+        if isinstance(tire_data, dict):
+            for pos in ("fl", "fr", "rl", "rr"):
+                try:
+                    comp_in = tire_data.get(pos, {}).get('incoming', {}).get('compound')
+                except Exception:
+                    comp_in = None
+                try:
+                    comp_out = tire_data.get(pos, {}).get('outgoing', {}).get('compound')
+                except Exception:
+                    comp_out = None
+
+                # Consider the position "unknown" only if both incoming and outgoing
+                # are missing/marked as 'unknown'. If outgoing has a real compound
+                # (user updated), treat the issue as resolved for that wheel.
+                in_unknown = isinstance(comp_in, str) and comp_in.strip().lower() == 'unknown'
+                out_unknown = not isinstance(comp_out, str) or comp_out.strip().lower() == 'unknown'
+
+                if in_unknown and out_unknown:
+                    unknown_found = True
+                    break
+
+        if unknown_found:
+            # Draw a small red right-triangle that fills the top-left corner
+            # (right angle at top-left). Keep it small so it doesn't obscure
+            # the cell content — text will be hidden while the badge is shown.
+            painter.save()
+
+            badge_size = tri_w
+            pad = 4
+            x0 = option.rect.left() + pad
+            y0 = option.rect.top() + pad
+
+            p1 = QPoint(x0, y0)
+            p2 = QPoint(x0 + badge_size, y0)
+            p3 = QPoint(x0, y0 + badge_size)
+
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor('#FF3B30'))
+            painter.drawPolygon(QPolygon([p1, p2, p3]))
+
+            painter.restore()
+
+            # Intentionally do not draw the cell text when the badge is shown —
+            # the badge acts as the attention indicator only.
+        else:
+            # not unknown -> draw normal cell text
+            display_text = ""
+
+            f = index.data(Qt.ItemDataRole.FontRole)
+            if f:
+                painter.setFont(f)
+
+            painter.setPen(option.palette.color(option.palette.ColorRole.Text))
+            text_rect = option.rect.adjusted(tri_w + 8, 0, 0, 0)
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, display_text)
+
+    def helpEvent(self, event, view, option, index):
+        """Show a tooltip when hovering the top-left badge area.
+
+        Returns True if tooltip handled, otherwise falls back to base.
+        """
+        try:
+            pos = event.pos()
+        except Exception:
+            return super().helpEvent(event, view, option, index)
+
+        # Only show tooltip if the badge would be visible for this cell
+        tire_data = index.data(TableRoles.TiresRole)
+        badge_visible = False
+        if isinstance(tire_data, dict):
+            for wheel in ("fl", "fr", "rl", "rr"):
+                try:
+                    comp_in = tire_data.get(wheel, {}).get('incoming', {}).get('compound')
+                except Exception:
+                    comp_in = None
+                try:
+                    comp_out = tire_data.get(wheel, {}).get('outgoing', {}).get('compound')
+                except Exception:
+                    comp_out = None
+
+                in_unknown = isinstance(comp_in, str) and comp_in.strip().lower() == 'unknown'
+                out_unknown = not isinstance(comp_out, str) or comp_out.strip().lower() == 'unknown'
+                if in_unknown and out_unknown:
+                    badge_visible = True
+                    break
+
+        if not badge_visible:
+            return super().helpEvent(event, view, option, index)
+
+        # Compute badge rect (same geometry as paint)
+        tri_w = min(14, option.rect.width() // 6)
+        pad = 4
+        x0 = option.rect.left() + pad
+        y0 = option.rect.top() + pad
+        badge_rect = QRect(x0, y0, tri_w, tri_w)
+
+        if badge_rect.contains(pos):
+            QToolTip.showText(event.globalPos(), 'Tires need to be set manually', view)
+            return True
+
+        return super().helpEvent(event, view, option, index)
     
     def _update_button_text(self, btn: QPushButton, index):
         """Update button text showing tire count."""
