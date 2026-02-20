@@ -147,7 +147,7 @@ class TireComboDelegate(QStyledItemDelegate):
             sanitized_data = sanitize_stints(row_data, tire_data)
             stint_id = model.data(index, TableRoles.MetaRole)['id']
             row = sanitized_data['tires'][index.row()]
-            update_stint(stint_id, row)
+            update_stint(stint_id, {"tire_data": row})
         else:
             log('INFO', 'Database update skipped (update_doc=False or no strategy_id)',
                 category='tire_combo_delegate', action='set_model_data')

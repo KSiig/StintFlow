@@ -145,7 +145,7 @@ class StintTypeCombo(QStyledItemDelegate):
 
                 stint_id = meta['id']
                 row = sanitized_data['tires'][row_index]
-                if update_stint(stint_id, row):
+                if update_stint(stint_id, {"tire_data": row}):
                     updated_count += 1
 
             if updated_count == 0:
