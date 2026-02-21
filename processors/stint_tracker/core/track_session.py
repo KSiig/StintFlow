@@ -79,7 +79,7 @@ def track_session(
     num_penalties = 0
     garage_time_snapshot = "00:00:00"  # Time when player was last in garage
     tracking_enabled = False  # For practice mode: wait for player to return to garage
-    driver_name = ""
+    tracked_driver_name = ""
     tires_coming_in = {}
     practice_baseline_time = None
     
@@ -112,6 +112,7 @@ def track_session(
             log('DEBUG', f'Driver {driver_name} entering pits',
                 category='stint_tracker', action='track_session')
             tires_coming_in = get_tire_state(player_vehicle)
+            tracked_driver_name = driver_name
         
         # Practice mode: wait for player to return to garage before tracking
         if is_practice and not tracking_enabled:
@@ -135,7 +136,7 @@ def track_session(
         
         # Detect pit stop completion
         if not pit_stop_in_progress and pit_state == PitState.LEAVING:
-            log('INFO', f'Driver {driver_name} leaving pits - creating stint',
+            log('INFO', f'Driver {tracked_driver_name} leaving pits - creating stint',
                 category='stint_tracker', action='track_session')
             pit_stop_in_progress = True
             
@@ -160,7 +161,7 @@ def track_session(
                 player_scoring=player_scoring,
                 num_penalties=num_penalties,
                 session_id=session_id,
-                driver_name=driver_name,
+                driver_name=tracked_driver_name,
                 tires_coming_in=tires_coming_in
             )
             
@@ -172,7 +173,7 @@ def track_session(
         
         # Reset state when back on track
         if pit_state == PitState.ON_TRACK and pit_stop_in_progress:
-            log('DEBUG', f'Driver {driver_name} back on track',
+            log('DEBUG', f'Driver {tracked_driver_name} back on track',
                 category='stint_tracker', action='track_session')
             num_penalties = player_scoring.mNumPenalties
             pit_stop_in_progress = False
