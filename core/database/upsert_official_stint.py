@@ -34,9 +34,37 @@ def upsert_official_stint(stint: dict[str, Any], stint_key: str) -> tuple[str, b
             upsert=True
         )
 
+        # If we inserted a new document, return the new id
         if result.upserted_id:
             return str(result.upserted_id), True
 
+        # Document already exists. If the incoming tire compound values in the
+        # provided `stint` are *real* (not "Unknown"), update those fields on
+        # the existing document so tracker instances with better telemetry can
+        # enrich earlier records.
+        updates: dict[str, object] = {}
+        tire_data = stint.get('tire_data', {}) or {}
+        for pos, pos_data in tire_data.items():
+            try:
+                incoming = pos_data.get('incoming', {})
+                compound = incoming.get('compound')
+            except Exception:
+                compound = None
+
+            if isinstance(compound, str) and compound.strip().lower() != 'unknown':
+                updates[f"tire_data.{pos}.incoming.compound"] = compound
+
+        if updates:
+            try:
+                upd_res = stints_col.update_one(filter_doc, {"$set": updates})
+                if upd_res.modified_count > 0:
+                    log('DEBUG', f'Enriched existing stint {stint_key} with compounds: {list(updates.keys())}',
+                        category='database', action='upsert_official_stint')
+            except PyMongoError as e:
+                log_exception(e, 'Failed to enrich existing stint with incoming compounds',
+                              category='database', action='upsert_official_stint')
+
+        # Return existing id (defensive fetch)
         existing = stints_col.find_one(filter_doc, {"_id": 1})
         if not existing:
             log('ERROR', f'Upsert succeeded but no document found for key {stint_key}',

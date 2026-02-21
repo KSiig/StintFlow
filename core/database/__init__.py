@@ -14,6 +14,7 @@ from .get_team import get_team
 from .update_event import update_event
 from .update_session import update_session
 from .update_strategy import update_strategy
+from .get_latest_stint import get_latest_stint
 from .update_stint import update_stint
 from .update_team_drivers import update_team_drivers
 from .create_event import create_event

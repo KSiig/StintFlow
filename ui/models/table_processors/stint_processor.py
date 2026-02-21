@@ -134,6 +134,13 @@ def generate_pending_stints(
     """
     Generate pending stints based on mean stint time.
     
+    Stints are created by repeatedly subtracting the average duration from the
+    last recorded pit time. The loop terminates **before** the subtraction that
+    would cross midnight into the previous calendar day, since any further
+    entries would lie outside the race bounds. This replaces the earlier
+    heuristic that only inspected the resulting time string and failed when the
+    arithmetic wrapped around midnight.
+    
     Args:
         rows: Existing table rows (will be modified)
         mean_stint_time: Mean duration of completed stints
@@ -145,9 +152,15 @@ def generate_pending_stints(
     tires_left = starting_tires_left
     
     while True:
+        # Determine whether subtracting another mean stint would cross
+        # into the previous day. We still want to *add* that final crossing
+        # row (it represents the last stint that runs past midnight), but we
+        # should stop afterwards to avoid an infinite loop.
+        cross = is_last_stint(current_pit_time, mean_stint_time)
+
         # Calculate next pit time by subtracting mean stint time
-        current_pit_time = _subtract_time_from_pit_time(current_pit_time, mean_stint_time)
-        
+        next_pit = _subtract_time_from_pit_time(current_pit_time, mean_stint_time)
+
         # Determine tire changes for pending stint
         # If last stint had no tire changes, assume full set; otherwise none
         last_tire_change = int(rows[-1][ColumnIndex.TIRES_CHANGED])
@@ -157,21 +170,40 @@ def generate_pending_stints(
         if pending_tires_changed == FULL_TIRE_SET:
             tires_left -= FULL_TIRE_SET
         
-        # Add pending row
+        # determine actual pit time and stint duration
+        if cross:
+            # final crossing stint: show midnight as the pit end time. the
+            # desired duration is the interval from midnight back up to the
+            # current pit time (which is earlier than the mean). this is just
+            # \`current - midnight\`, not a full 24‑hour wrap.
+            pit_display = "00:00:00"
+            from datetime import datetime, date, time as _time
+            t_cur = datetime.strptime(current_pit_time, "%H:%M:%S").time()
+            dt_cur = datetime.combine(date.today(), t_cur)
+            dt_mid = datetime.combine(date.today(), _time(0, 0))
+            duration = dt_cur - dt_mid
+        else:
+            pit_display = next_pit
+            duration = mean_stint_time
+
         row = create_table_row(
             stint_type="Single",
             driver="",
             status="Pending",
-            pit_time=current_pit_time,
+            pit_time=pit_display,
             tires_changed=pending_tires_changed,
             tires_left=tires_left,
-            stint_time=format_timedelta(mean_stint_time)
+            stint_time=format_timedelta(duration)
         )
         rows.append(row)
-        
-        # Check if this is the last stint before race end
-        if is_last_stint(current_pit_time, timedelta_to_time(mean_stint_time)):
+
+        # if the subtraction we just performed crossed midnight, we added the
+        # final row (with 00:00:00) and should exit the loop.
+        if cross:
             break
+
+        # otherwise continue with the new pit as the starting point
+        current_pit_time = next_pit
 
 
 def _subtract_time_from_pit_time(pit_time_str: str, delta: timedelta) -> str:

@@ -7,7 +7,7 @@ Monitors game state and creates stint records when pit stops are detected.
 import time
 from typing import Any, Optional
 from core.errors import log
-from core.database import get_stints, get_session, get_event
+from core.database import get_session, get_event, get_latest_stint
 from ..pit_detection import (
     get_pit_state, PitState, is_in_garage, find_player_scoring_vehicle
 )
@@ -23,26 +23,38 @@ POLLING_FREQUENCY = 1
 def _get_practice_baseline_time(session_id: str) -> Optional[str]:
     """
     Get baseline time for practice mode tracking.
-    
-    In practice mode, the first stint starts from the event length,
-    and subsequent stints start from the previous stint's pit end time.
-    
+
+    Practice tracking always calculates remaining time relative to the
+    *previous* pit end.  When a tracker is restarted mid‑session we need
+    to know what the most recent pit record is so that the offset can be
+    applied correctly.  The earlier implementation simply called
+    :func:`get_stints` and took ``stints[-1]``.  Mongo cursors are not
+    guaranteed to return documents in chronological order, which meant the
+    "latest" stint could be wrong and the calculated lap time would be
+    completely off.
+
+    The new version asks the database for the latest stint explicitly
+    (sorted by ``pit_end_time_bucket``) and falls back to the event length
+    only if no stints exist at all.
+
     Args:
         session_id: Database session ID
-        
+
     Returns:
-        Baseline time in HH:MM:SS format, or None if not found
+        Baseline time in HH:MM:SS format, or ``None`` if the session or
+        race cannot be loaded (which should normally not happen).
     """
-    stints = list(get_stints(session_id))
-    
-    if stints:
-        # Use previous stint's pit end time
-        return stints[-1]['pit_end_time']
-    else:
-        # No stints yet - use event length as baseline
-        session = get_session(session_id)
-        event = get_event(str(session['race_id']))
-        return event['length']
+    # try to locate the most recent stint from the database
+    latest = get_latest_stint(session_id)
+    if latest:
+        return latest.get('pit_end_time')
+
+    # no stints recorded yet; fall back to the event length
+    session = get_session(session_id)
+    if not session:
+        return None
+    event = get_event(str(session['race_id']))
+    return event.get('length')
 
 
 def track_session(
