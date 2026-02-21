@@ -234,25 +234,42 @@ def timedelta_to_time(td: timedelta):
     return time(hour=hours, minute=minutes, second=seconds)
 
 
-def is_last_stint(pit_end_time: str, mean_stint_time) -> bool:
+def is_last_stint(pit_end_time: str, mean_stint: timedelta) -> bool:
     """
-    Check if subtracting mean stint time would go into negative (race finished).
-    
+    Determine whether subtracting another mean stint from the given pit time
+    would roll past midnight into the previous day.
+
+    This is used when generating pending stints; the loop should stop when
+    the next subtraction would produce a time before the start of the race
+    (i.e. the previous calendar day). The original implementation compared
+    two ``time`` objects and only worked correctly if the pit time itself
+    dipped below the mean duration, which fails when the pit time is
+    represented as a simple HH:MM:SS string that wraps around past midnight.
+
     Args:
         pit_end_time: Current pit end time in HH:MM:SS format
-        mean_stint_time: datetime.time representing mean stint duration
-        
+        mean_stint: Mean stint duration as a :class:`timedelta`
+
     Returns:
-        True if race is finished (would go negative), False otherwise
+        ``True`` if subtracting ``mean_stint`` would cross into the previous
+        day, ``False`` otherwise.
     """
     t1 = datetime.strptime(pit_end_time, "%H:%M:%S").time()
-    t2 = mean_stint_time
-    
     dt1 = datetime.combine(date.today(), t1)
-    dt2 = datetime.combine(date.today(), t2)
+
+    # the previous implementation accepted a ``datetime.time`` object and
+    # compared two times on the same day. that logic breaks when the pit time
+    # wraps past midnight, so we prefer working with a timedelta directly.
+    # for backwards compatibility we still support passing a time; callers
+    # should ideally supply a timedelta.
+    if isinstance(mean_stint, timedelta):
+        result = dt1 - mean_stint
+        return result.day < dt1.day
+
+    # ``mean_stint`` is probably a ``datetime.time`` object – fall back to
+    # the original behaviour.
+    dt2 = datetime.combine(date.today(), mean_stint)
     stint_time = dt1 - dt2
-    
-    # If it starts with "-1 day", we've gone into negative time
     return str(stint_time).startswith("-1 day")
 
 
@@ -271,9 +288,12 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
     sanitized_tires = []
 
     for row in rows:
-        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time, _ = row
+        # some consumers pass eight-element rows, others only seven; pad to
+        # avoid unpack errors and ignore any extra element.
+        padded = list(row) + [""]
+        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time, _ = padded[:8]
 
-        # Convert stint_time to seconds
+        # Convert stint_time to seconds (supports timedelta or display string)
         if isinstance(stint_time, timedelta):
             stint_time_seconds = int(stint_time.total_seconds())
         elif isinstance(stint_time, str):
@@ -285,7 +305,6 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
             stint_time_seconds = h * 3600 + m * 60 + s
         else:
             stint_time_seconds = int(stint_time)
-
         doc = {
             "stint_type": stint_type,
             "name": name,
