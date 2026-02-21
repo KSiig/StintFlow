@@ -5,7 +5,7 @@ Used for stint deduplication across multiple trackers.
 """
 
 
-def normalize_pit_time(pit_end_time: str, window_seconds: int = 2) -> str | None:
+def normalize_pit_time(pit_end_time: str, window_seconds: int = 10) -> str | None:
     """
     Normalize a HH:MM:SS time string into a bucketed time string.
 
