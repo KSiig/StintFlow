@@ -159,8 +159,27 @@ def process_stint_data(data):
 
 ## Log File Location
 
-Logs are written to: `%USERPROFILE%\StintFlow\stintflow.log` (Windows) or `~/StintFlow/stintflow.log` (Unix)
+Logs are written to: `%USERPROFILE%\StintFlow\stintflow.log` (Windows) or `~/StintFlow/stintflow.log` (Unix).
 
-This location is user-accessible so non-technical users can easily find and send log files for debugging.
+A small amount of rotation occurs on startup: if an existing
+`stintflow.log` does not already contain the session‑start header, it is
+renamed to `stintflow-YYYYMMDD-HHMMSS.log` (with an additional `_1`, `_2`
+etc. appended if the name is already taken).  The log created for the
+current run always carries the unqualified name so support personnel can
+open it quickly; the first line of every file records the time the session
+began in the following format:
 
-**Stack traces in log files**: When exceptions are logged using `log_exception()`, the complete stack trace is written to the log file, making it easy to debug issues even when you can't reproduce them locally.
+```
+=== StintFlow session started: 2026-02-21 14:32:00 ===
+```
+
+Subsequent processes spawned by the application detect that header and do
+*not* perform any further renaming.
+
+This location is user-accessible so non-technical users can easily find
+and send log files for debugging.
+
+**Stack traces in log files**: When exceptions are logged using
+`log_exception()`, the complete stack trace is written to the log file,
+making it easy to debug issues even when you can't reproduce them
+locally.
