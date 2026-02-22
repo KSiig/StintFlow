@@ -34,6 +34,11 @@ class StrategySettings(QWidget):
 
         self._setup_styles()
         self._setup_ui()
+        self.table_model.dataChanged.connect(lambda: self._data_changed()) 
+    
+    def _data_changed(self):
+        mean_stint_time = self.table_model._mean_stint_time if self.table_model else None
+        self._set_inputs(mean_stint_time=mean_stint_time)
     
     def _setup_styles(self) -> None:
         """Load and apply strategy settings stylesheet."""

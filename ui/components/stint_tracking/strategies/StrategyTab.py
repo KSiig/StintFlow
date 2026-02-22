@@ -8,11 +8,12 @@ from datetime import timedelta
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QSizePolicy
 from core.errors import log, log_exception
 from core.utilities import resource_path
+from core.database import update_strategy
 from ui.models import TableModel, SelectionModel, ModelContainer
 from ui.models.table_constants import ColumnIndex
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
 from ..widgets import StintTable
-from ..delegates import TireComboDelegate, StintTypeCombo
+from ..delegates import TireComboDelegate, StintTypeCombo, ActionsDelegate
 from .StrategySettings import StrategySettings
 
 
@@ -40,8 +41,10 @@ class StrategyTab(QWidget):
         self.strategy_name = strategy.get('name', 'Unnamed Strategy')
         self.selection_model = selection_model
         
-        # Clone table model for independent state
+        # Clone table model for independent state and mark it as a
+        # strategy-specific copy so that mean updates behave differently.
         self.table_model = table_model.clone()
+        self.table_model._is_strategy = True
         
         self._setup_styles()
         self._setup_ui()
@@ -104,7 +107,7 @@ class StrategyTab(QWidget):
             model_data = self.strategy.get('model_data', {})
             stints = model_data.get('rows', [])
             tires = model_data.get('tires', [])
-            mean_stint_time_seconds = model_data.get('mean_stint_time_seconds', 0)
+            mean_stint_time_seconds = self.strategy.get('mean_stint_time_seconds', 0)
             
             if not stints:
                 log('INFO', f'No stints in strategy {self.strategy_name}',
@@ -130,6 +133,56 @@ class StrategyTab(QWidget):
         except Exception as e:
             log_exception(e, f'Failed to load strategy data for {self.strategy_name}',
                          category='strategy_tab', action='load_strategy_data')
+
+    # ------------------------------------------------------------------
+    # Delete handler
+    # ------------------------------------------------------------------
+
+    def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
+        """Handle user request to delete a stint from the strategy.
+
+        ``strategy_id`` parameter is accepted for signal compatibility but is
+        ignored since the tab already knows its own strategy ID.
+
+        Removes the row from both the strategy document stored in MongoDB and
+        the in‑memory table model.  The index is deleted from
+        ``model_data.rows`` and ``model_data.tires``; the mean stint time is
+        recalculated and persisted as well.
+        """
+        try:
+            # Update in‑memory strategy structure first
+            model_data = self.strategy.setdefault('model_data', {})
+            rows = model_data.get('rows', [])
+            tires = model_data.get('tires', [])
+
+            if 0 <= row < len(rows):
+                del rows[row]
+            if 0 <= row < len(tires):
+                del tires[row]
+
+            # write back to strategy document
+            model_data['rows'] = rows
+            model_data['tires'] = tires
+            self.strategy['model_data'] = model_data
+
+            # convert to table format before updating model
+            table_rows = mongo_docs_to_rows(rows)
+            self.table_model.update_data(data=table_rows, tires=tires)
+            self.table_model._recalculate_tires_left()
+            self.table_model.update_mean(update_pending=False)  # Recalc mean without regenerating pending stints
+
+            # recalc mean and persist strategy
+            self.strategy['mean_stint_time_seconds'] = int(
+                self.table_model._mean_stint_time.total_seconds()
+            )
+            update_strategy(strategy=self.strategy)
+
+            # Update view without touching the underlying data (already
+            # applied above).  This will recalc placeholder/column widths.
+            self.stint_table.refresh_table(skip_model_update=True)
+        except Exception as e:
+            log_exception(e, 'Failed to delete strategy stint',
+                         category='strategy_tab', action='delete_stint')
     
     def _setup_strategy_delegates(self):
         """Set up custom delegates with strategy_id for database updates."""
@@ -156,6 +209,23 @@ class StrategyTab(QWidget):
                     strategy_id=str(self.strategy_id)
                 )
             )
+
+            # Set actions delegate 
+            self.actions_delegate = ActionsDelegate(
+                    self.stint_table.table,
+                    update_doc=True,
+                    strategy_id=str(self.strategy_id)
+                )
+            # wire up action buttons to handlers that maintain both the database
+            # and the in‑memory model state
+            self.actions_delegate.deleteClicked.connect(self._on_delete_clicked)
+
+            # replace the delegate on the table and update parent reference
+            self.stint_table.table.setItemDelegateForColumn(
+                ColumnIndex.ACTIONS,
+                self.actions_delegate
+            )
+            self.stint_table.actions_delegate = self.actions_delegate
             
             log('DEBUG', f'Strategy delegates configured for {self.strategy_name}',
                 category='strategy_tab', action='setup_strategy_delegates')

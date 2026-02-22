@@ -60,6 +60,15 @@ class TableModel(QAbstractTableModel):
     ):
         """
         Initialize the table model.
+
+        ``_is_strategy`` is a private flag set by consumers (such as
+        ``StrategyTab``) to indicate that the model represents an isolated
+        strategy rather than the live session.  When ``True`` the mean
+        recalculation code avoids trimming or regenerating pending rows, since
+        strategy data is considered authoritative.
+        """
+        """
+        Initialize the table model.
         
         Args:
             selection_model: SelectionModel with current event/session selection
@@ -228,23 +237,26 @@ class TableModel(QAbstractTableModel):
             bottom_right = self.index(self.rowCount() - 1, self.columnCount() - 1)
             self.dataChanged.emit(top_left, bottom_right, [])
 
-    def update_mean_and_pending(self) -> None:
+    def update_mean(self, update_pending: bool = True) -> None:
         """Recalculate mean stint time and regenerate pending rows only.
 
         This is a lightweight alternative to `update_data()` intended to run
         when a single row's `excluded` flag changes. It recalculates the mean
         from DB (honoring `excluded`) and rebuilds only the pending rows.
         """
-        # Recompute mean from DB stints
+        # No work if there is no session (rare; defensive)
         if not self.selection_model.session_id:
             return
 
         try:
-            # Determine starting time from event if available
+            # Starting time only matters for fallbacks below; session vs
+            # strategy does not change the value.
             event = get_event(self.selection_model.event_id)
             starting_time = event.get('length', DEFAULT_RACE_LENGTH) if event else DEFAULT_RACE_LENGTH
 
-            # Determine how many completed rows we currently have in self._data
+            # Count completed rows at the front of the table.  This logic is
+            # identical regardless of whether we're tracking a session or a
+            # strategy document.
             completed_count = 0
             for i, row in enumerate(self._data):
                 if "Completed" in str(row[ColumnIndex.STATUS]):
@@ -252,23 +264,20 @@ class TableModel(QAbstractTableModel):
                 else:
                     break
 
-            # If no completed rows, nothing to regenerate
             if completed_count == 0:
+                # nothing to base a mean on
                 self._mean_stint_time = timedelta(0)
                 return
 
-            # Build stint_times from existing completed rows and meta (honor excluded).
-            # Use the already-calculated `STINT_TIME` from `self._data` when possible
+            # Build a list of durations, ignoring excluded rows
             stint_times = []
             for i in range(completed_count):
-                # Try to parse the formatted stint_time (HH:MM:SS) from the row
                 stint_time_str = str(self._data[i][ColumnIndex.STINT_TIME])
                 st_time = None
                 try:
                     h, m, s = map(int, stint_time_str.split(':'))
                     st_time = timedelta(hours=h, minutes=m, seconds=s)
                 except Exception:
-                    # Fallback: compute from pit times if the formatted value is missing/malformed
                     try:
                         prev_pit = starting_time if i == 0 else str(self._data[i - 1][ColumnIndex.PIT_END_TIME])
                         pit_time = str(self._data[i][ColumnIndex.PIT_END_TIME])
@@ -283,22 +292,26 @@ class TableModel(QAbstractTableModel):
             new_mean = calc_mean_stint_time(stint_times)
             self._mean_stint_time = new_mean
 
-            # Determine tires_left from last completed row
-            last_completed = self._data[completed_count - 1]
-            try:
-                tires_left = int(last_completed[ColumnIndex.TIRES_LEFT])
-            except Exception:
-                tires_left = 0
+            # on a strategy we leave pending rows untouched; only sessions
+            # should be regenerated automatically.
+            if not getattr(self, '_is_strategy', False):
+                # Determine tires_left from last completed row
+                last_completed = self._data[completed_count - 1]
+                try:
+                    tires_left = int(last_completed[ColumnIndex.TIRES_LEFT])
+                except Exception:
+                    tires_left = 0
 
-            # Trim to completed rows and generate pending rows
-            self._data = self._data[:completed_count]
-            generate_pending_stints(self._data, self._mean_stint_time, tires_left)
+                # Trim to completed rows and possibly regenerate pending rows
+                self._data = self._data[:completed_count]
+                if update_pending:
+                    generate_pending_stints(self._data, self._mean_stint_time, tires_left)
 
             # Notify view of the change
             self._repaint_table()
 
         except Exception as e:
-            log('ERROR', f'Failed to update mean/pending rows: {e}', category='table_model', action='update_mean_and_pending')
+            log('ERROR', f'Failed to update mean/pending rows: {e}', category='table_model', action='update_mean')
 
     def _parse_pit_time(self, stint: dict) -> datetime:
         """Parse a stint pit end time into a sortable datetime value."""
@@ -330,10 +343,17 @@ class TableModel(QAbstractTableModel):
     # Row manipulation helpers
     # ------------------------------------------------------------------
 
-    def delete_stint(self, row: int) -> None:
+    def delete_stint(self, row: int, strategy_id: str | None = None) -> None:
         """
         Remove the stint located at *row* from both the database and the
         in‑memory table state.
+
+        Args:
+            row: Row index to delete
+            strategy_id: Optional strategy document ID.  When provided the
+                database deletion step is skipped since the overall strategy
+                document is managed elsewhere; the value is currently only
+                used for logging.
 
         The caller (typically a view component) is responsible for ensuring
         the provided index is valid.  The method will log any database
@@ -349,21 +369,25 @@ class TableModel(QAbstractTableModel):
                 category='table_model', action='delete_stint')
             return
 
-        # persist deletion first
-        stint_id = None
-        try:
-            meta = self._meta[row] if row < len(self._meta) else None
-            stint_id = meta.get('id') if isinstance(meta, dict) else None
-        except Exception:
+        if strategy_id:
+            log('DEBUG', f'Deleting stint at row {row} for strategy {strategy_id}',
+                category='table_model', action='delete_stint')
+        else:
+            # persist deletion first
             stint_id = None
-
-        if stint_id:
             try:
-                delete_stint(str(stint_id))
-            except Exception as e:
-                log('ERROR', f'Failed to delete stint {stint_id} from DB: {e}',
-                    category='table_model', action='delete_stint')
-                # continue anyway; the row will be removed from the view
+                meta = self._meta[row] if row < len(self._meta) else None
+                stint_id = meta.get('id') if isinstance(meta, dict) else None
+            except Exception:
+                stint_id = None
+
+            if stint_id:
+                try:
+                    delete_stint(str(stint_id))
+                except Exception as e:
+                    log('ERROR', f'Failed to delete stint {stint_id} from DB: {e}',
+                        category='table_model', action='delete_stint')
+                    # continue anyway; the row will be removed from the view
 
         # remove from internal lists, keeping them in sync
         self.beginResetModel()
@@ -385,9 +409,9 @@ class TableModel(QAbstractTableModel):
 
         # recalc mean time and update pending rows
         try:
-            self.update_mean_and_pending()
+            self.update_mean()
         except Exception:
-            # update_mean_and_pending already logs internally on failure
+            # update_mean already logs internally on failure
             pass
     
     # Qt Model Interface Methods
