@@ -11,7 +11,7 @@ from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex, pyqtSignal
 from PyQt6.QtGui import QColor, QBrush
 
 from ui.utilities import get_fonts, FONT, load_icon
-from core.database import get_stints, get_event
+from core.database import get_stints, get_event, delete_stint
 from core.errors import log
 from core.utilities import resource_path
 from ui.components.stint_tracking import get_header_icon
@@ -325,6 +325,70 @@ class TableModel(QAbstractTableModel):
             Tuple of (display_data, tire_metadata, mean_stint_time)
         """
         return self._data, self._tires, self._mean_stint_time
+
+    # ------------------------------------------------------------------
+    # Row manipulation helpers
+    # ------------------------------------------------------------------
+
+    def delete_stint(self, row: int) -> None:
+        """
+        Remove the stint located at *row* from both the database and the
+        in‑memory table state.
+
+        The caller (typically a view component) is responsible for ensuring
+        the provided index is valid.  The method will log any database
+        errors but will always attempt to keep the model's internal lists in
+        sync with one another.
+
+        After removing the row we recalculate the mean stint time and
+        regenerate pending rows so that the view reflects the current state
+        without requiring a full reload from the database.
+        """
+        if row < 0 or row >= self.rowCount():
+            log('WARNING', f'Tried to delete invalid row {row}',
+                category='table_model', action='delete_stint')
+            return
+
+        # persist deletion first
+        stint_id = None
+        try:
+            meta = self._meta[row] if row < len(self._meta) else None
+            stint_id = meta.get('id') if isinstance(meta, dict) else None
+        except Exception:
+            stint_id = None
+
+        if stint_id:
+            try:
+                delete_stint(str(stint_id))
+            except Exception as e:
+                log('ERROR', f'Failed to delete stint {stint_id} from DB: {e}',
+                    category='table_model', action='delete_stint')
+                # continue anyway; the row will be removed from the view
+
+        # remove from internal lists, keeping them in sync
+        self.beginResetModel()
+        try:
+            del self._data[row]
+        except Exception:
+            pass
+        try:
+            if row < len(self._tires):
+                del self._tires[row]
+        except Exception:
+            pass
+        try:
+            if row < len(self._meta):
+                del self._meta[row]
+        except Exception:
+            pass
+        self.endResetModel()
+
+        # recalc mean time and update pending rows
+        try:
+            self.update_mean_and_pending()
+        except Exception:
+            # update_mean_and_pending already logs internally on failure
+            pass
     
     # Qt Model Interface Methods
     

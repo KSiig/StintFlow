@@ -295,14 +295,39 @@ class StintTable(QWidget):
         self.table.setItemDelegateForColumn(ColumnIndex.TIRES_CHANGED, TireComboDelegate(self.table))
         # self.table.setItemDelegateForColumn(ColumnIndex.ACTIONS, ActionsDelegate(self.table))
         self.actions_delegate = ActionsDelegate(self.table)
+        # wire up action buttons to handlers that maintain both the database
+        # and the in‑memory model state
+        self.actions_delegate.deleteClicked.connect(self._on_delete_clicked)
 
         self.table.setItemDelegateForColumn(
             ColumnIndex.ACTIONS,
             self.actions_delegate
         )
 
-        self.actions_delegate.excludeClicked.connect(lambda: print("Edit action triggered"))
+        self.actions_delegate.excludeClicked.connect(lambda idx: None)  # already handled by delegate itself
     
+    def _on_delete_clicked(self, row: int) -> None:
+        """
+        Slot called when the delete button in an actions column is pressed.
+
+        The model is expected to expose ``delete_stint``; we call it and then
+        refresh the table so that any computed values (mean, pending rows)
+        are up to date.  The refresh uses the existing model instance so the
+        view does not flicker unnecessarily.
+        """
+        model = self.table.model()
+        if model is None:
+            return
+
+        if hasattr(model, 'delete_stint'):
+            try:
+                model.delete_stint(row)
+            except Exception as e:
+                log('ERROR', f'Error deleting row {row}: {e}',
+                    category='stint_table', action='handle_delete')
+        # always request a refresh to ensure column widths, placeholder state etc.
+        self.refresh_table()
+
     def _setup_horizontal_header(self, table: QTableView) -> None:
         """
         Configure horizontal header (column names).
