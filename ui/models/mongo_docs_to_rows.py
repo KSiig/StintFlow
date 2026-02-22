@@ -45,6 +45,7 @@ def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
             int(doc.get("tires_changed", 0)),
             int(doc.get("tires_left", 0)),
             timedelta(seconds=int(doc.get("stint_time_seconds", 0))),
+            "" # Placeholder for actions column
         ]
         rows.append(row)
 

@@ -6,16 +6,18 @@ from PyQt6.QtSvg import QSvgRenderer
 import os
 from core.utilities import resource_path
 from ui.models.TableRoles import TableRoles
+from ui.models.table_constants import ColumnIndex
 from core.database import update_stint
 from core.errors import log
 
 
 class ActionsDelegate(QStyledItemDelegate):
     excludeClicked = pyqtSignal(int)
-    deleteClicked = pyqtSignal(int)
+    # row index and optional strategy ID (empty string when not set)
+    deleteClicked = pyqtSignal(int, str)
     buttonClicked = pyqtSignal(str, int)
 
-    def __init__(self, parent=None, background_color: str = "#0e4c35", text_color: str = "#B0B0B0"):
+    def __init__(self, parent=None, background_color: str = "#0e4c35", text_color: str = "#B0B0B0", update_doc: bool = False, strategy_id: str | None = None):
         """
         Initialize the delegate.
         
@@ -23,6 +25,8 @@ class ActionsDelegate(QStyledItemDelegate):
             parent: Parent widget
             background_color: Hex color for pill background (default: dark green)
             text_color: Hex color for text (default: white)
+            update_doc: Whether to persist changes to the database (default: False)
+            strategy_id: Optional strategy ID for context when updating stints in database
         """
         super().__init__(parent)
         self.background_color = QColor(background_color)
@@ -35,6 +39,8 @@ class ActionsDelegate(QStyledItemDelegate):
             {"name": "exclude", "icon": "resources/icons/table_cells/circle.svg"},
             {"name": "delete", "icon": "resources/icons/table_cells/trash.svg"},
         ]
+        self.update_doc = update_doc
+        self.strategy_id = strategy_id
 
     def _draw_button(self, painter, style, rect: QRect, svg_name: str | None = None, text: str = "", excluded: bool = False):
         """Private helper: draw a push button (background) and optionally an SVG icon or text.
@@ -142,6 +148,14 @@ class ActionsDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         """Draw buttons inside the cell."""
 
+        # only render actions for completed rows; other rows remain blank
+        status_idx = index.siblingAtColumn(ColumnIndex.STATUS)
+        status = status_idx.data()
+        if status is None or "Completed" not in str(status):
+            # still let Qt draw whatever background is needed
+            super().paint(painter, option, index)
+            return
+
         # Let Qt draw background (selection, etc.)
         super().paint(painter, option, index)
 
@@ -163,51 +177,87 @@ class ActionsDelegate(QStyledItemDelegate):
             self._draw_button(painter, style, rect, svg_name=svg, text="" if svg else text, excluded=excluded)
 
     def editorEvent(self, event, model, option, index):
-        """Handle mouse click events."""
+        """Handle mouse click events by delegating to helpers."""
+
+        # ignore clicks on non-completed rows
+        status_idx = index.siblingAtColumn(ColumnIndex.STATUS)
+        status = status_idx.data()
+        if status is None or "Completed" not in str(status):
+            return False
 
         if event.type() == event.Type.MouseButtonRelease:
+            # debug log left in place to aid manual testing
             if isinstance(event, QMouseEvent):
-                pos = event.position().toPoint()
-
-                rects = self._button_rects(option.rect)
-                model = index.model()
-                for i, rect in enumerate(rects):
-                    if rect.contains(pos):
-                        name = self.buttons[i].get("name", "")
-                        row = index.row()
-                        # toggle excluded state via model MetaRole
-                        if name == "exclude" and model is not None:
-                            meta = model.data(model.index(row, 0), TableRoles.MetaRole) or {}
-                            if not isinstance(meta, dict):
-                                meta = {}
-                            meta['excluded'] = not bool(meta.get('excluded'))
-                            model.setData(model.index(row, 0), meta, role=TableRoles.MetaRole)
-                            # request view repaint
-                            if option.widget is not None:
-                                option.widget.viewport().update()
-                            # Recalculate mean and pending rows in-model (lightweight)
-                            try:
-                                if hasattr(model, 'update_mean_and_pending'):
-                                    model.update_mean_and_pending()
-                            except Exception:
-                                pass
-                            # Persist excluded flag to database if we have an id
-                            try:
-                                stint_id = meta.get('id')
-                                if stint_id:
-                                    # use generic update_stint which accepts a partial doc
-                                    update_stint(str(stint_id), {"excluded": bool(meta.get('excluded'))})
-                            except Exception as e:
-                                # Log the failure so users/devs can investigate
-                                log('ERROR', f'Failed to persist excluded flag for stint {stint_id}: {e}',
-                                    category='actions_delegate', action='persist_excluded')
-
-                        # emit both generic and specific signals when applicable
-                        self.buttonClicked.emit(name, row)
-                        if name == "exclude":
-                            self.excludeClicked.emit(row)
-                        elif name == "delete":
-                            self.deleteClicked.emit(row)
-                        return True
-
+                return self._handle_mouse_click(event, model, option, index)
         return False
+
+    # ------------------------------------------------------------------
+    # Private helpers for editorEvent
+    # ------------------------------------------------------------------
+
+    def _handle_mouse_click(self, event, model, option, index) -> bool:
+        """Process a mouse release and dispatch to the appropriate button.
+
+        Returns ``True`` if one of the buttons was activated (so the view
+        knows the event was consumed).
+        """
+        pos = event.position().toPoint()
+        rects = self._button_rects(option.rect)
+
+        for i, rect in enumerate(rects):
+            if rect.contains(pos):
+                name = self.buttons[i].get("name", "")
+                row = index.row()
+                if name == "exclude" and model is not None:
+                    self._toggle_exclude(row, model, option)
+                self._emit_button_signals(name, row)
+                return True
+        return False
+
+    def _toggle_exclude(self, row: int, model, option) -> None:
+        """Flip the excluded flag for *row* and update associated state."""
+        meta = model.data(model.index(row, 0), TableRoles.MetaRole) or {}
+        if not isinstance(meta, dict):
+            meta = {}
+        meta['excluded'] = not bool(meta.get('excluded'))
+        model.setData(model.index(row, 0), meta, role=TableRoles.MetaRole)
+
+        # request view repaint
+        if option.widget is not None:
+            option.widget.viewport().update()
+
+        # Recalculate mean in-model.  If model represents a strategy the
+        # pending rows should not be regenerated, so we pass the flag
+        # accordingly.
+        try:
+            if hasattr(model, 'update_mean'):
+                is_strat = getattr(model, '_is_strategy', False)
+                model.update_mean(update_pending=not is_strat)
+        except Exception:
+            pass
+
+        # Persist excluded flag to database if requested
+        if self.update_doc:
+            self._persist_excluded_flag(meta)
+
+    def _persist_excluded_flag(self, meta: dict) -> None:
+        """Write the excluded state back to the database.
+
+        This method is separated out so that the calling code can be
+        easier to test and so persistence logic is confined in one place.
+        """
+        try:
+            stint_id = meta.get('id')
+            if stint_id:
+                update_stint(str(stint_id), {"excluded": bool(meta.get('excluded'))})
+        except Exception as e:
+            log('ERROR', f'Failed to persist excluded flag for stint {stint_id}: {e}',
+                category='actions_delegate', action='persist_excluded')
+
+    def _emit_button_signals(self, name: str, row: int) -> None:
+        """Emit the generic ``buttonClicked`` signal and any specific ones."""
+        self.buttonClicked.emit(name, row)
+        if name == "exclude":
+            self.excludeClicked.emit(row)
+        elif name == "delete":
+            self.deleteClicked.emit(row, self.strategy_id if self.strategy_id else "")

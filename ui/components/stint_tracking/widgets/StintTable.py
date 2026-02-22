@@ -85,7 +85,6 @@ class StintTable(QWidget):
         self.selection_model = models.selection_model
         self.table_model = models.table_model
         self._column_count = 0
-        self.enable_actions = enable_actions
         
         # Load stylesheet
         self._load_stylesheet()
@@ -295,14 +294,39 @@ class StintTable(QWidget):
         self.table.setItemDelegateForColumn(ColumnIndex.TIRES_CHANGED, TireComboDelegate(self.table))
         # self.table.setItemDelegateForColumn(ColumnIndex.ACTIONS, ActionsDelegate(self.table))
         self.actions_delegate = ActionsDelegate(self.table)
+        # wire up action buttons to handlers that maintain both the database
+        # and the in‑memory model state
+        self.actions_delegate.deleteClicked.connect(self._on_delete_clicked)
 
         self.table.setItemDelegateForColumn(
             ColumnIndex.ACTIONS,
             self.actions_delegate
         )
 
-        self.actions_delegate.excludeClicked.connect(lambda: print("Edit action triggered"))
+        self.actions_delegate.excludeClicked.connect(lambda idx: None)  # already handled by delegate itself
     
+    def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
+        """
+        Slot called when the delete button in an actions column is pressed.
+
+        By default the method simply forwards the request to the model's
+        ``delete_stint`` helper and then refreshes the view.  A non-``None``
+        ``strategy_id`` is currently unused but accepted for future use
+        by consumers such as strategy tabs.
+        """
+        model = self.table.model()
+        if model is None:
+            return
+
+        if hasattr(model, 'delete_stint'):
+            try:
+                model.delete_stint(row, strategy_id)
+            except Exception as e:
+                log('ERROR', f'Error deleting row {row}: {e}',
+                    category='stint_table', action='handle_delete')
+        # always request a refresh to ensure column widths, placeholder state etc.
+        self.refresh_table()
+
     def _setup_horizontal_header(self, table: QTableView) -> None:
         """
         Configure horizontal header (column names).
@@ -356,17 +380,25 @@ class StintTable(QWidget):
             else:  # Empty → close editor
                 self.table.closePersistentEditor(index)
     
-    def refresh_table(self) -> None:
+    def refresh_table(self, skip_model_update: bool = False) -> None:
         """
         Refresh table data and column configuration.
+
+        Args:
+            skip_model_update: if True the model's ``update_data`` method will
+                not be invoked.  This is useful when the caller has already
+                adjusted ``table_model`` manually (e.g. strategy deletion)
+                and merely wants the view to recompute widths/placeholder.
+        
         Shows placeholder message if no stints found.
         """
         # Early return if no table_model available
         if self.table_model is None:
             return
 
-        # Update model data
-        self.table_model.update_data()
+        # Update model data unless the caller opts out
+        if not skip_model_update:
+            self.table_model.update_data()
 
         # Check for empty model
         if self.table_model.rowCount() == 0:
