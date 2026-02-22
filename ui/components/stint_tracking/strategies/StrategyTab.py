@@ -73,6 +73,8 @@ class StrategyTab(QWidget):
 
             # StrategySettings component for top half
             strategy_settings = StrategySettings(self, models, self.strategy)
+            # keep a reference for later operations (e.g. after deletions)
+            self.strategy_settings = strategy_settings
             strategy_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             strategy_settings.strategy_updated.connect(self._load_strategy_data)  # Reload table when strategy is updated
             layout.addWidget(strategy_settings, stretch=1)
@@ -129,7 +131,13 @@ class StrategyTab(QWidget):
             
             # Open persistent editors for editable columns
             self._open_persistent_editors()
-            
+
+            # Re-apply column widths now that the table is fully populated
+            # and delegates are in place. In strategy tabs the earlier call
+            # in _setup_strategy_delegates() can occur before the table is
+            # shown, so we repeat it here to avoid incorrect header length.
+            self.stint_table._set_column_widths()
+
         except Exception as e:
             log_exception(e, f'Failed to load strategy data for {self.strategy_name}',
                          category='strategy_tab', action='load_strategy_data')
@@ -172,10 +180,26 @@ class StrategyTab(QWidget):
             self.table_model.update_mean(update_pending=False)  # Recalc mean without regenerating pending stints
 
             # recalc mean and persist strategy
-            self.strategy['mean_stint_time_seconds'] = int(
-                self.table_model._mean_stint_time.total_seconds()
-            )
+            mean_sec = int(self.table_model._mean_stint_time.total_seconds())
+            self.strategy['mean_stint_time_seconds'] = mean_sec
             update_strategy(strategy=self.strategy)
+
+            # realign any pending stints in the strategy just like Save does
+            if hasattr(self, 'strategy_settings'):
+                try:
+                    self.strategy_settings._realign_rows(mean_sec)
+                except Exception:
+                    # not critical; log and continue
+                    log('WARNING', 'Failed to realign rows after delete',
+                        category='strategy_tab', action='delete_stint')
+
+            # refresh the table model from updated document so that
+            # pending pit times reflect the adjusted mean
+            rows = mongo_docs_to_rows(self.strategy['model_data'].get('rows', []))
+            tires = self.strategy['model_data'].get('tires', [])
+            self.table_model.update_data(data=rows, tires=tires, mean_stint_time=timedelta(seconds=mean_sec))
+            self.table_model._recalculate_tires_left()
+            self.table_model.update_mean(update_pending=False)
 
             # Update view without touching the underlying data (already
             # applied above).  This will recalc placeholder/column widths.
@@ -226,6 +250,7 @@ class StrategyTab(QWidget):
                 self.actions_delegate
             )
             self.stint_table.actions_delegate = self.actions_delegate
+            self.stint_table._set_column_widths()  # Update column widths to fit new delegate
             
             log('DEBUG', f'Strategy delegates configured for {self.strategy_name}',
                 category='strategy_tab', action='setup_strategy_delegates')
