@@ -20,6 +20,12 @@ def _configure_logger():
     
     This sets up logging to write to both a file and console output,
     with appropriate formatting for each.
+
+    On first invocation during an application run a log-rotation helper is
+    called to archive any existing ``stintflow.log``.  Subsequent calls --
+    either later in the same process or in a child process spawned by the
+    UI -- will see the session header written by the first caller and will
+    therefore skip the rename.
     """
     global _logger_configured
     
@@ -27,6 +33,18 @@ def _configure_logger():
         return
     
     log_file = get_log_file_path()
+
+    # rotate any pre-existing log before we install the handlers.  this is
+    # intentionally executed even if the logger already has handlers, because
+    # previous processes may have renamed the file without updating the
+    # ``_logger_configured`` flag in this new interpreter.
+    try:
+        from .log_rotation import rotate_old_log, parse_session_start, write_session_header
+    except ImportError:
+        # badly configured environment; fall back to normal behaviour
+        rotate_old_log = parse_session_start = write_session_header = None
+    else:
+        rotate_old_log(log_file)
     
     # Create logger
     logger = logging.getLogger('stintflow')
@@ -34,6 +52,7 @@ def _configure_logger():
     
     # Prevent duplicate handlers if module is reloaded
     if logger.handlers:
+        _logger_configured = True
         return
     
     # File handler - detailed format with timestamp
@@ -56,6 +75,18 @@ def _configure_logger():
     
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+
+    # write a header if one isn't already present.  this is what allows child
+    # processes (stint tracker, etc.) to configure their own logger without
+    # rotating again; they simply detect the line below and return early from
+    # ``rotate_old_log``.
+    if write_session_header is not None:
+        try:
+            if parse_session_start(log_file) is None:
+                write_session_header(log_file)
+        except Exception:
+            # we don't want logging to break just because header logic failed
+            pass
     
     _logger_configured = True
 

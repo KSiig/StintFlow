@@ -34,5 +34,14 @@ Usage:
 from .handle_error import handle_error, register_error_handler
 from .log_error import log, log_exception
 from .get_log_file_path import get_log_file_path
+from .log_rotation import parse_session_start, rotate_old_log, write_session_header
 
-__all__ = ['handle_error', 'register_error_handler', 'log', 'log_exception', 'get_log_file_path']
+__all__ = [
+    'handle_error', 'register_error_handler',
+    'log', 'log_exception',
+    'get_log_file_path',
+    # helpers used by tests or advanced users
+    'parse_session_start', 'rotate_old_log', 'write_session_header',
+    'purge_old_logs',
+]
+
