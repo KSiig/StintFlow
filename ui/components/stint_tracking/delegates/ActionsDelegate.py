@@ -6,6 +6,7 @@ from PyQt6.QtSvg import QSvgRenderer
 import os
 from core.utilities import resource_path
 from ui.models.TableRoles import TableRoles
+from ui.models.table_constants import ColumnIndex
 from core.database import update_stint
 from core.errors import log
 
@@ -147,6 +148,14 @@ class ActionsDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         """Draw buttons inside the cell."""
 
+        # only render actions for completed rows; other rows remain blank
+        status_idx = index.siblingAtColumn(ColumnIndex.STATUS)
+        status = status_idx.data()
+        if status is None or "Completed" not in str(status):
+            # still let Qt draw whatever background is needed
+            super().paint(painter, option, index)
+            return
+
         # Let Qt draw background (selection, etc.)
         super().paint(painter, option, index)
 
@@ -169,6 +178,12 @@ class ActionsDelegate(QStyledItemDelegate):
 
     def editorEvent(self, event, model, option, index):
         """Handle mouse click events by delegating to helpers."""
+
+        # ignore clicks on non-completed rows
+        status_idx = index.siblingAtColumn(ColumnIndex.STATUS)
+        status = status_idx.data()
+        if status is None or "Completed" not in str(status):
+            return False
 
         if event.type() == event.Type.MouseButtonRelease:
             # debug log left in place to aid manual testing
