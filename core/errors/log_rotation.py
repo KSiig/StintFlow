@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # header line written to each new log file.  parse_session_start uses a
@@ -128,9 +128,49 @@ def rotate_old_log(path: Path) -> None:
         # visible during startup failures.  Do not raise.
         print(f"Warning: could not rotate log file: {e}", file=sys.stderr)
 
+    # after rotation we can optionally clean up old archives; this keeps the
+    # log directory from growing indefinitely.  the default retention period
+    # is 30 days but callers may invoke ``purge_old_logs`` directly with a
+    # different value if they wish.
+    purge_old_logs(path.parent)
+
 
 # small helper used by log_error to write the header; exposed for testing
 # only.
+def purge_old_logs(directory: Path, max_age_days: int = 30) -> None:
+    """Delete archived log files older than *max_age_days* in *directory*.
+
+    Args:
+        directory: path containing log files (typically the parent of
+            ``stintflow.log``).
+        max_age_days: number of days to retain; files with a modification
+            time older than this threshold are removed.  A non-positive
+            value disables purging.
+
+    This helper does **not** remove the current ``stintflow.log`` file.  It
+    only considers files whose names start with ``stintflow-`` (i.e. the
+    archived sessions).
+    """
+    if max_age_days <= 0:
+        return
+
+    cutoff = datetime.now() - timedelta(days=max_age_days)
+    for entry in directory.iterdir():
+        if not entry.name.startswith("stintflow-"):
+            continue
+        try:
+            mtime = datetime.fromtimestamp(entry.stat().st_mtime)
+        except Exception:
+            # unable to stat, skip it rather than raising
+            continue
+        if mtime < cutoff:
+            try:
+                entry.unlink()
+            except Exception:
+                # best-effort purge; ignore errors
+                pass
+
+
 def write_session_header(path: Path, when: datetime | None = None) -> None:
     """Append a session-start header to *path*.
 

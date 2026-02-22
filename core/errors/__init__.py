@@ -42,5 +42,6 @@ __all__ = [
     'get_log_file_path',
     # helpers used by tests or advanced users
     'parse_session_start', 'rotate_old_log', 'write_session_header',
+    'purge_old_logs',
 ]
 
