@@ -251,24 +251,27 @@ class StrategySettings(QWidget):
         mean_td = timedelta(seconds=new_mean_sec)
 
         # iterate over existing pending rows and shift each pit time by the
-        # new mean. update durations above has already run so we just adjust
-        # the time strings here.
+        # new mean. we'll stop early if the sequence would cross midnight so
+        # that we never generate times from the previous day. the durations
+        # have already been updated above.
+        keep_len = len(rows)
         for i in range(completed_count, len(rows)):
+            # before subtracting, check whether the next subtraction would
+            # cross into the previous day. if so we mark this row as the
+            # midnight stump and drop everything after it.
+            if is_last_stint(current_pit, mean_td):
+                rows[i]['pit_end_time'] = "00:00:00"
+                keep_len = i + 1
+                break
+
             current_pit = _subtract_time_from_pit_time(current_pit, mean_td)
             rows[i]['pit_end_time'] = current_pit
 
-        # remove any pending entries that now sit at or past midnight. once a
-        # row reaches "00:00:00" all following rows are out of bounds and
-        # should be discarded along with their tire metadata.
-        if len(rows) > completed_count:
-            keep_len = len(rows)
-            for idx in range(completed_count, len(rows)):
-                if rows[idx]['pit_end_time'] == "00:00:00":
-                    keep_len = idx + 1
-                    break
-            if keep_len < len(rows):
-                rows[:] = rows[:keep_len]
-                model_data['tires'] = model_data.get('tires', [])[:keep_len]
+        # truncate any entries that were beyond midnight; slices are safe
+        # even if keep_len == len(rows)
+        if keep_len < len(rows):
+            rows[:] = rows[:keep_len]
+            model_data['tires'] = model_data.get('tires', [])[:keep_len]
 
         # recalc current_pit based on trimmed list
         if len(rows) > completed_count:

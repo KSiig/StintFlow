@@ -12,6 +12,7 @@ from core.database import update_strategy
 from ui.models import TableModel, SelectionModel, ModelContainer
 from ui.models.table_constants import ColumnIndex
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
+from ui.models.stint_helpers import sanitize_stints
 from ..widgets import StintTable
 from ..delegates import TireComboDelegate, StintTypeCombo, ActionsDelegate
 from .StrategySettings import StrategySettings
@@ -158,26 +159,33 @@ class StrategyTab(QWidget):
         recalculated and persisted as well.
         """
         try:
-            # Update in‑memory strategy structure first
+            # start from the current table model state; this ensures we
+            # honour any user edits that haven't yet been written to the
+            # strategy document.
+            row_data, tire_data, _ = self.table_model.get_all_data()
+
+            # remove the specified row from the display lists
+            if 0 <= row < len(row_data):
+                del row_data[row]
+            if 0 <= row < len(tire_data):
+                del tire_data[row]
+
+            # sanitize into mongo‑compatible documents and store in strategy
+            from ui.models.stint_helpers import sanitize_stints
+            sanitized = sanitize_stints(row_data, tire_data)
             model_data = self.strategy.setdefault('model_data', {})
-            rows = model_data.get('rows', [])
-            tires = model_data.get('tires', [])
-
-            if 0 <= row < len(rows):
-                del rows[row]
-            if 0 <= row < len(tires):
-                del tires[row]
-
-            # write back to strategy document
-            model_data['rows'] = rows
-            model_data['tires'] = tires
+            model_data['rows'] = sanitized.get('rows', [])
+            model_data['tires'] = sanitized.get('tires', [])
             self.strategy['model_data'] = model_data
 
-            # convert to table format before updating model
-            table_rows = mongo_docs_to_rows(rows)
-            self.table_model.update_data(data=table_rows, tires=tires)
-            self.table_model._recalculate_tires_left()
-            self.table_model.update_mean(update_pending=False)  # Recalc mean without regenerating pending stints
+            # push change back into table model as well
+            table_rows = mongo_docs_to_rows(model_data['rows'])
+            self.table_model.update_data(data=table_rows, tires=model_data['tires'])
+            try:
+                self.table_model._recalculate_tires_left()
+                self.table_model.update_mean(update_pending=False)  # Recalc mean without regenerating pending stints
+            except Exception:
+                pass
 
             # recalc mean and persist strategy
             mean_sec = int(self.table_model._mean_stint_time.total_seconds())
@@ -207,6 +215,52 @@ class StrategyTab(QWidget):
         except Exception as e:
             log_exception(e, 'Failed to delete strategy stint',
                          category='strategy_tab', action='delete_stint')
+    
+    def _on_exclude_clicked(self, row: int) -> None:
+        """Handle exclude/include toggle from the actions delegate.
+
+        The delegate has already flipped the excluded flag and recalculated
+        the model mean, but the strategy document and any pending stints need
+        to be updated to follow suit.  This mirrors the behaviour performed
+        when the user presses Save in the settings panel.
+        """
+        try:
+            # base everything on the latest model data rather than the
+            # stored document
+            row_data, tire_data, _ = self.table_model.get_all_data()
+            from ui.models.stint_helpers import sanitize_stints
+            sanitized = sanitize_stints(row_data, tire_data)
+
+            model_data = self.strategy.setdefault('model_data', {})
+            model_data['rows'] = sanitized.get('rows', [])
+            model_data['tires'] = sanitized.get('tires', [])
+
+            mean_sec = int(self.table_model._mean_stint_time.total_seconds())
+            self.strategy['mean_stint_time_seconds'] = mean_sec
+
+            if hasattr(self, 'strategy_settings'):
+                try:
+                    self.strategy_settings._realign_rows(mean_sec)
+                except Exception:
+                    log('WARNING', 'Failed to realign rows after exclude toggle',
+                        category='strategy_tab', action='exclude_click')
+
+            # refresh the table model based on the possibly re-aligned rows
+            rows = mongo_docs_to_rows(model_data['rows'])
+            tires = model_data['tires']
+            self.table_model.update_data(data=rows, tires=tires, mean_stint_time=timedelta(seconds=mean_sec))
+            try:
+                self.table_model._recalculate_tires_left()
+                self.table_model.update_mean(update_pending=False)
+            except Exception:
+                # non-critical for strategy view, can fail if no event/session
+                pass
+
+            update_strategy(strategy=self.strategy)
+            self.stint_table.refresh_table(skip_model_update=True)
+        except Exception as e:
+            log_exception(e, 'Failed to handle exclude click',
+                         category='strategy_tab', action='exclude_click')
     
     def _setup_strategy_delegates(self):
         """Set up custom delegates with strategy_id for database updates."""
@@ -243,6 +297,7 @@ class StrategyTab(QWidget):
             # wire up action buttons to handlers that maintain both the database
             # and the in‑memory model state
             self.actions_delegate.deleteClicked.connect(self._on_delete_clicked)
+            self.actions_delegate.excludeClicked.connect(self._on_exclude_clicked)
 
             # replace the delegate on the table and update parent reference
             self.stint_table.table.setItemDelegateForColumn(
