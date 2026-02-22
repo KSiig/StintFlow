@@ -11,6 +11,8 @@ from core.utilities import resource_path
 from core.errors import log
 from core.database import update_strategy
 from ui.components.common import LabeledInputRow, SectionHeader, ConfigButton
+from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
+from ui.models.table_processors import generate_pending_stints
 from ..config import ConfigLabels
 from ui.components.stint_tracking.config.config_constants import ConfigLayout
 from ui.models import ModelContainer
@@ -153,27 +155,26 @@ class StrategySettings(QWidget):
             if mean_stint_time_sec is None:
                 return
 
-            rows = self.strategy['model_data'].get('rows', [])
-            
-            for idx, row in enumerate(rows):
-              if not row.get('status'):
-                  row['stint_time_seconds'] = mean_stint_time_sec
-                  # Subtract mean_stint_time_sec from previous row's pit_end_time
-                  if idx > 0:
-                      prev_row = rows[idx - 1]
-                      prev_pit_end_time_str = prev_row.get('pit_end_time')
-                      if prev_pit_end_time_str:
-                          row['pit_end_time'] = self._get_new_pit_end_time(prev_pit_end_time_str, mean_stint_time_sec)
-                  else:
-                      # No previous row, optionally set pit_end_time to default or leave unchanged
-                      pass
+            # ensure we have model_data dict to work with
+            model_data = self.strategy.setdefault('model_data', {})
+            rows = model_data.get('rows', [])
+            tires = model_data.get('tires', [])
 
+            # adjust existing pending rows and add extras if needed
             self._realign_rows(mean_stint_time_sec)
 
+            # refresh table model to reflect updated strategy
+            from datetime import timedelta as _td
+            table_rows = mongo_docs_to_rows(rows)
+            self.table_model.update_data(data=table_rows, tires=tires, mean_stint_time=_td(seconds=mean_stint_time_sec))
+            self.table_model._recalculate_tires_left()
+            self.table_model.update_mean(update_pending=False)
+
+            # persist new mean and entire strategy document
+            self.strategy['mean_stint_time_seconds'] = mean_stint_time_sec
             update_strategy(strategy=self.strategy)
 
             self.strategy_updated.emit(self.strategy)  # Emit updated strategy data for other components to react
-            self.table_model._recalculate_stint_types()
 
             log('INFO', f'StrategySettings saved',
                 category='strategy_settings', action='save_clicked')
@@ -197,44 +198,92 @@ class StrategySettings(QWidget):
             return prev_pit_end_time_str  # Fallback to original if error occurs
 
     def _realign_rows(self, mean_stint_time_sec=None):
-        """Realign rows based on new mean stint time calculations."""
+        """Adjust existing pending rows and generate any additional ones.
+
+        Existing pending rows are slid backwards from the last completed pit
+        time using the supplied mean.  Only rows that hit zero are deleted;
+        tires_changed values are preserved.  After updating the current pending
+        set we call ``_add_rows`` to append any further stints required by the
+        new mean.
+        """
         rows = self.strategy['model_data'].get('rows', [])
         tires = self.strategy['model_data'].get('tires', [])
-        for idx, row in reversed(list(enumerate(rows))):
-          pit_end_time_str = row.get('pit_end_time')
-          h, m, s = map(int, pit_end_time_str.split(":"))
-          seconds = h * 3600 + m * 60 + s
-          if seconds == 0:
-              del rows[idx]
-              del tires[idx]
-          elif seconds > 0:
-              self._add_rows(mean_stint_time_sec)
-              break
+
+        # walk through rows sequentially, updating pending entries
+        prev_time = None
+        for row in rows:
+            if row.get('status'):
+                prev_time = row.get('pit_end_time')
+            else:
+                # pending row, compute new pit_end_time and duration
+                if prev_time is None:
+                    prev_time = '00:00:00'
+                new_time = self._get_new_pit_end_time(prev_time, mean_stint_time_sec)
+                row['pit_end_time'] = new_time
+                row['stint_time_seconds'] = mean_stint_time_sec
+                prev_time = new_time
+
+        # remove any pending rows whose time has dropped to zero, along with
+        # their tire metadata.  We cannot simply trim the end, because a rapid
+        # mean reduction may push *middle* stints to zero while later ones
+        # remain positive.
+        zero_indices = []
+        for idx, row in enumerate(rows):
+            if not row.get('status'):
+                pit = row.get('pit_end_time', '00:00:00')
+                h, m, s = map(int, pit.split(":"))
+                if h == 0 and m == 0 and s == 0:
+                    zero_indices.append(idx)
+        # delete backwards so indices remain valid
+        for idx in reversed(zero_indices):
+            del rows[idx]
+            if idx < len(tires):
+                del tires[idx]
+
+        # after pruning invalid entries, append any additional pending stints
+        # required by the new mean
+        self._add_rows(mean_stint_time_sec)
 
     def _add_rows(self, mean_stint_time_sec=None):
-        """Add new rows based on mean stint time until pit_end_time reaches 0 seconds."""
+        """Generate pending rows following the last completed stint.
+
+        The previous implementation alternated tire changes blindly, causing
+        all regenerated pending rows to inherit the wrong ``tires_changed``
+        value.  Here we inspect the last completed row and follow the same
+        rule used by ``generate_pending_stints`` in the shared processor.
+        Existing strategy stints are never overwritten; only genuinely new
+        rows receive default values.
+        """
         rows = self.strategy['model_data'].get('rows', [])
         tires = self.strategy['model_data'].get('tires', [])
-        last_row = rows[-1] if rows else None
-        last_tires = tires[-1] if tires else None
-        i = 0
-        while last_row:
-            tires_changed = bool(i%2) # Alternate between no change and full change for new rows
-            h, m, s = map(int, last_row.get('pit_end_time', '00:00:00').split(":"))
+        if not rows:
+            return
+
+        last_row = rows[-1]
+        while True:
+            # compute current pit time seconds
+            pit = last_row.get('pit_end_time', '00:00:00')
+            h, m, s = map(int, pit.split(":"))
             seconds = h * 3600 + m * 60 + s
             if seconds == 0:
                 break
-            # Create a new row as a copy of the last row (shallow copy)
+
+            # determine number of tires changed based on previous row
+            last_tire_change = int(last_row.get('tires_changed', 0))
+            from ui.models.table_constants import FULL_TIRE_SET, NO_TIRE_CHANGE
+            pending_tires_changed = FULL_TIRE_SET if last_tire_change == NO_TIRE_CHANGE else NO_TIRE_CHANGE
+
+            # construct new pending row preserving other fields
             new_row = last_row.copy()
-            new_row['pit_end_time'] = self._get_new_pit_end_time(last_row.get('pit_end_time', '00:00:00'), mean_stint_time_sec)
-            new_row['tires_changed'] = 4 if tires_changed else 0
+            new_row['pit_end_time'] = self._get_new_pit_end_time(pit, mean_stint_time_sec)
+            new_row['tires_changed'] = pending_tires_changed
             rows.append(new_row)
             last_row = new_row
 
-            # Also append a copy of the last tires entry to keep arrays aligned
-            tires_dict = get_default_tire_dict(tires_changed=tires_changed)  # Alternate between no change and full change for new rows
-            tires.append(tires_dict)
-            i += 1
+            # add new tire metadata based on whether any tires changed
+            # (bool) rather than the raw count.  This keeps the strategy
+            # document consistent with other parts of the code.
+            tires.append(get_default_tire_dict(tires_changed=bool(pending_tires_changed)))
 
     def _set_inputs(self, mean_stint_time=None):
         """Set the values of the input fields."""
