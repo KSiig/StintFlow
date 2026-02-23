@@ -22,6 +22,7 @@ from ui.utilities import get_fonts, FONT
 from core.utilities import load_user_settings, save_user_settings
 from core.errors import log, log_exception
 from core.utilities import resource_path
+from ui.components.common import PopUp
 
 
 class SettingsView(QWidget):
@@ -218,3 +219,14 @@ class SettingsView(QWidget):
             'password': os.getenv('MONGODB_PASSWORD', ''),
             'auth_source': os.getenv('MONGODB_AUTH_SOURCE', 'admin')
         }
+
+    def alert_db_connection_failure(self) -> None:
+        """Display a message indicating the database connection failed."""
+        dialog = PopUp(
+            title="Database Connection Failed",
+            message="Unable to connect to MongoDB. Please check your settings.",
+            buttons=["Ok"],
+            type="critical",
+            parent=self
+        )
+        dialog.exec()

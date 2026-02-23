@@ -60,8 +60,8 @@ class SessionPicker(QWidget):
         
         self._setup_styles()
         self._create_layout()
-        self._populate_initial_data()
-    
+        # Data loading is deferred; caller should invoke reload() once the UI
+        # is visible and any connection checks have been performed.    
     def _setup_styles(self) -> None:
         """Load and apply session picker stylesheet."""
         try:
@@ -158,6 +158,9 @@ class SessionPicker(QWidget):
         
         Loads events and sessions, then sets the initial selection based
         on the selection model if available.
+
+        This is intended to be called by reload(); it is kept separate so that
+        initial construction can omit database access.
         """
         self._load_events()
         

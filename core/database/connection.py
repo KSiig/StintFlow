@@ -334,27 +334,6 @@ def get_strategies_collection() -> Collection:
     return _get_collection('strategies')
 
 
-# Convenience aliases for backward compatibility and easier imports
-# These were previously computed at import time, which would trigger
-# a database connection immediately and could raise if the server was
-# unreachable.  To support the startup connectivity check and allow the
-# application to launch even when MongoDB is down, we now perform the
-# lookups lazily and swallow any errors during import.
-
-try:
-    stints_col = get_stints_collection()
-    events_col = get_events_collection()
-    sessions_col = get_sessions_collection()
-    teams_col = get_teams_collection()
-    strategies_col = get_strategies_collection()
-except Exception:
-    # Collections may be None until a successful connection is made.  The
-    # individual functions above already log any exceptions encountered.
-    stints_col = None
-    events_col = None
-    sessions_col = None
-    teams_col = None
-    strategies_col = None
 
 
 def test_connection() -> bool:
@@ -367,6 +346,7 @@ def test_connection() -> bool:
         not re-raised so callers can decide on fallback behavior.
     """
     try:
+        log('INFO', 'Testing MongoDB connection...', category='database', action='test_connection')
         # Attempt to obtain a client, which will perform a server_info call
         # internally and raise on failure.
         _get_client()

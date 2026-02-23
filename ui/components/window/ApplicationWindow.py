@@ -9,16 +9,18 @@ Manages window state, content switching, and event handling.
 """
 
 from PyQt6.QtWidgets import QMainWindow, QApplication, QWidget
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtCore import Qt, QEvent, QTimer
 from PyQt6.QtGui import QMouseEvent
 
 from ..navigation import NavigationMenu
 from .WindowButtons import WindowButtons
 from ..common import DraggableArea
+from ..common.LoadingOverlay import LoadingOverlay
 from ..stint_tracking import OverviewView, ConfigView, StrategiesView
 from ..settings import SettingsView
 from ui.models import ModelContainer, SelectionModel, NavigationModel
 from ui.utilities import ResizeController
+from ui.utilities.initialization_worker import InitializationWorker
 from .layout_factory import (
     create_scroll_area,
     create_stacked_container,
@@ -59,9 +61,14 @@ class ApplicationWindow(QMainWindow):
         # Setup window and create components
         self._setup_window_properties()
         self._create_components()
-        self._create_initial_views()
         self._assemble_layout()
         
+        # prepare loading overlay and defer heavy initialization
+        self._create_loading_overlay()
+        # initialize stack used by show_loading/hide_loading helpers
+        self._loading_widget_stack = []
+        QTimer.singleShot(0, self._start_initialization)
+
         # Setup event handling
         self._setup_mouse_tracking()
         QApplication.instance().installEventFilter(self)
@@ -93,36 +100,182 @@ class ApplicationWindow(QMainWindow):
         # Connect navigation model to view switching
         self.navigation_model.activeWidgetChanged.connect(self._change_workspace_widget)
     
-    def _create_initial_views(self) -> None:
-        """Create and register initial view windows."""
-        
-        # Create table model for stint tracking
-        table_model = TableModel(
+    def _create_loading_overlay(self) -> None:
+        """Build the overlay widget that is displayed while initialization runs."""
+        # We add the overlay as another widget in the stacked container so it
+        # can be shown by simply switching the current widget; it will cover the
+        # same area as the future views.
+        self.loading_overlay = LoadingOverlay(self.central_container)
+        self.central_container_layout.addWidget(self.loading_overlay)
+        self.central_container_layout.setCurrentWidget(self.loading_overlay)
+
+    def _start_initialization(self) -> None:
+        """Begin the asynchronous view/data setup.
+
+        The background worker handles database connectivity testing and will
+        emit a failure signal if it cannot connect.  We simply prepare an empty
+        model and start the worker here.
+        """
+        # create an empty model first (no DB load)
+        self.table_model = TableModel(
             selection_model=self.selection_model,
-            headers=get_header_titles()
+            headers=get_header_titles(),
+            load_on_init=False
         )
-        
+
+        # ensure the overlay has a starting message
+        if hasattr(self, 'loading_overlay') and self.loading_overlay:
+            self.loading_overlay.set_status('Initializing...')
+
+        # run a worker thread to fetch the data
+        self._init_worker = InitializationWorker(self.selection_model)
+        self._init_worker.status.connect(self._on_status_update)
+        self._init_worker.connectionFailed.connect(self._on_connection_failed)
+        self._init_worker.finished.connect(self._on_initialization_done)
+        self._init_worker.start()
+
+    def _on_status_update(self, message: str) -> None:
+        """Update overlay text while the worker runs."""
+        if hasattr(self, 'loading_overlay') and self.loading_overlay:
+            self.loading_overlay.set_status(message)
+
+    # centralized helpers ---------------------------------------------------
+    def show_loading(self, message: str) -> None:
+        """Display the global loading overlay with *message*.
+
+        The current visible widget is pushed onto an internal stack; when
+        ``hide_loading`` is called the last widget is popped and restored.  This
+        allows overlapping calls (e.g. Strategy view and table update) without
+        losing track of the proper return state.
+        """
+        if not hasattr(self, 'loading_overlay') or not self.loading_overlay:
+            return
+
+        self.loading_overlay.set_status(message)
+        from PyQt6.QtWidgets import QApplication
+
+        if hasattr(self, 'central_container_layout'):
+            try:
+                current = self.central_container_layout.currentWidget()
+            except Exception:
+                current = None
+            self._loading_widget_stack.append(current)
+            self.central_container_layout.setCurrentWidget(self.loading_overlay)
+        else:
+            # no stacked layout; just make it visible and push None to keep
+            # stack balanced
+            self._loading_widget_stack.append(None)
+            self.loading_overlay.show()
+
+        # force immediate paint of overlay so it appears before any blocking work
+        QApplication.processEvents()
+
+    def hide_loading(self) -> None:
+        """Hide the loading overlay and restore the previous view.
+
+        Pops the last widget off the stack and makes it current.  If the stack is
+        empty the overlay is simply hidden (or the navigation model's active
+        widget is used as a fallback).
+        """
+        if not hasattr(self, 'loading_overlay') or not self.loading_overlay:
+            return
+
+        target = None
+        if self._loading_widget_stack:
+            target = self._loading_widget_stack.pop()
+
+        if hasattr(self, 'central_container_layout'):
+            if target is not None:
+                try:
+                    self.central_container_layout.setCurrentWidget(target)
+                    return
+                except Exception:
+                    pass
+            # nothing explicit to restore; try navigation model
+            if hasattr(self, 'navigation_model'):
+                active = self.navigation_model.active_widget
+                if active is not None:
+                    self.central_container_layout.setCurrentWidget(active)
+                    return
+            # still here? just hide overlay
+            self.loading_overlay.hide()
+        else:
+            self.loading_overlay.hide()
+
+    # end helpers ---------------------------------------------------------
+
+    def _on_connection_failed(self) -> None:
+        """Worker reported database connection failure.
+
+        Switch to settings pane and hide the overlay so the user can correct
+        the credentials.  This runs on the main thread.
+        """
+        if hasattr(self, 'loading_overlay') and self.loading_overlay:
+            self.loading_overlay.set_status('Connection failed')
+
+        # show settings view
+        models = ModelContainer(selection_model=self.selection_model)
+        settings_view = SettingsView(models)
+        self.navigation_model.add_widget(SettingsView, settings_view)
+        self.navigation_model.set_active_widget(settings_view)
+        settings_view.alert_db_connection_failure()
+
+        if hasattr(self, 'loading_overlay') and self.loading_overlay:
+            self.loading_overlay.hide()
+
+    def _on_initialization_done(self, data, tires, mean_stint_time, events, sessions) -> None:
+        """Called once the worker has finished loading data.
+
+        This method creates the actual application views using the now-populated
+        table model, updates the session picker with pre-fetched navigation data,
+        switches away from the loading overlay, and sets the default active page.
+        """
+        # populate model with results
+        self.table_model.update_data(data=data, tires=tires, mean_stint_time=mean_stint_time)
+
+        # update session picker without further DB access
+        try:
+            if hasattr(self, 'navigation_menu') and hasattr(self.navigation_menu, 'session_picker'):
+                sp = self.navigation_menu.session_picker
+                sp.events.blockSignals(True)
+                sp.sessions.blockSignals(True)
+                sp.events.clear()
+                for doc in events:
+                    sp.events.addItem(doc.get('name',''), userData=str(doc.get('_id','')))
+                if events and sessions:
+                    sp.sessions.clear()
+                    for doc in sessions:
+                        sp.sessions.addItem(doc.get('name',''), userData=str(doc.get('_id','')))
+                sp.events.blockSignals(False)
+                sp.sessions.blockSignals(False)
+                sp.reload(selected_event_id=self.selection_model.event_id, selected_session_id=self.selection_model.session_id)
+        except Exception:
+            pass  # failure here shouldn't crash startup
+
         models = ModelContainer(
             selection_model=self.selection_model,
-            table_model=table_model
+            table_model=self.table_model
         )
-        
-        # Create overview view and set as active
+
+        # create and register views just as before
         overview_view = OverviewView(models)
         self.navigation_model.add_widget(OverviewView, overview_view)
-        
-        # Create config view
+
         config_view = ConfigView(models)
         self.navigation_model.add_widget(ConfigView, config_view)
-        
-        # Create strategies view
+
         strategies_view = StrategiesView(models)
         self.navigation_model.add_widget(StrategiesView, strategies_view)
 
-        # Create settings view
         settings_view = SettingsView(models)
         self.navigation_model.add_widget(SettingsView, settings_view)
+
+        # switch to the overview once ready
         self.navigation_model.set_active_widget(overview_view)
+
+        # hide overlay
+        if hasattr(self, 'loading_overlay') and self.loading_overlay:
+            self.loading_overlay.hide()
     
     def _assemble_layout(self) -> None:
         """Assemble all layout components into the main window."""

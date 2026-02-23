@@ -23,12 +23,12 @@ from .create_strategy import create_strategy
 from .upsert_official_stint import upsert_official_stint
 from .delete_stint import delete_stint
 from .connection import (
-    stints_col,
-    events_col,
-    sessions_col,
-    teams_col,
-    strategies_col,
     close_connection,
+    get_stints_collection,
+    get_events_collection,
+    get_sessions_collection,
+    get_teams_collection,
+    get_strategies_collection,
 )
 
 __all__ = [
@@ -49,10 +49,10 @@ __all__ = [
     'create_strategy',
     'upsert_official_stint',
     'delete_stint',
-    'stints_col',
-    'events_col',
-    'sessions_col',
-    'teams_col',
-    'strategies_col',
+    'get_stints_collection',
+    'get_events_collection',
+    'get_sessions_collection',
+    'get_teams_collection',
+    'get_strategies_collection',
     'close_connection',
 ]

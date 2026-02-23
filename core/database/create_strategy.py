@@ -5,7 +5,7 @@ Inserts a strategy document into the strategies collection.
 """
 
 from bson import ObjectId
-from .connection import strategies_col
+from .connection import get_strategies_collection
 
 
 def create_strategy(strategy: dict) -> ObjectId:
@@ -26,5 +26,6 @@ def create_strategy(strategy: dict) -> ObjectId:
     Returns:
         ObjectId of the inserted strategy document
     """
-    result = strategies_col.insert_one(strategy)
+    coll = get_strategies_collection()
+    result = coll.insert_one(strategy)
     return result.inserted_id

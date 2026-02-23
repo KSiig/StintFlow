@@ -4,7 +4,7 @@ Strategies view for managing race strategies.
 Displays tabbed interface with main strategy creator and existing strategies.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabBar, QStackedWidget, QFrame, QPushButton, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabBar, QStackedWidget, QFrame, QPushButton, QSizePolicy, QApplication
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
 from bson import ObjectId
@@ -237,11 +237,31 @@ class StrategiesView(QWidget):
             log_exception(e, 'Failed to create strategy',
                          category='strategies_view', action='create_strategy')
     
-    def _on_session_changed(self):
-        """Handle session change by reloading strategies."""
+    def _on_session_changed(self, session_id=None, session_name=None):
+        """Handle session change by reloading strategies.
+
+        The sessionChanged signal provides two arguments (id and name) but
+        they are not used here.  After the strategies list has been refreshed
+        we also ensure the global loading overlay is hidden.  We look up the
+        overlay via the active application window rather than relying on
+        ``self.window()`` which may return ``None`` if the widget has not yet
+        been attached to the main window.
+        """
+        from PyQt6.QtWidgets import QApplication
+
+        # locate the application window
+        app_window = self.window() or (QApplication.instance().activeWindow() if QApplication.instance() else None)
         log('DEBUG', 'Session changed - reloading strategies',
             category='strategies_view', action='on_session_changed')
-        self._load_strategies()
+
+        if app_window and hasattr(app_window, 'show_loading'):
+            app_window.show_loading('Loading strategies for new session...')
+
+        try:
+            self._load_strategies()
+        finally:
+            if app_window and hasattr(app_window, 'hide_loading'):
+                app_window.hide_loading()
     
     def _clear_tabs(self):
         """Remove all tabs from the tab bar and stacked widget."""
