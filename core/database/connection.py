@@ -335,11 +335,46 @@ def get_strategies_collection() -> Collection:
 
 
 # Convenience aliases for backward compatibility and easier imports
-stints_col = get_stints_collection()
-events_col = get_events_collection()
-sessions_col = get_sessions_collection()
-teams_col = get_teams_collection()
-strategies_col = get_strategies_collection()
+# These were previously computed at import time, which would trigger
+# a database connection immediately and could raise if the server was
+# unreachable.  To support the startup connectivity check and allow the
+# application to launch even when MongoDB is down, we now perform the
+# lookups lazily and swallow any errors during import.
+
+try:
+    stints_col = get_stints_collection()
+    events_col = get_events_collection()
+    sessions_col = get_sessions_collection()
+    teams_col = get_teams_collection()
+    strategies_col = get_strategies_collection()
+except Exception:
+    # Collections may be None until a successful connection is made.  The
+    # individual functions above already log any exceptions encountered.
+    stints_col = None
+    events_col = None
+    sessions_col = None
+    teams_col = None
+    strategies_col = None
+
+
+def test_connection() -> bool:
+    """
+    Test whether a connection to MongoDB can be established using current
+    settings.
+
+    Returns:
+        True if connection succeeds, False if it fails.  Errors are logged but
+        not re-raised so callers can decide on fallback behavior.
+    """
+    try:
+        # Attempt to obtain a client, which will perform a server_info call
+        # internally and raise on failure.
+        _get_client()
+        return True
+    except Exception:
+        # _get_client already logs the exception details; return False so caller
+        # can react (e.g. show settings view).
+        return False
 
 
 def close_connection() -> None:

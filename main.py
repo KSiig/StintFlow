@@ -13,9 +13,13 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 
 from ui.components.window import ApplicationWindow
+from ui.components import SettingsView
 from ui.utilities import FONT, get_fonts
 from core.utilities import resource_path
 from core.errors import log, log_exception
+
+# database connection helper used at startup
+from core.database.connection import test_connection
 
 
 def _setup_application_icon(app):
@@ -137,6 +141,11 @@ def main():
         app.setStyle('Fusion')
         log('DEBUG', 'Application style set to Fusion', category='main', action='startup')
         
+        # before doing anything else, test database connectivity.  we avoid
+        # calling any other initialization steps until we know whether the
+        # server is reachable so we can redirect immediately if not.
+        db_ok = test_connection()
+
         # Set up application resources
         _setup_application_icon(app)
         _setup_application_font(app)
@@ -149,7 +158,23 @@ def main():
             log('ERROR', 'Failed to create main window, exiting', 
                category='main', action='startup')
             return 1
-        
+
+        # if the earlier connectivity test failed, open settings and show user
+        # a friendly message.  perform this after the window exists.
+        if not db_ok:
+            log('WARNING', 'Initial MongoDB connection failed, showing settings view',
+               category='main', action='startup')
+            try:
+                window.show_settings()
+                settings_widget = window.navigation_model.widgets.get(SettingsView)
+                if settings_widget and hasattr(settings_widget, 'status_label'):
+                    settings_widget.status_label.setText(
+                        'Unable to connect to MongoDB; please verify settings.'
+                    )
+            except Exception as e:
+                log_exception(e, 'Failed to switch to settings after connection failure',
+                              category='main', action='startup')
+
         # Start event loop
         log('INFO', 'Starting application event loop', category='main', action='startup')
         exit_code = app.exec()
