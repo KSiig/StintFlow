@@ -147,11 +147,25 @@ class DropdownButton(QWidget):
                           category='dropdown', action='load_stylesheet')
     
     def _show_popup(self):
-        """Show popup below the button."""
-        # Position popup below the button
-        pos = self.btn.mapToGlobal(self.btn.rect().bottomLeft())
-        self.popup.move(pos.x(), pos.y() + 8)
+        """Show popup above the button.
+
+        The original implementation placed the dropdown immediately below the
+        button. For certain layouts (e.g. when the button is near the bottom of
+        the window) it's preferable to open the menu upwards. We calculate the
+        global top-left point of the button, show the popup to initialize its
+        geometry, then reposition it so its bottom edge sits a small gap above
+        the button.
+        """
+        # Determine global position of the button's top left
+        pos = self.btn.mapToGlobal(self.btn.rect().topLeft())
+
+        # Show first so that height() reflects the real size (sizeHint may not be
+        # accurate if the widget hasn't been laid out yet).
         self.popup.show()
+
+        # Move the popup so that it sits above the button with an 8px gap
+        popup_height = self.popup.height()
+        self.popup.move(pos.x(), pos.y() - popup_height - 8)
 
     def _pad_text(self, text: str, gap: int = 1) -> str:
         """Return text prefixed with enough spaces to create `gap` pixels.
