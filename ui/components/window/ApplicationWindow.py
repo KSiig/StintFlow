@@ -231,6 +231,18 @@ class ApplicationWindow(QMainWindow):
         
         super().mouseMoveEvent(event)
     
+    def show_settings(self) -> None:
+        """
+        Switch the main window to the settings view.
+
+        This is useful when the application starts and detects a problem with
+        database connectivity; we can send the user directly to the settings
+        panel so they can correct their configuration.
+        """
+        settings_widget = self.navigation_model.widgets.get(SettingsView)
+        if settings_widget:
+            self.navigation_model.set_active_widget(settings_widget)
+
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """
         Handle mouse press events to start edge resizing.
