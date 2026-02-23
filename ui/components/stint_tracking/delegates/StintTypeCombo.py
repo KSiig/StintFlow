@@ -5,6 +5,7 @@ Custom delegate for editing stint types with dropdown.
 """
 
 from PyQt6.QtWidgets import QStyledItemDelegate, QWidget, QHBoxLayout, QAbstractItemView, QSizePolicy
+from ui.models.table_constants import ColumnIndex
 from PyQt6.QtCore import Qt, QTimer
 from .delegate_utils import paint_model_background
 
@@ -40,6 +41,8 @@ class StintTypeCombo(QStyledItemDelegate):
             "", "Single", "Double", "Triple", "Quadruple", "Quintuple",
             "Sextuple", "Septuple", "Octuple", "Nonuple", "Decuple"
         ]
+        # when True, completed rows become read-only
+        self.lock_completed = False
     
     def createEditor(self, parent, option, index):
         """Create custom editor widget with button and popup."""
@@ -78,6 +81,12 @@ class StintTypeCombo(QStyledItemDelegate):
         current_text = str(index.data())
         if current_text == "":
             dropdown.btn.setEnabled(False)
+        # also disable if completed and locking is enabled
+        if self.lock_completed:
+            status_idx = index.siblingAtColumn(ColumnIndex.STATUS)
+            status = status_idx.data()
+            if status is not None and "Completed" in str(status):
+                dropdown.btn.setEnabled(False)
         
         # Connect signal to commit data
         dropdown.valueChanged.connect(lambda: self.commitData.emit(editor))

@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QPushButton, QToolTip,
     QGridLayout, QSizePolicy, QAbstractItemView, QStyledItemDelegate, QFrame, QVBoxLayout
 )
+from ui.models.table_constants import ColumnIndex
 from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer, QPoint, QRect
 from PyQt6.QtGui import QIcon, QPixmap, QPen, QColor, QPolygon
 from .delegate_utils import paint_model_background
@@ -43,6 +44,8 @@ class TireComboDelegate(QStyledItemDelegate):
         self.update_doc = update_doc
         self.strategy_id = strategy_id
         self.tires_changed = "0"
+        # lock flag for completed rows
+        self.lock_completed = False
         self.setObjectName("TireComboDelegate")
     
     def createEditor(self, parent, option, index):
@@ -72,6 +75,13 @@ class TireComboDelegate(QStyledItemDelegate):
         )
         self._update_button_text(btn, index)
         layout.addWidget(btn)
+
+        # disable if row is completed and lock is active
+        if self.lock_completed:
+            status_idx = index.siblingAtColumn(ColumnIndex.STATUS)
+            status = status_idx.data()
+            if status is not None and "Completed" in str(status):
+                btn.setEnabled(False)
         
         # Create popup for tire selection
         popup = TirePopup(editor)
