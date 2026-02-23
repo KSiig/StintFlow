@@ -65,6 +65,8 @@ class ApplicationWindow(QMainWindow):
         
         # prepare loading overlay and defer heavy initialization
         self._create_loading_overlay()
+        # initialize stack used by show_loading/hide_loading helpers
+        self._loading_widget_stack = []
         QTimer.singleShot(0, self._start_initialization)
 
         # Setup event handling
@@ -136,6 +138,71 @@ class ApplicationWindow(QMainWindow):
         """Update overlay text while the worker runs."""
         if hasattr(self, 'loading_overlay') and self.loading_overlay:
             self.loading_overlay.set_status(message)
+
+    # centralized helpers ---------------------------------------------------
+    def show_loading(self, message: str) -> None:
+        """Display the global loading overlay with *message*.
+
+        The current visible widget is pushed onto an internal stack; when
+        ``hide_loading`` is called the last widget is popped and restored.  This
+        allows overlapping calls (e.g. Strategy view and table update) without
+        losing track of the proper return state.
+        """
+        if not hasattr(self, 'loading_overlay') or not self.loading_overlay:
+            return
+
+        self.loading_overlay.set_status(message)
+        from PyQt6.QtWidgets import QApplication
+
+        if hasattr(self, 'central_container_layout'):
+            try:
+                current = self.central_container_layout.currentWidget()
+            except Exception:
+                current = None
+            self._loading_widget_stack.append(current)
+            self.central_container_layout.setCurrentWidget(self.loading_overlay)
+        else:
+            # no stacked layout; just make it visible and push None to keep
+            # stack balanced
+            self._loading_widget_stack.append(None)
+            self.loading_overlay.show()
+
+        # force immediate paint of overlay so it appears before any blocking work
+        QApplication.processEvents()
+
+    def hide_loading(self) -> None:
+        """Hide the loading overlay and restore the previous view.
+
+        Pops the last widget off the stack and makes it current.  If the stack is
+        empty the overlay is simply hidden (or the navigation model's active
+        widget is used as a fallback).
+        """
+        if not hasattr(self, 'loading_overlay') or not self.loading_overlay:
+            return
+
+        target = None
+        if self._loading_widget_stack:
+            target = self._loading_widget_stack.pop()
+
+        if hasattr(self, 'central_container_layout'):
+            if target is not None:
+                try:
+                    self.central_container_layout.setCurrentWidget(target)
+                    return
+                except Exception:
+                    pass
+            # nothing explicit to restore; try navigation model
+            if hasattr(self, 'navigation_model'):
+                active = self.navigation_model.active_widget
+                if active is not None:
+                    self.central_container_layout.setCurrentWidget(active)
+                    return
+            # still here? just hide overlay
+            self.loading_overlay.hide()
+        else:
+            self.loading_overlay.hide()
+
+    # end helpers ---------------------------------------------------------
 
     def _on_connection_failed(self) -> None:
         """Worker reported database connection failure.
