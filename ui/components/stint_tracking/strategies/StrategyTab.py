@@ -258,6 +258,12 @@ class StrategyTab(QWidget):
 
             update_strategy(strategy=self.strategy)
             self.stint_table.refresh_table(skip_model_update=True)
+            # keep editors and delegates alive after the refresh
+            try:
+                self._setup_strategy_delegates()
+                self._open_persistent_editors()
+            except Exception:
+                pass
         except Exception as e:
             log_exception(e, 'Failed to handle exclude click',
                          category='strategy_tab', action='exclude_click')
