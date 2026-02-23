@@ -4,8 +4,10 @@ StrategySettings component for the strategy tab placeholder.
 Displays a placeholder for future strategy settings UI.
 """
 
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame
+from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame, QCheckBox
 from PyQt6.QtCore import Qt, pyqtSignal
+
+from ui.utilities import get_fonts, FONT
 
 from core.utilities import resource_path
 from core.errors import log
@@ -23,6 +25,15 @@ from datetime import timedelta, datetime
 class StrategySettings(QWidget):
     """
     Placeholder widget for strategy settings/info box.
+
+    Fields include:
+      * mean_stint_time - editable time string
+      * lock_completed_stints - checkbox that prevents editing of already
+        completed stints when enabled
+
+    The lock checkbox is read-only until the user clicks the "edit"
+    button; it becomes enabled during edit mode and is disabled again when
+    the settings are saved.
     """
 
     strategy_updated = pyqtSignal(dict)  # Emitted when strategy is updated
@@ -104,38 +115,55 @@ class StrategySettings(QWidget):
         """Create labeled input rows for strategy settings."""
                 # Create and store input field references
         for field_id, title in [
-            ("mean_stint_time", "Mean Stint Time"),
+            ("mean_stint_time", "Mean stint time"),
         ]:
             card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
             self.inputs[field_id] = card.get_input_field()
             layout.addWidget(card)
 
+        # additional options below the line of inputs
+        # checkbox for locking completed stints styled like a labeled row
+        header = QLabel("Lock completed stints")
+        try:
+            header.setFont(get_fonts(FONT.header_input))
+        except Exception:
+            pass
+        header.setObjectName("SettingTitle")
+        layout.addWidget(header)
+        lock_cb = QCheckBox()
+        lock_cb.setEnabled(False)  # initially non-editable until user clicks edit
+        self.inputs["lock_completed_stints"] = lock_cb
+        layout.addWidget(lock_cb)
+
     def _toggle_edit(self):
         """Toggle edit mode for the input rows."""
         # If save button visible, switch to view mode
-        if self.save_btn.isVisible():
+        edit_mode = self.save_btn.isVisible()
+        if edit_mode:
             self.save_btn.hide()
             self.edit_btn.show()
-            for widget in self.inputs.values():
-                try:
-                    widget.setReadOnly(True)
-                    widget.setProperty('editable', False)
-                    widget.style().unpolish(widget)
-                    widget.style().polish(widget)
-                except Exception:
-                    pass
         else:
-            # Enter edit mode
             self.edit_btn.hide()
             self.save_btn.show()
-            for widget in self.inputs.values():
-                try:
-                    widget.setReadOnly(False)
-                    widget.setProperty('editable', True)
+
+        # iterate through inputs and adjust depending on type
+        for widget in self.inputs.values():
+            # QLineEdit-style widgets use readOnly property and style tweaks
+            try:
+                if hasattr(widget, 'setReadOnly'):
+                    widget.setReadOnly(edit_mode)
+                    widget.setProperty('editable', not edit_mode)
                     widget.style().unpolish(widget)
                     widget.style().polish(widget)
-                except Exception:
-                    pass
+                    continue
+            except Exception:
+                pass
+
+            # QCheckBox (or other) use enabled state
+            try:
+                widget.setEnabled(not edit_mode)
+            except Exception:
+                pass
 
     def _on_save_clicked(self):
         """Save handler for mean_stint_time and update related rows."""
@@ -182,6 +210,11 @@ class StrategySettings(QWidget):
 
             # persist new mean and entire strategy document
             self.strategy['mean_stint_time_seconds'] = mean_stint_time_sec
+            # also store checkbox state if present
+            lock_widget = self.inputs.get("lock_completed_stints")
+            if lock_widget is not None:
+                self.strategy['lock_completed_stints'] = bool(lock_widget.isChecked())
+
             update_strategy(strategy=self.strategy)
 
             self.strategy_updated.emit(self.strategy)  # Emit updated strategy data for other components to react
@@ -354,6 +387,20 @@ class StrategySettings(QWidget):
             widget = self.inputs.get("mean_stint_time")
             if widget is not None:
                 widget.setText(mean_stint_time_str)
+
+        # if strategy has lock setting, update checkbox
+        # Only update the lock checkbox when not in edit mode.  The
+        # table_model can emit dataChanged frequently, and we don't want to
+        # stomp user edits while they are typing.  If we're currently in
+        # edit mode the save button will be visible, so skip resetting.
+        if not self.save_btn.isVisible():
+            lock_widget = self.inputs.get("lock_completed_stints")
+            if lock_widget is not None:
+                # default unchecked if no strategy or field not set
+                checked = False
+                if self.strategy is not None:
+                    checked = bool(self.strategy.get('lock_completed_stints', False))
+                lock_widget.setChecked(checked)
 
     def _format_stint_time(self, stint_time) -> str:
         """Return a HH:MM:SS string for the provided stint_time.

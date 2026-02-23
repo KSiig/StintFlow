@@ -404,11 +404,13 @@ class StintTable(QWidget):
             skip_model_update = False
 
         # update model data with visual feedback; delegate overlay handling
-        # to the ApplicationWindow helpers for consistency.
+        # to the ApplicationWindow helpers for consistency.  show the overlay
+        # only when we're actually fetching new data, not when the caller has
+        # provided skip_model_update=True.
         from PyQt6.QtWidgets import QApplication
 
         app_window = self.window() or (QApplication.instance().activeWindow() if QApplication.instance() else None)
-        if app_window and hasattr(app_window, 'show_loading'):
+        if not skip_model_update and app_window and hasattr(app_window, 'show_loading'):
             app_window.show_loading('Loading session data...')
 
         if not skip_model_update:
@@ -419,7 +421,7 @@ class StintTable(QWidget):
                 if app_window and hasattr(app_window, 'hide_loading'):
                     app_window.hide_loading()
         else:
-            # no data change but still dismiss overlay
+            # ensure any existing overlay gets removed when not updating
             if app_window and hasattr(app_window, 'hide_loading'):
                 app_window.hide_loading()
 

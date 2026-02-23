@@ -258,6 +258,12 @@ class StrategyTab(QWidget):
 
             update_strategy(strategy=self.strategy)
             self.stint_table.refresh_table(skip_model_update=True)
+            # keep editors and delegates alive after the refresh
+            try:
+                self._setup_strategy_delegates()
+                self._open_persistent_editors()
+            except Exception:
+                pass
         except Exception as e:
             log_exception(e, 'Failed to handle exclude click',
                          category='strategy_tab', action='exclude_click')
@@ -267,25 +273,33 @@ class StrategyTab(QWidget):
         try:
             # Enable editing on the model
             self.table_model.set_editable(True, True)
+
+            # determine whether completed rows should be locked
+            lock_enabled = bool(self.strategy.get('lock_completed_stints', False))
+            self._lock_completed = lock_enabled
             
             # Set stint type combo delegate (column 0)
+            stint_delegate = StintTypeCombo(
+                self.stint_table.table,
+                update_doc=True,
+                strategy_id=str(self.strategy_id)
+            )
+            stint_delegate.lock_completed = lock_enabled
             self.stint_table.table.setItemDelegateForColumn(
                 ColumnIndex.STINT_TYPE,
-                StintTypeCombo(
-                    self.stint_table.table,
-                    update_doc=True,
-                    strategy_id=str(self.strategy_id)
-                )
+                stint_delegate
             )
             
             # Set tire combo delegate (column 4)
+            tire_delegate = TireComboDelegate(
+                self.stint_table.table,
+                update_doc=True,
+                strategy_id=str(self.strategy_id)
+            )
+            tire_delegate.lock_completed = lock_enabled
             self.stint_table.table.setItemDelegateForColumn(
                 ColumnIndex.TIRES_CHANGED,
-                TireComboDelegate(
-                    self.stint_table.table,
-                    update_doc=True,
-                    strategy_id=str(self.strategy_id)
-                )
+                tire_delegate
             )
 
             # Set actions delegate 
@@ -318,27 +332,40 @@ class StrategyTab(QWidget):
         """Open persistent editors for editable columns in all rows."""
         try:
             row_count = self.table_model.rowCount()
-            
+            lock_enabled = getattr(self, '_lock_completed', False)
+
             for row in range(row_count):
-                # Open editor for stint type column (only if cell has content)
+                # determine completed status of this row
+                status_idx = self.table_model.index(row, ColumnIndex.STATUS)
+                status_val = status_idx.data()
+                is_completed = status_val is not None and "Completed" in str(status_val)
+
+                # Stint type column
                 stint_type_index = self.table_model.index(row, ColumnIndex.STINT_TYPE)
                 cell_text = str(stint_type_index.data())
-                
-                if cell_text:  # Non-empty cells get persistent editors
-                    self.stint_table.table.openPersistentEditor(stint_type_index)
-                else:  # Empty cells (pending stints) don't get editors
+
+                if lock_enabled and is_completed:
+                    # skip editors for locked completed rows
                     self.stint_table.table.closePersistentEditor(stint_type_index)
-                
-                # Always open editor for tire changes column
+                else:
+                    if cell_text:  # Non-empty cells get persistent editors
+                        self.stint_table.table.openPersistentEditor(stint_type_index)
+                    else:  # Empty cells (pending stints) don't get editors
+                        self.stint_table.table.closePersistentEditor(stint_type_index)
+
+                # Tire changes column
                 tires_index = self.table_model.index(row, ColumnIndex.TIRES_CHANGED)
-                self.stint_table.table.openPersistentEditor(tires_index)
-            
+                if lock_enabled and is_completed:
+                    self.stint_table.table.closePersistentEditor(tires_index)
+                else:
+                    self.stint_table.table.openPersistentEditor(tires_index)
+
             # Resize columns to fit editor content
             self.stint_table.table.resizeColumnsToContents()
-            
+
             log('DEBUG', f'Opened persistent editors for {row_count} rows',
                 category='strategy_tab', action='open_persistent_editors')
-            
+
         except Exception as e:
             log_exception(e, 'Failed to open persistent editors',
                          category='strategy_tab', action='open_persistent_editors')

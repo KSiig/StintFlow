@@ -22,8 +22,10 @@ def update_strategy(strategy_id: str | ObjectId=None, model_data: dict=None, str
         strategies_col.update_one(
             {"_id": strategy["_id"]},
             {"$set": {
+                "name": strategy.get('name', ''),
                 "model_data": strategy.get('model_data', {}),
-                "mean_stint_time_seconds": strategy.get('mean_stint_time_seconds', None)
+                "mean_stint_time_seconds": strategy.get('mean_stint_time_seconds', None),
+                "lock_completed_stints": strategy.get('lock_completed_stints', False)
                 }}
             )
         return
