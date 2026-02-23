@@ -353,14 +353,34 @@ class TirePopup(QWidget):
         btn_layout.addStretch()
         layout.addLayout(btn_layout, 0, 1)
         
-        # Create tire selection combos
+        # Create tire selection combos with icon support.  The underlying value
+        # must remain the compound string ("medium", "wet", "used medium", etc.)
+        # while the display text is simplified to "New" or "Used" and an icon
+        # indicates the actual compound.
         self.boxes = {}
-        dropdown_items = ["", "Medium", "Wet", "Used medium", "Used wet"]
+        dropdown_items = [
+            {"display": "", "value": "", "icon": None},
+            {
+                "display": "New", "value": "medium",
+                "icon": resource_path('resources/icons/tires/medium.png')
+            },
+            {
+                "display": "Used", "value": "used medium",
+                "icon": resource_path('resources/icons/tires/medium.png')
+            },
+            {
+                "display": "New", "value": "wet",
+                "icon": resource_path('resources/icons/tires/wet.png')
+            },
+            {
+                "display": "Used", "value": "used wet",
+                "icon": resource_path('resources/icons/tires/wet.png')
+            },
+        ]
         for i, tire in enumerate(["FL", "FR", "RL", "RR"]):
             row = (i // 2) + 1  # 0,0,1,1 -> 1,1,2,2
             col = (i % 2) * 2   # 0,2,0,2
-            
-            # label = QLabel(tire)
+
             cb = DropdownButton(
                 items=dropdown_items,
                 current_value="",
@@ -368,10 +388,9 @@ class TirePopup(QWidget):
                 button_object_name="TirePopupDropdown",
             )
             cb.valueChanged.connect(lambda _: self.dataChanged.emit())
-            
-            # layout.addWidget(label, row, col)
+
             layout.addWidget(cb, row, col + 1)
-            
+
             self.boxes[tire] = cb
     
     def set_values(self, data: dict):
@@ -383,9 +402,10 @@ class TirePopup(QWidget):
         """
         for tire in self.boxes:
             tire_changed = data['tires_changed'][tire.lower()]
-            tire_compound = data[tire.lower()]['outgoing']['compound'].capitalize()
-            
+            tire_compound = data[tire.lower()]['outgoing']['compound']
+
             if tire_changed:
+                # compound already contains the correct internal value
                 self.boxes[tire].set_value(tire_compound)
             else:
                 self.boxes[tire].set_value("")
@@ -404,11 +424,14 @@ class TirePopup(QWidget):
         Set all tires to the same compound.
         
         Args:
-            compound: Compound name ("medium", "wet") or None to clear
+            compound: internal compound value ("medium", "wet", "used medium", etc.)
+                or None to clear
         """
         for tire in self.boxes:
             if compound:
-                self.boxes[tire].set_value(compound.capitalize())
+                # pass the raw internal value; DropdownButton will display
+                # appropriate text/icon
+                self.boxes[tire].set_value(compound)
             else:
                 self.boxes[tire].set_value("")
             self.dataChanged.emit()
