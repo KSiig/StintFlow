@@ -396,6 +396,13 @@ class StintTable(QWidget):
         if self.table_model is None:
             return
 
+        # Sometimes a session id is emitted, in which case the model needs
+        # to be updated before, but wouldn't trigger as a string is True-ish.  
+        # In that case we want to update the model, so we check for string 
+        # and treat it as False.
+        if isinstance(skip_model_update, str):
+            skip_model_update = False
+
         # Update model data unless the caller opts out
         if not skip_model_update:
             self.table_model.update_data()
