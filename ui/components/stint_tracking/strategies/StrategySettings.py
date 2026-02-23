@@ -7,6 +7,8 @@ Displays a placeholder for future strategy settings UI.
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame, QCheckBox
 from PyQt6.QtCore import Qt, pyqtSignal
 
+from ui.utilities import get_fonts, FONT
+
 from core.utilities import resource_path
 from core.errors import log
 from core.database import update_strategy
@@ -113,15 +115,22 @@ class StrategySettings(QWidget):
         """Create labeled input rows for strategy settings."""
                 # Create and store input field references
         for field_id, title in [
-            ("mean_stint_time", "Mean Stint Time"),
+            ("mean_stint_time", "Mean stint time"),
         ]:
             card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
             self.inputs[field_id] = card.get_input_field()
             layout.addWidget(card)
 
         # additional options below the line of inputs
-        # checkbox for locking completed stints
-        lock_cb = QCheckBox(text="Lock completed stints")
+        # checkbox for locking completed stints styled like a labeled row
+        header = QLabel("Lock completed stints")
+        try:
+            header.setFont(get_fonts(FONT.header_input))
+        except Exception:
+            pass
+        header.setObjectName("SettingTitle")
+        layout.addWidget(header)
+        lock_cb = QCheckBox()
         lock_cb.setEnabled(False)  # initially non-editable until user clicks edit
         self.inputs["lock_completed_stints"] = lock_cb
         layout.addWidget(lock_cb)
