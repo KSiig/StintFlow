@@ -6,6 +6,7 @@ Shows an existing strategy with editable stint table.
 
 from datetime import timedelta
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QSizePolicy
+from PyQt6.QtCore import pyqtSignal
 from core.errors import log, log_exception
 from core.utilities import resource_path
 from core.database import update_strategy
@@ -77,7 +78,9 @@ class StrategyTab(QWidget):
             # keep a reference for later operations (e.g. after deletions)
             self.strategy_settings = strategy_settings
             strategy_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-            strategy_settings.strategy_updated.connect(self._load_strategy_data)  # Reload table when strategy is updated
+            # when the settings change we want to update both the table and
+            # potentially the tab label if the strategy name was edited
+            strategy_settings.strategy_updated.connect(self._strategy_updated)
             layout.addWidget(strategy_settings, stretch=1)
 
             # Create StintTable with editing enabled
@@ -97,9 +100,27 @@ class StrategyTab(QWidget):
             log_exception(e, 'Failed to setup StrategyTab UI',
                          category='strategy_tab', action='setup_ui')
 
+    # signal emitted when this tab's strategy name changes; the parent
+    # view uses it to keep the tab bar text in sync.
+    name_changed = pyqtSignal(str)
+
     def _strategy_updated(self, updated_strategy: dict):
-        """Handle updates to the strategy from StrategySettings."""
+        """Handle updates to the strategy from StrategySettings.
+
+        This is called whenever the user saves changes in the settings pane.
+        In addition to reloading table data, if the name field was modified we
+        update the cached ``self.strategy_name`` and emit ``name_changed`` so
+        that any container (e.g. ``StrategiesView``) can adjust its tab label
+        without rebuilding all the tabs.
+        """
         self.strategy = updated_strategy
+
+        # notify parent if name has changed
+        # new_name = self.strategy.get('name')
+        # if new_name and new_name != old_name:
+        #     self.strategy_name = new_name
+        self.name_changed.emit(self.strategy.get('name', 'Unnamed Strategy'))
+
         self._load_strategy_data()  # Reload table with updated strategy data
         self.table_model._recalculate_tires_left()
     

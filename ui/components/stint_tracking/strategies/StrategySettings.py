@@ -114,7 +114,7 @@ class StrategySettings(QWidget):
         """Create labeled input rows for strategy settings."""
                 # Create and store input field references
         for field_id, title in [
-            ("name", "Strategy Name"),
+            ("name", "Strategy name"),
             ("mean_stint_time", "Mean stint time"),
         ]:
             card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
@@ -168,12 +168,17 @@ class StrategySettings(QWidget):
     def _on_save_clicked(self):
         """Save handler for mean_stint_time and update related rows."""
         try:
-            # 1. Retrieve and convert mean_stint_time from input
+            # Retrieve and convert mean_stint_time from input
             input_widget = self.inputs.get("mean_stint_time")
             if input_widget is None:
                 log('ERROR', 'mean_stint_time input widget missing', category='strategy_settings', action='save_clicked')
                 return
             mean_stint_time_str = input_widget.text().strip()
+
+            stint_name_widget = self.inputs.get("name")
+            if stint_name_widget is not None:
+                self.strategy['name'] = stint_name_widget.text().strip()
+
             # Convert HH:MM:SS to seconds (int)
             try:
                 h, m, s = map(int, mean_stint_time_str.split(":"))

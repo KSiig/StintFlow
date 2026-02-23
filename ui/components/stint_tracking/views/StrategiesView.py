@@ -159,11 +159,14 @@ class StrategiesView(QWidget):
         Returns:
             StrategyTab widget with cloned table model
         """
-        return StrategyTab(
+        tab = StrategyTab(
             strategy=strategy,
             table_model=self.table_model,
             selection_model=self.selection_model
         )
+        # keep track of name changes so the tab bar text stays in sync
+        tab.name_changed.connect(lambda new_name, t=tab: self._update_tab_label(t, new_name))
+        return tab
     
     def _on_strategy_created(self, strategy: dict):
         """
@@ -271,6 +274,26 @@ class StrategiesView(QWidget):
         while self.stacked_widget.count() > 0:
             widget = self.stacked_widget.widget(0)
             self.stacked_widget.removeWidget(widget)
+
+    def _update_tab_label(self, widget: QWidget, new_label: str) -> None:
+        """Update the tab bar text corresponding to a given widget.
+
+        Args:
+            widget: The widget that resides in ``self.stacked_widget``.
+            new_label: The new label text to set on the tab bar.
+        """
+        index = self.stacked_widget.indexOf(widget)
+        if index != -1:
+            log('INFO', f'Updating tab label at index {index} to "{new_label}"',
+                category='strategies_view', action='update_tab_label')
+            self.tab_bar.setTabText(index, new_label)
+            # some stylesheets or platform themes may not repaint automatically
+            # after a text change, so force a refresh
+            self.tab_bar.update()
+            self.tab_bar.repaint()
+        else:
+            log('WARNING', 'Attempted to update label for non-existent tab',
+                category='strategies_view', action='update_tab_label')
     
     def _add_tab(self, widget: QWidget, label: str):
         """
