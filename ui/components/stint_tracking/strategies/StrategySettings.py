@@ -52,7 +52,7 @@ class StrategySettings(QWidget):
     
     def _data_changed(self):
         mean_stint_time = self.table_model._mean_stint_time if self.table_model else None
-        self._set_inputs(mean_stint_time=mean_stint_time)
+        self._set_inputs()
     
     def _setup_styles(self) -> None:
         """Load and apply strategy settings stylesheet."""
@@ -85,7 +85,6 @@ class StrategySettings(QWidget):
         frame_layout.setSpacing(12)
 
         frame_layout.addWidget(header)
-        mean_stint_time = self.table_model._mean_stint_time if self.table_model else None
 
         # Buttons (Edit / Save)
         btn_row = QVBoxLayout()
@@ -97,7 +96,7 @@ class StrategySettings(QWidget):
 
 
         self._create_labeled_input_rows(frame_layout)
-        self._set_inputs(mean_stint_time=mean_stint_time)
+        self._set_inputs()
 
         frame_layout.addStretch()
 
@@ -115,6 +114,7 @@ class StrategySettings(QWidget):
         """Create labeled input rows for strategy settings."""
                 # Create and store input field references
         for field_id, title in [
+            ("name", "Strategy Name"),
             ("mean_stint_time", "Mean stint time"),
         ]:
             card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
@@ -378,8 +378,10 @@ class StrategySettings(QWidget):
             next_change = 4 if next_change == 0 else 0
         
 
-    def _set_inputs(self, mean_stint_time=None):
+    def _set_inputs(self):
         """Set the values of the input fields."""
+        # Set mean stint time input if available; otherwise leave blank
+        mean_stint_time = self.table_model._mean_stint_time if self.table_model else None
         if mean_stint_time is not None:
             mean_stint_time_str = self._format_stint_time(mean_stint_time)
 
@@ -387,6 +389,13 @@ class StrategySettings(QWidget):
             widget = self.inputs.get("mean_stint_time")
             if widget is not None:
                 widget.setText(mean_stint_time_str)
+
+        # Set strategy name if available
+        if self.strategy is not None:
+            name = self.strategy.get('name', '')
+            name_widget = self.inputs.get("name")
+            if name_widget is not None:
+                name_widget.setText(name)
 
         # if strategy has lock setting, update checkbox
         # Only update the lock checkbox when not in edit mode.  The
