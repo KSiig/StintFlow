@@ -56,7 +56,8 @@ class TableModel(QAbstractTableModel):
         data: list[list] = None,
         tires: list[dict] = None,
         meta: list[dict] = None,
-        mean_stint_time: timedelta = None
+        mean_stint_time: timedelta = None,
+        load_on_init: bool = True
     ):
         """
         Initialize the table model.
@@ -66,10 +67,7 @@ class TableModel(QAbstractTableModel):
         strategy rather than the live session.  When ``True`` the mean
         recalculation code avoids trimming or regenerating pending rows, since
         strategy data is considered authoritative.
-        """
-        """
-        Initialize the table model.
-        
+
         Args:
             selection_model: SelectionModel with current event/session selection
             headers: Column header definitions (list of dicts with 'title' and 'icon')
@@ -77,6 +75,10 @@ class TableModel(QAbstractTableModel):
             tires: Optional pre-populated tire metadata
             meta: Optional pre-populated document metadata
             mean_stint_time: Optional mean stint time for calculations
+            load_on_init: If True (default) the model will immediately load data
+                from the database when instantiated.  Pass False to defer
+                loading until later, which is useful for performing the database
+                work in a background thread and avoiding startup pauses.
         """
         super().__init__()
         
@@ -96,7 +98,8 @@ class TableModel(QAbstractTableModel):
             self._tires = []
             self._meta = []
             self._mean_stint_time = timedelta(0)
-            self._load_data_from_database()
+            if load_on_init:
+                self._load_data_from_database()
     
     def clone(self) -> 'TableModel':
         """
