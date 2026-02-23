@@ -235,6 +235,8 @@ class TableModel(QAbstractTableModel):
     
     def _repaint_table(self) -> None:
         """Emit dataChanged signal for entire table."""
+        # dataChanged alone is sufficient when number of rows/columns is
+        # unchanged. row/column count changes should reset or remove/add rows.
         if self.rowCount() > 0 and self.columnCount() > 0:
             top_left = self.index(0, 0)
             bottom_right = self.index(self.rowCount() - 1, self.columnCount() - 1)
@@ -251,6 +253,8 @@ class TableModel(QAbstractTableModel):
         if not self.selection_model.session_id:
             return
 
+        # changes below may alter row count; reset model to keep view synced
+        self.beginResetModel()
         try:
             # Starting time only matters for fallbacks below; session vs
             # strategy does not change the value.
@@ -307,14 +311,26 @@ class TableModel(QAbstractTableModel):
 
                 # Trim to completed rows and possibly regenerate pending rows
                 self._data = self._data[:completed_count]
+                self._tires = self._tires[:completed_count]
                 if update_pending:
                     generate_pending_stints(self._data, self._mean_stint_time, tires_left)
+                    last_tire_change = last_completed[ColumnIndex.TIRES_CHANGED]
+                    # Ensure _tires array matches _data length
+                    i = 0 if last_tire_change is NO_TIRE_CHANGE else 1
+
+                    while len(self._tires) < len(self._data):
+                        tires_changed = bool(i % 2)  # Alternate between no change and full change for new rows
+                        self._tires.append(get_default_tire_dict(not tires_changed))
+                        i += 1
+                    self._recalculate_stint_types()
 
             # Notify view of the change
             self._repaint_table()
 
         except Exception as e:
             log('ERROR', f'Failed to update mean/pending rows: {e}', category='table_model', action='update_mean')
+        finally:
+            self.endResetModel()
 
     def _parse_pit_time(self, stint: dict) -> datetime:
         """Parse a stint pit end time into a sortable datetime value."""
