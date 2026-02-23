@@ -151,6 +151,7 @@ class ApplicationWindow(QMainWindow):
         settings_view = SettingsView(models)
         self.navigation_model.add_widget(SettingsView, settings_view)
         self.navigation_model.set_active_widget(settings_view)
+        settings_view.alert_db_connection_failure()
 
         if hasattr(self, 'loading_overlay') and self.loading_overlay:
             self.loading_overlay.hide()
