@@ -43,6 +43,10 @@ python processors/stint_tracker/run.py \
 - `--session-id`: MongoDB ObjectId of the session to track
 - `--drivers`: Space-separated list of driver names to monitor
 - `--practice`: Optional flag for practice mode (requires return to garage before tracking)
+- `--agent-name`: Optional string to uniquely identify this tracker process.  When
+  provided (or a default generated from the PID) the tracker will register
+  itself in the ``agents`` collection and periodically update a heartbeat so
+  that the UI can display currently connected agents (see issue #59).
 
 ## Communication Protocol
 
