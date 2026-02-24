@@ -7,8 +7,8 @@ Defines window dimensions, margins, and layout configuration.
 # Window initial position and size
 WINDOW_X = 200
 WINDOW_Y = 100
-WINDOW_WIDTH = 1600
-WINDOW_HEIGHT = 832
+WINDOW_WIDTH = 1680
+WINDOW_HEIGHT = 900
 
 # Layout margins and spacing
 WORKSPACE_MARGINS_HOR = 16

@@ -166,6 +166,8 @@ class StrategiesView(QWidget):
         )
         # keep track of name changes so the tab bar text stays in sync
         tab.name_changed.connect(lambda new_name, t=tab: self._update_tab_label(t, new_name))
+        # when the tab requests deletion propagate it so we can remove it
+        tab.deleted.connect(lambda sid, t=tab: self._remove_tab(t))
         return tab
     
     def _on_strategy_created(self, strategy: dict):
@@ -274,6 +276,24 @@ class StrategiesView(QWidget):
         while self.stacked_widget.count() > 0:
             widget = self.stacked_widget.widget(0)
             self.stacked_widget.removeWidget(widget)
+
+    def _remove_tab(self, widget: QWidget) -> None:
+        """Remove a specific widget/tab from the interface.
+
+        The caller usually passes the StrategyTab instance that emitted a
+        deletion signal.  The method also calls ``deleteLater`` to help clean
+        up resources.
+        """
+        index = self.stacked_widget.indexOf(widget)
+        if index != -1:
+            self.tab_bar.removeTab(index)
+            self.stacked_widget.removeWidget(widget)
+            widget.deleteLater()
+            log('INFO', 'Removed strategy tab after deletion',
+                category='strategies_view', action='remove_tab')
+        else:
+            log('WARNING', 'Attempted to remove non-existent tab',
+                category='strategies_view', action='remove_tab')
 
     def _update_tab_label(self, widget: QWidget, new_label: str) -> None:
         """Update the tab bar text corresponding to a given widget.

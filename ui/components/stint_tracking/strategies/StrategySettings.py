@@ -4,14 +4,14 @@ StrategySettings component for the strategy tab placeholder.
 Displays a placeholder for future strategy settings UI.
 """
 
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame, QCheckBox
+from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame, QCheckBox, QHBoxLayout, QMessageBox
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from ui.utilities import get_fonts, FONT
 
 from core.utilities import resource_path
 from core.errors import log
-from core.database import update_strategy
+from core.database import update_strategy, delete_strategy
 from ui.components.common import LabeledInputRow, SectionHeader, ConfigButton
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
 from ui.models.table_processors import generate_pending_stints
@@ -37,6 +37,7 @@ class StrategySettings(QWidget):
     """
 
     strategy_updated = pyqtSignal(dict)  # Emitted when strategy is updated
+    strategy_deleted = pyqtSignal(str)  # Emitted when user requests deletion of this strategy
 
     def __init__(self, parent=None, models: ModelContainer=None, strategy=None):
         super().__init__(parent)
@@ -87,12 +88,15 @@ class StrategySettings(QWidget):
         frame_layout.addWidget(header)
 
         # Buttons (Edit / Save)
-        btn_row = QVBoxLayout()
-        self.edit_btn = ConfigButton(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg", width_type="half")
-        self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg", width_type="half")
+        btn_row = QHBoxLayout()
+        self.edit_btn = ConfigButton(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg", width_type="third")
+        self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg", width_type="third")
         self.save_btn.hide()
         self.edit_btn.clicked.connect(self._toggle_edit)
         self.save_btn.clicked.connect(self._on_save_clicked)
+
+        self.delete_btn = ConfigButton("", icon_path="resources/icons/race_config/trash.svg", width_type="third", icon_color="#ff7070")
+        self.delete_btn.clicked.connect(self._on_delete_clicked)
 
 
         self._create_labeled_input_rows(frame_layout)
@@ -102,6 +106,8 @@ class StrategySettings(QWidget):
 
         btn_row.addWidget(self.edit_btn)
         btn_row.addWidget(self.save_btn)
+        btn_row.addStretch()
+        btn_row.addWidget(self.delete_btn)
         frame_layout.addLayout(btn_row)
 
         frame.setLayout(frame_layout)
@@ -230,6 +236,42 @@ class StrategySettings(QWidget):
             log('ERROR', f'Exception in _on_save_clicked: {e}', category='strategy_settings', action='save_clicked')
         # Revert to view mode after pressing save
         self._toggle_edit()
+
+    def _on_delete_clicked(self):
+        """Handle user request to delete the current strategy.
+
+        A confirmation dialog is shown; if the user agrees the strategy is
+        removed from the database and ``strategy_deleted`` is emitted with the
+        strategy's _id as a string.
+        """
+
+        if not self.strategy or not self.strategy.get('_id'):
+            log('WARNING', 'Delete requested but no strategy id available',
+                category='strategy_settings', action='delete_clicked')
+            return
+
+        resp = QMessageBox.question(
+            self,
+            'Delete Strategy',
+            'Are you sure you want to delete this strategy? This action cannot be undone.',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if resp != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            sid = str(self.strategy.get('_id'))
+            success = delete_strategy(sid)
+            if success:
+                log('INFO', f'Strategy {sid} deleted',
+                    category='strategy_settings', action='delete_clicked')
+                self.strategy_deleted.emit(sid)
+            else:
+                log('WARNING', f'Failed to delete strategy {sid}',
+                    category='strategy_settings', action='delete_clicked')
+        except Exception as e:
+            log('ERROR', f'Exception deleting strategy: {e}',
+                category='strategy_settings', action='delete_clicked')
 
     def _realign_rows(self, new_mean_sec):
         """Adjust pending rows to align with new mean stint time.
