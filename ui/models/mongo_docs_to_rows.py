@@ -27,12 +27,15 @@ def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
         ...         "pit_end_time": "01:30:00",
         ...         "tires_changed": 4,
         ...         "tires_left": 8,
-        ...         "stint_time_seconds": 3600
+        ...         "stint_time_seconds": 3600,
+        ...         "time_of_day_seconds": 0
         ...     }
         ... ]
         >>> rows = mongo_docs_to_rows(docs)
         >>> rows[0][6]  # stint time
         timedelta(seconds=3600)
+        >>> rows[0][7]  # time of day
+        timedelta(seconds=0)
     """
     rows = []
 
@@ -45,6 +48,7 @@ def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
             int(doc.get("tires_changed", 0)),
             int(doc.get("tires_left", 0)),
             timedelta(seconds=int(doc.get("stint_time_seconds", 0))),
+            timedelta(seconds=int(doc.get("time_of_day_seconds", 0))),
             "" # Placeholder for actions column
         ]
         rows.append(row)

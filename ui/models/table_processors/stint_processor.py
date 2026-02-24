@@ -12,6 +12,7 @@ from ..table_utils import create_table_row
 from ..stint_helpers import (
     get_stint_type,
     calculate_stint_time,
+    calculate_time_of_day,
     format_timedelta,
     calc_mean_stint_time,
     timedelta_to_time,
@@ -24,8 +25,9 @@ from ..table_constants import FULL_TIRE_SET, NO_TIRE_CHANGE
 def convert_stints_to_table(
     stints: list[dict],
     starting_tires: str,
-    starting_time: str,
-    count_tire_changes_fn
+    race_length: str,
+    count_tire_changes_fn,
+    start_time: str
 ) -> tuple[list[TableRow], timedelta, int]:
     """
     Convert stint documents to table row format.
@@ -33,8 +35,9 @@ def convert_stints_to_table(
     Args:
         stints: List of stint documents from database
         starting_tires: Total tire count at race start
-        starting_time: Race start time
+        race_length: Total race length
         count_tire_changes_fn: Function to count tire changes
+        start_time: Race start time
         
     Returns:
         List of rows with completed and pending stints
@@ -43,17 +46,15 @@ def convert_stints_to_table(
         return [], timedelta(0), 0
     
     # Process completed stints
-    rows, tires_left, stint_times, last_tire_change = process_completed_stints(
-        stints, starting_tires, starting_time, count_tire_changes_fn
+    rows, tires_left, stint_times, last_tire_change, prev_time_of_day, prev_stint_time = process_completed_stints(
+        stints, starting_tires, race_length, count_tire_changes_fn, start_time
     )
     
     mean_stint_time = calc_mean_stint_time(stint_times)
     
     # Generate pending stints
     if stint_times:
-        generate_pending_stints(rows, mean_stint_time, tires_left)
-    
-
+        generate_pending_stints(rows, mean_stint_time, tires_left, prev_time_of_day, prev_stint_time)
 
     return rows, mean_stint_time, last_tire_change
 
@@ -61,28 +62,34 @@ def convert_stints_to_table(
 def process_completed_stints(
     stints: list[dict],
     starting_tires: str,
-    starting_time: str,
-    count_tire_changes_fn
-) -> tuple[list[TableRow], int, list[timedelta], int]:
+    race_length: str,
+    count_tire_changes_fn,
+    start_time: str
+) -> tuple[list[TableRow], int, list[timedelta], int, timedelta, timedelta]:
     """
     Process completed stints into table rows.
     
     Args:
         stints: List of stint documents
         starting_tires: Total tire count at start
-        starting_time: Race start time
+        race_length: Total race length
         count_tire_changes_fn: Function to count tire changes
-        
+        start_time: Race start time
+
     Returns:
-        Tuple of (rows, remaining_tires, stint_times, last_tire_change)
+        Tuple of (rows, remaining_tires, stint_times, last_tire_change, prev_time_of_day, prev_stint_time)
     """
     rows = []
     stint_times = []
-    prev_pit_time = starting_time
+    prev_pit_time = race_length
+    prev_time_of_day = start_time
+    prev_stint_time = timedelta(0)
     tires_left = int(starting_tires)
     start_of_stint = 0
     
     for i, stint in enumerate(stints):
+        time_of_day = calculate_time_of_day(prev_time_of_day, prev_stint_time)
+
         # Calculate stint duration
         stint_time = calculate_stint_time(prev_pit_time, stint.get('pit_end_time', '00:00:00'))
         # Only include this stint in mean calculation if it's not marked excluded
@@ -115,21 +122,26 @@ def process_completed_stints(
             pit_time=stint.get("pit_end_time", "00:00:00"),
             tires_changed=total_changed,
             tires_left=tires_left,
-            stint_time=format_timedelta(stint_time)
+            stint_time=format_timedelta(stint_time),
+            time_of_day=time_of_day
         )
         rows.append(row)
         
         prev_pit_time = stint.get('pit_end_time', '00:00:00')
+        prev_time_of_day = time_of_day
+        prev_stint_time = stint_time
     
     last_tire_change = int(rows[-1][ColumnIndex.TIRES_CHANGED])
 
-    return rows, tires_left, stint_times, last_tire_change
+    return rows, tires_left, stint_times, last_tire_change, prev_time_of_day, prev_stint_time
 
 
 def generate_pending_stints(
     rows: list[TableRow],
     mean_stint_time: timedelta,
-    starting_tires_left: int
+    starting_tires_left: int,
+    prev_time_of_day: timedelta,
+    prev_stint_time: timedelta
 ) -> None:
     """
     Generate pending stints based on mean stint time.
@@ -145,13 +157,15 @@ def generate_pending_stints(
         rows: Existing table rows (will be modified)
         mean_stint_time: Mean duration of completed stints
         starting_tires_left: Remaining tires after completed stints
+        prev_stint_time: Duration of the previous stint
     """
-    
     # Get last pit time from last completed stint
     current_pit_time = rows[-1][ColumnIndex.PIT_END_TIME]
     tires_left = starting_tires_left
     
     while True:
+        time_of_day = calculate_time_of_day(prev_time_of_day, prev_stint_time)
+
         # Determine whether subtracting another mean stint would cross
         # into the previous day. We still want to *add* that final crossing
         # row (it represents the last stint that runs past midnight), but we
@@ -193,9 +207,13 @@ def generate_pending_stints(
             pit_time=pit_display,
             tires_changed=pending_tires_changed,
             tires_left=tires_left,
-            stint_time=format_timedelta(duration)
+            stint_time=format_timedelta(duration),
+            time_of_day=time_of_day
         )
         rows.append(row)
+
+        prev_time_of_day = time_of_day
+        prev_stint_time = duration
 
         # if the subtraction we just performed crossed midnight, we added the
         # final row (with 00:00:00) and should exit the loop.

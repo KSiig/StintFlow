@@ -15,7 +15,8 @@ def create_table_row(
     pit_time: str,
     tires_changed: int,
     tires_left: int,
-    stint_time: str
+    stint_time: str,
+    time_of_day: str 
 ) -> TableRow:
     """
     Create a standardized table row.
@@ -40,6 +41,7 @@ def create_table_row(
         str(tires_changed),
         str(tires_left),
         stint_time,
+        time_of_day,
         "" # Placeholder for actions column
     ]
 

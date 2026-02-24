@@ -66,6 +66,8 @@ class StrategiesView(QWidget):
         # Tab bar container (for rounded corners styling)
         tab_bar_frame = QFrame()
         tab_bar_frame.setObjectName("TabBarFrame")
+        # limit width to its contents so the button stays next to the tabs
+        tab_bar_frame.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
         tab_bar_layout = QHBoxLayout(tab_bar_frame)  # Horizontal to add button
         tab_bar_layout.setContentsMargins(0, 0, 0, 0)
         tab_bar_layout.setSpacing(0)
@@ -73,12 +75,13 @@ class StrategiesView(QWidget):
         # Tab bar
         self.tab_bar = QTabBar()
         self.tab_bar.setObjectName("StrategyTabBar")
-        self.tab_bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        # only use as much horizontal space as required by the tabs
+        self.tab_bar.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         self.tab_bar.currentChanged.connect(self._on_tab_changed)
         tab_bar_layout.addWidget(self.tab_bar)
         
-        # Add stretch to push button to the right
-        tab_bar_layout.addStretch()
+        # no stretch – frame width is minimal so button appears directly after tabs
+        # tab_bar_layout.addStretch()
         
         # Add strategy button
         add_btn = QPushButton()

@@ -394,6 +394,7 @@ class TirePopup(QWidget):
             cb = DropdownButton(
                 items=dropdown_items,
                 current_value="",
+                sort_items=False,  # preserve explicit grouping
                 parent=container,
                 button_object_name="TirePopupDropdown",
             )

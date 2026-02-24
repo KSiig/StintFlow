@@ -130,7 +130,8 @@ class ConfigOptions(QWidget):
             ("event_name", "Event name"),
             ("session_name", "Session name"),
             ("tires", "Starting tires"),
-            ("length", "Race length")
+            ("length", "Race length"),
+            ("start_time", "Start time")
         ]:
             card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
             self.inputs[field_id] = card.get_input_field()
@@ -233,6 +234,7 @@ class ConfigOptions(QWidget):
                 self.inputs['event_name'].setText(self.event.get('name', ''))
                 self.inputs['tires'].setText(str(self.event.get('tires', '')))
                 self.inputs['length'].setText(self.event.get('length', ''))
+                self.inputs['start_time'].setText(self.event.get('start_time', ''))
             
             if self.session:
                 self.inputs['session_name'].setText(self.session.get('name', ''))
@@ -272,7 +274,8 @@ class ConfigOptions(QWidget):
                 str(self.selection_model.event_id),
                 name=self.inputs['event_name'].text(),
                 tires=self.inputs['tires'].text(),
-                length=self.inputs['length'].text()
+                length=self.inputs['length'].text(),
+                start_time=self.inputs['start_time'].text()
             )
             
             # Update session

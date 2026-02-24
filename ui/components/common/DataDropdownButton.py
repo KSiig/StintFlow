@@ -25,12 +25,14 @@ class DataDropdownButton(QWidget):
         popup_object_name: str = "DropdownPopup",
         item_object_name: str = "DropdownPopupItem",
         parent=None,
-        load_styles: bool = True
+        load_styles: bool = True,
+        sort_items: bool = True
     ):
         super().__init__(parent)
         self._items: list[tuple[str, str]] = []
         self._current_index = -1
         self._signals_blocked = False
+        self._sort_items = sort_items
 
         self.dropdown = DropdownButton(
             items=[],
@@ -39,6 +41,7 @@ class DataDropdownButton(QWidget):
             popup_object_name=popup_object_name,
             item_object_name=item_object_name,
             load_styles=load_styles,
+            sort_items=sort_items,
             parent=self
         )
         self.dropdown.valueChanged.connect(self._on_value_changed)
@@ -117,6 +120,9 @@ class DataDropdownButton(QWidget):
         self.dropdown.btn.setFixedHeight(height)
 
     def _refresh_items(self, emit: bool = True) -> None:
+        # optionally sort the internal tuple list before extracting labels
+        if self._sort_items:
+            self._items.sort(key=lambda tup: str(tup[0]).lower())
         labels = [label for label, _ in self._items]
         self.dropdown.set_items(labels)
 
@@ -138,3 +144,12 @@ class DataDropdownButton(QWidget):
 
         if not self._signals_blocked:
             self.currentIndexChanged.emit(self._current_index)
+
+    def set_sorting(self, enabled: bool) -> None:
+        """Enable or disable alphabetical sorting of the entries.
+
+        This will reorder the internal item list and refresh the popup.
+        """
+        self._sort_items = enabled
+        self.dropdown.set_sorting(enabled)
+        self._refresh_items()
