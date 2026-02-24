@@ -328,7 +328,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
         # some consumers pass eight-element rows, others only seven; pad to
         # avoid unpack errors and ignore any extra element.
         padded = list(row) + [""]
-        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time, _ = padded[:8]
+        stint_type, name, status, pit_end_time, tires_changed, tires_left, stint_time, time_of_day, _ = padded[:9]
 
         # Convert stint_time to seconds (supports timedelta or display string)
         if isinstance(stint_time, timedelta):
@@ -350,6 +350,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
             "tires_changed": int(tires_changed),
             "tires_left": int(tires_left),
             "stint_time_seconds": stint_time_seconds,
+            "time_of_day_seconds": _normalize_time(time_of_day)
         }
 
         sanitized_rows.append(doc)
