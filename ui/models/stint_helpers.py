@@ -181,25 +181,30 @@ def calculate_stint_time(start_time: str, end_time: str) -> timedelta:
 
 def calculate_time_of_day(prev_time_of_day, prev_stint_time: timedelta) -> str:
     """
-    Subtract a stint duration from a given time-of-day value.
-    
-    This helper is used when iterating through completed stints in order to
-    determine when each stint began. The algorithm simply takes the previous
-    time-of-day marker (which may be a string in ``HH:MM:SS`` format or a
-    :class:`datetime.time`/``datetime``) and subtracts the supplied
-    ``timedelta``. The result is returned as a normalized string suitable for
-    display or further arithmetic.
-    
+    Advance a time-of-day marker by a stint duration.
+
+    When building a list of stints (completed or pending) the table model
+    tracks an approximate clock time for the start of each entry. Given the
+    previous time-of-day and the length of the preceding stint, this helper
+    returns a normalized ``HH:MM:SS`` string for the next marker. The value is
+    computed by *adding* the duration to the previous time; if the result
+    crosses midnight the returned string wraps into the next calendar day
+    (e.g. ``23:30:00`` plus a 1‑hour stint → ``00:30:00``).
+
+    This behaviour is important for pending stints in a 24‑hour race where
+    the clock must continue moving past ``23:59:59`` even though displayed
+    pit times are capped at midnight.
+
     Args:
         prev_time_of_day: Previous time-of-day value. When supplied as a string
-            it must follow the ``HH:MM:SS`` format.
+            it must follow the ``HH:MM:SS`` format. ``datetime.time`` or
+            ``datetime`` objects are also accepted.
         prev_stint_time: Duration of the preceding stint as a :class:`timedelta`.
-    
+
     Returns:
-        A ``HH:MM:SS`` time string representing ``prev_time_of_day`` minus the
-        duration. If the subtraction crosses into the previous calendar day the
-        resulting time will wrap appropriately (e.g. ``00:10:00`` -
-        ``00:20:00`` → ``23:50:00``).
+        A normalized ``HH:MM:SS`` time string representing the new time-of-day
+        after adding the duration. The string is suitable for display and for
+        further arithmetic with other helpers.
     """
     # coerce string input to a time object
     if isinstance(prev_time_of_day, str):
@@ -341,7 +346,13 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
             h, m, s = parts
             stint_time_seconds = h * 3600 + m * 60 + s
         else:
+            # numeric or other types; let int() handle or raise
             stint_time_seconds = int(stint_time)
+        # convert time_of_day to total seconds for storage; normalize first
+        tod_norm = _normalize_time(time_of_day)
+        # _normalize_time always returns HH:MM:SS so split is safe there
+        h, m, s = [int(p) for p in tod_norm.split(":")]
+        tod_seconds = h * 3600 + m * 60 + s
         doc = {
             "stint_type": stint_type,
             "name": name,
@@ -350,7 +361,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
             "tires_changed": int(tires_changed),
             "tires_left": int(tires_left),
             "stint_time_seconds": stint_time_seconds,
-            "time_of_day_seconds": _normalize_time(time_of_day)
+            "time_of_day_seconds": tod_seconds
         }
 
         sanitized_rows.append(doc)
@@ -371,17 +382,38 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
     }
 
 
-def _normalize_time(t: str) -> str:
+def _normalize_time(t) -> str:
     """
-    Normalize time string to HH:MM:SS format.
-    
-    Args:
-        t: Time string (e.g., "1:23", "12:34:56")
-        
-    Returns:
-        Normalized time string in HH:MM:SS format
+    Normalize various time representations to an ``HH:MM:SS`` string.
+
+    Accepts:
+    * ``str`` values like ``"1:23"`` or ``"12:34:56"``
+    * ``datetime.timedelta`` objects
+    * numeric values interpreted as total seconds
+
+    Any unrecognised type is converted to string and parsed as above.  This
+    robustness prevents callers from accidentally passing a timedelta and
+    then hitting an ``AttributeError`` during ``split`` (see bug report).
     """
-    parts = [int(p) for p in t.split(":")]
+    # timedelta: convert to total seconds first
+    if isinstance(t, timedelta):
+        total = int(t.total_seconds())
+        h = total // 3600
+        m = (total % 3600) // 60
+        s = total % 60
+        return f"{h:02d}:{m:02d}:{s:02d}"
+
+    # numeric: treat as seconds
+    if isinstance(t, (int, float)):
+        total = int(t)
+        h = total // 3600
+        m = (total % 3600) // 60
+        s = total % 60
+        return f"{h:02d}:{m:02d}:{s:02d}"
+
+    # otherwise coerce to string and parse
+    t_str = str(t)
+    parts = [int(p) for p in t_str.split(":")]
     while len(parts) < 3:
         parts.insert(0, 0)
     h, m, s = parts

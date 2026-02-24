@@ -152,14 +152,20 @@ def generate_pending_stints(
     entries would lie outside the race bounds. This replaces the earlier
     heuristic that only inspected the resulting time string and failed when the
     arithmetic wrapped around midnight.
+
+    The helper also computes a corresponding ``time_of_day`` value for each
+    generated row. Unlike ``pit_time``, the time-of-day **may** advance past
+    ``23:59:59`` and wrap into the next day; this reflects the fact that a
+    long endurance race will cross midnight.  Time-of-day values are produced
+    by ``calculate_time_of_day`` and may subsequently be converted to seconds
+    for storage.
     
     Args:
         rows: Existing table rows (will be modified)
         mean_stint_time: Mean duration of completed stints
         starting_tires_left: Remaining tires after completed stints
         prev_stint_time: Duration of the previous stint
-    """
-    # Get last pit time from last completed stint
+    """    # Get last pit time from last completed stint
     current_pit_time = rows[-1][ColumnIndex.PIT_END_TIME]
     tires_left = starting_tires_left
     
