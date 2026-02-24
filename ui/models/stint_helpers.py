@@ -181,25 +181,30 @@ def calculate_stint_time(start_time: str, end_time: str) -> timedelta:
 
 def calculate_time_of_day(prev_time_of_day, prev_stint_time: timedelta) -> str:
     """
-    Subtract a stint duration from a given time-of-day value.
-    
-    This helper is used when iterating through completed stints in order to
-    determine when each stint began. The algorithm simply takes the previous
-    time-of-day marker (which may be a string in ``HH:MM:SS`` format or a
-    :class:`datetime.time`/``datetime``) and subtracts the supplied
-    ``timedelta``. The result is returned as a normalized string suitable for
-    display or further arithmetic.
-    
+    Advance a time-of-day marker by a stint duration.
+
+    When building a list of stints (completed or pending) the table model
+    tracks an approximate clock time for the start of each entry. Given the
+    previous time-of-day and the length of the preceding stint, this helper
+    returns a normalized ``HH:MM:SS`` string for the next marker. The value is
+    computed by *adding* the duration to the previous time; if the result
+    crosses midnight the returned string wraps into the next calendar day
+    (e.g. ``23:30:00`` plus a 1‑hour stint → ``00:30:00``).
+
+    This behaviour is important for pending stints in a 24‑hour race where
+    the clock must continue moving past ``23:59:59`` even though displayed
+    pit times are capped at midnight.
+
     Args:
         prev_time_of_day: Previous time-of-day value. When supplied as a string
-            it must follow the ``HH:MM:SS`` format.
+            it must follow the ``HH:MM:SS`` format. ``datetime.time`` or
+            ``datetime`` objects are also accepted.
         prev_stint_time: Duration of the preceding stint as a :class:`timedelta`.
-    
+
     Returns:
-        A ``HH:MM:SS`` time string representing ``prev_time_of_day`` minus the
-        duration. If the subtraction crosses into the previous calendar day the
-        resulting time will wrap appropriately (e.g. ``00:10:00`` -
-        ``00:20:00`` → ``23:50:00``).
+        A normalized ``HH:MM:SS`` time string representing the new time-of-day
+        after adding the duration. The string is suitable for display and for
+        further arithmetic with other helpers.
     """
     # coerce string input to a time object
     if isinstance(prev_time_of_day, str):

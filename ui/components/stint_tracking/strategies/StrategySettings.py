@@ -314,7 +314,17 @@ class StrategySettings(QWidget):
         if completed_count == 0:
             return
 
-        # Update all pending rows with new mean value
+        # capture time-of-day state from the last completed stint; we'll use
+        # this as the base for recomputing pending entries later. the values
+        # stored in the strategy document may be missing or stale, but the
+        # last completed row should always carry a valid timestamp.
+        last_completed = rows[completed_count - 1]
+        from datetime import timedelta as _td
+        base_prev_tod = _td(seconds=int(last_completed.get('time_of_day_seconds', 0)))
+        base_prev_stint = _td(seconds=int(last_completed.get('stint_time_seconds', 0)))
+
+        # Update all pending rows with new mean value (durations will be
+        # used when recalculating the time_of_day below)
         for i in range(completed_count, len(rows)):
             rows[i]['stint_time_seconds'] = new_mean_sec
 
@@ -413,6 +423,8 @@ class StrategySettings(QWidget):
                     "tires_changed": next_change,
                     "tires_left": tires_left,
                     "stint_time_seconds": duration_sec,
+                    # will be recalculated below; placeholder avoids missing key
+                    "time_of_day_seconds": 0,
                 }
             )
             # append corresponding tire metadata
@@ -426,6 +438,35 @@ class StrategySettings(QWidget):
             current_pit = next_pit
             next_change = 4 if next_change == 0 else 0
         
+        # ------------------------------------------------------------------
+        # recompute time-of-day for any pending entries that remain or were
+        # just appended. the pit_end_time calculations deliberately avoid
+        # crossing midnight, but the time-of-day value should progress into
+        # the next calendar day for a long race. we base the sequence off of
+        # the last completed row captured earlier.
+        from ui.models.stint_helpers import calculate_time_of_day
+
+        def _timedelta_to_hms(td):
+            total = int(td.total_seconds())
+            h = total // 3600
+            m = (total % 3600) // 60
+            s = total % 60
+            return f"{h:02d}:{m:02d}:{s:02d}"
+
+        # start from the base values we computed before touching pending rows
+        prev_tod_str = _timedelta_to_hms(base_prev_tod)
+        prev_stint_td = base_prev_stint
+
+        for i in range(completed_count, len(rows)):
+            # calculate the next time marker; this will wrap past midnight if
+            # the accumulated duration exceeds 24 hours (which is desired).
+            new_tod = calculate_time_of_day(prev_tod_str, prev_stint_td)
+            h, m, s = [int(x) for x in new_tod.split(":")]
+            rows[i]['time_of_day_seconds'] = h * 3600 + m * 60 + s
+
+            # advance our state for the next iteration
+            prev_tod_str = new_tod
+            prev_stint_td = timedelta(seconds=int(rows[i].get('stint_time_seconds', 0)))
 
     def _set_inputs(self):
         """Set the values of the input fields."""
