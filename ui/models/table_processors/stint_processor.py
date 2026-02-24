@@ -24,8 +24,9 @@ from ..table_constants import FULL_TIRE_SET, NO_TIRE_CHANGE
 def convert_stints_to_table(
     stints: list[dict],
     starting_tires: str,
-    starting_time: str,
-    count_tire_changes_fn
+    race_length: str,
+    count_tire_changes_fn,
+    start_time: str
 ) -> tuple[list[TableRow], timedelta, int]:
     """
     Convert stint documents to table row format.
@@ -33,8 +34,9 @@ def convert_stints_to_table(
     Args:
         stints: List of stint documents from database
         starting_tires: Total tire count at race start
-        starting_time: Race start time
+        race_length: Total race length
         count_tire_changes_fn: Function to count tire changes
+        start_time: Race start time
         
     Returns:
         List of rows with completed and pending stints
@@ -44,7 +46,7 @@ def convert_stints_to_table(
     
     # Process completed stints
     rows, tires_left, stint_times, last_tire_change = process_completed_stints(
-        stints, starting_tires, starting_time, count_tire_changes_fn
+        stints, starting_tires, race_length, count_tire_changes_fn
     )
     
     mean_stint_time = calc_mean_stint_time(stint_times)
@@ -52,8 +54,6 @@ def convert_stints_to_table(
     # Generate pending stints
     if stint_times:
         generate_pending_stints(rows, mean_stint_time, tires_left)
-    
-
 
     return rows, mean_stint_time, last_tire_change
 

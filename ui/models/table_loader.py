@@ -21,6 +21,7 @@ from .stint_helpers import get_default_tire_dict
 # avoid a circular import.
 DEFAULT_TIRE_COUNT = "0"
 DEFAULT_RACE_LENGTH = "00:00:00"
+DEFAULT_START_TIME = "00:00:00"
 
 
 def load_table_data(selection_model) -> Tuple[list, list, timedelta]:
@@ -42,10 +43,12 @@ def load_table_data(selection_model) -> Tuple[list, list, timedelta]:
     event = get_event(selection_model.event_id)
     if event:
         total_tires = str(event.get('tires', DEFAULT_TIRE_COUNT))
-        starting_time = event.get('length', DEFAULT_RACE_LENGTH)
+        race_length = event.get('length', DEFAULT_RACE_LENGTH)
+        start_time = event.get('start_time', DEFAULT_START_TIME)
     else:
         total_tires = DEFAULT_TIRE_COUNT
-        starting_time = DEFAULT_RACE_LENGTH
+        race_length = DEFAULT_RACE_LENGTH
+        start_time = DEFAULT_START_TIME
         log('WARNING', f'Event {selection_model.event_id} not found - using defaults',
             category='table_model', action='load_data')
 
@@ -58,7 +61,7 @@ def load_table_data(selection_model) -> Tuple[list, list, timedelta]:
 
     # convert stints to table rows using existing processor
     rows, mean_stint_time, last_tire_change = convert_stints_to_table(
-        stints, total_tires, starting_time, count_tire_changes
+        stints, total_tires, race_length, count_tire_changes, start_time
     )
 
     # ensure tires array matches rows length

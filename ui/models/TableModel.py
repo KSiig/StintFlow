@@ -34,6 +34,7 @@ from .stint_helpers import get_default_tire_dict
 # Constants
 DEFAULT_TIRE_COUNT = "0"
 DEFAULT_RACE_LENGTH = "00:00:00"
+DEFAULT_START_TIME = "00:00:00"
 HEADER_ICON_COLOR = "#FFFFFF"
 VERTICAL_HEADER_START_INDEX = 1  # Row numbers are 1-indexed
 
@@ -155,10 +156,12 @@ class TableModel(QAbstractTableModel):
         event = get_event(self.selection_model.event_id)
         if event:
             total_tires = str(event.get('tires', DEFAULT_TIRE_COUNT))
-            starting_time = event.get('length', DEFAULT_RACE_LENGTH)
+            race_length = event.get('length', DEFAULT_RACE_LENGTH)
+            start_time = event.get('start_time', DEFAULT_START_TIME)
         else:
             total_tires = DEFAULT_TIRE_COUNT
-            starting_time = DEFAULT_RACE_LENGTH
+            race_length = DEFAULT_RACE_LENGTH
+            start_time = DEFAULT_START_TIME
             log('WARNING', f'Event {self.selection_model.event_id} not found - using defaults',
                 category='table_model', action='load_data')
         
@@ -179,7 +182,7 @@ class TableModel(QAbstractTableModel):
         
         # Convert stints to table rows using processor
         rows, mean_stint_time, last_tire_change = convert_stints_to_table(
-            stints, total_tires, starting_time, count_tire_changes
+            stints, total_tires, race_length, count_tire_changes, start_time
         )
         self._data = rows
         self._mean_stint_time = mean_stint_time
