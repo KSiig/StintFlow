@@ -179,6 +179,43 @@ def calculate_stint_time(start_time: str, end_time: str) -> timedelta:
     return dt1 - dt2
 
 
+def calculate_time_of_day(prev_time_of_day, prev_stint_time: timedelta) -> str:
+    """
+    Subtract a stint duration from a given time-of-day value.
+    
+    This helper is used when iterating through completed stints in order to
+    determine when each stint began. The algorithm simply takes the previous
+    time-of-day marker (which may be a string in ``HH:MM:SS`` format or a
+    :class:`datetime.time`/``datetime``) and subtracts the supplied
+    ``timedelta``. The result is returned as a normalized string suitable for
+    display or further arithmetic.
+    
+    Args:
+        prev_time_of_day: Previous time-of-day value. When supplied as a string
+            it must follow the ``HH:MM:SS`` format.
+        prev_stint_time: Duration of the preceding stint as a :class:`timedelta`.
+    
+    Returns:
+        A ``HH:MM:SS`` time string representing ``prev_time_of_day`` minus the
+        duration. If the subtraction crosses into the previous calendar day the
+        resulting time will wrap appropriately (e.g. ``00:10:00`` -
+        ``00:20:00`` → ``23:50:00``).
+    """
+    # coerce string input to a time object
+    if isinstance(prev_time_of_day, str):
+        prev_time_of_day = datetime.strptime(prev_time_of_day, "%H:%M:%S").time()
+    
+    # if a bare datetime was given, use it directly; otherwise combine with
+    # today's date to perform arithmetic.
+    if isinstance(prev_time_of_day, datetime):
+        dt = prev_time_of_day
+    else:
+        dt = datetime.combine(date.today(), prev_time_of_day)
+
+    new_dt = dt + prev_stint_time
+    return new_dt.time().strftime("%H:%M:%S")
+
+
 def format_timedelta(td: timedelta) -> str:
     """
     Format timedelta as HH:MM:SS string.
