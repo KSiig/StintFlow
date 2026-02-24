@@ -341,7 +341,13 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
             h, m, s = parts
             stint_time_seconds = h * 3600 + m * 60 + s
         else:
+            # numeric or other types; let int() handle or raise
             stint_time_seconds = int(stint_time)
+        # convert time_of_day to total seconds for storage; normalize first
+        tod_norm = _normalize_time(time_of_day)
+        # _normalize_time always returns HH:MM:SS so split is safe there
+        h, m, s = [int(p) for p in tod_norm.split(":")]
+        tod_seconds = h * 3600 + m * 60 + s
         doc = {
             "stint_type": stint_type,
             "name": name,
@@ -350,7 +356,7 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
             "tires_changed": int(tires_changed),
             "tires_left": int(tires_left),
             "stint_time_seconds": stint_time_seconds,
-            "time_of_day_seconds": _normalize_time(time_of_day)
+            "time_of_day_seconds": tod_seconds
         }
 
         sanitized_rows.append(doc)
@@ -371,17 +377,38 @@ def sanitize_stints(rows: list[list], tires: list[dict]) -> dict:
     }
 
 
-def _normalize_time(t: str) -> str:
+def _normalize_time(t) -> str:
     """
-    Normalize time string to HH:MM:SS format.
-    
-    Args:
-        t: Time string (e.g., "1:23", "12:34:56")
-        
-    Returns:
-        Normalized time string in HH:MM:SS format
+    Normalize various time representations to an ``HH:MM:SS`` string.
+
+    Accepts:
+    * ``str`` values like ``"1:23"`` or ``"12:34:56"``
+    * ``datetime.timedelta`` objects
+    * numeric values interpreted as total seconds
+
+    Any unrecognised type is converted to string and parsed as above.  This
+    robustness prevents callers from accidentally passing a timedelta and
+    then hitting an ``AttributeError`` during ``split`` (see bug report).
     """
-    parts = [int(p) for p in t.split(":")]
+    # timedelta: convert to total seconds first
+    if isinstance(t, timedelta):
+        total = int(t.total_seconds())
+        h = total // 3600
+        m = (total % 3600) // 60
+        s = total % 60
+        return f"{h:02d}:{m:02d}:{s:02d}"
+
+    # numeric: treat as seconds
+    if isinstance(t, (int, float)):
+        total = int(t)
+        h = total // 3600
+        m = (total % 3600) // 60
+        s = total % 60
+        return f"{h:02d}:{m:02d}:{s:02d}"
+
+    # otherwise coerce to string and parse
+    t_str = str(t)
+    parts = [int(p) for p in t_str.split(":")]
     while len(parts) < 3:
         parts.insert(0, 0)
     h, m, s = parts

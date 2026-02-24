@@ -5,7 +5,7 @@
   border-radius: 8px;
 }
 
-#MongoFrame, QLabel, QLineEdit {
+#MongoFrame, #LogFrame, QLabel, QLineEdit {
   background-color: transparent;
 }
 

@@ -10,7 +10,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from ui.utilities import get_fonts, FONT
 
 from core.utilities import resource_path
-from core.errors import log
+from core.errors import log, log_exception
 from core.database import update_strategy, delete_strategy
 from ui.components.common import LabeledInputRow, SectionHeader, ConfigButton
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
@@ -234,6 +234,8 @@ class StrategySettings(QWidget):
                 category='strategy_settings', action='save_clicked')
         except Exception as e:
             log('ERROR', f'Exception in _on_save_clicked: {e}', category='strategy_settings', action='save_clicked')
+            log_exception(e, 'Failed to set application icon', 
+                     category='main', action='setup_icon')
         # Revert to view mode after pressing save
         self._toggle_edit()
 

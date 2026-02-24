@@ -25,6 +25,11 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# ``load_user_settings`` is imported lazily inside the function to avoid a
+# circular import problem.  If we import it at module level the package
+# may still be initialising and ``load_user_settings`` can resolve to the
+# submodule itself (see traceback in bug report).
+
 # header line written to each new log file.  parse_session_start uses a
 # regular expression built from these constants so the format must stay in
 # sync.
@@ -130,8 +135,9 @@ def rotate_old_log(path: Path) -> None:
 
     # after rotation we can optionally clean up old archives; this keeps the
     # log directory from growing indefinitely.  the default retention period
-    # is 30 days but callers may invoke ``purge_old_logs`` directly with a
-    # different value if they wish.
+    # is 30 days (or the value configured by the user via settings) but
+    # callers may invoke ``purge_old_logs`` directly with an explicit
+    # value if they wish.
     purge_old_logs(path.parent)
 
 
@@ -140,17 +146,35 @@ def rotate_old_log(path: Path) -> None:
 def purge_old_logs(directory: Path, max_age_days: int = 30) -> None:
     """Delete archived log files older than *max_age_days* in *directory*.
 
+    The default retention period is 30 days; however if the user has
+    configured a value via the SettingsView (``logging.retention_days``)
+    that number will be used instead when the caller does not explicitly
+    pass a different ``max_age_days`` value.
+
     Args:
         directory: path containing log files (typically the parent of
             ``stintflow.log``).
         max_age_days: number of days to retain; files with a modification
             time older than this threshold are removed.  A non-positive
-            value disables purging.
+            value disables purging.  If left at the default and a
+            configuration value is present it will be overridden.
 
     This helper does **not** remove the current ``stintflow.log`` file.  It
     only considers files whose names start with ``stintflow-`` (i.e. the
     archived sessions).
     """
+    # honour user-configured retention if provided and caller didn't
+    # supply a custom value.  import locally to avoid circular imports
+    # when this module is pulled in via ``core.errors.__init__``.
+    if max_age_days == 30:
+        from core.utilities.load_user_settings import load_user_settings
+
+        settings = load_user_settings()
+        logging_settings = settings.get('logging', {}) if isinstance(settings, dict) else {}
+        retention = logging_settings.get('retention_days')
+        if isinstance(retention, int) and retention > 0:
+            max_age_days = retention
+
     if max_age_days <= 0:
         return
 
