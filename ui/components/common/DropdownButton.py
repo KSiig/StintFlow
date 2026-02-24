@@ -19,6 +19,10 @@ class DropdownButton(QWidget):
     
     Creates a button that displays the current value and opens a popup
     with selectable items when clicked. Fully customizable and reusable.
+
+    By default the entries are **sorted alphabetically** by their display
+    string; pass ``sort_items=False`` to preserve the order provided by the
+    caller.  The ``set_sorting`` helper can toggle this behaviour at runtime.
     """
     
     valueChanged = pyqtSignal(str)
@@ -31,6 +35,7 @@ class DropdownButton(QWidget):
         popup_object_name: str = "DropdownPopup",
         item_object_name: str = "DropdownPopupItem",
         load_styles: bool = True,
+        sort_items: bool = True,
         parent=None
     ):
         """
@@ -48,56 +53,20 @@ class DropdownButton(QWidget):
         
         if load_styles:
             self._setup_styles()
-        # Normalize items into list of dicts containing display text, internal value and optional icon.
-        # Supported item formats:
-        #   * simple string -> display==value==string, no icon
-        #   * tuple 2-tuple -> (display, value) or (display, icon) if second is a path/object
-        #   * tuple 3-tuple -> (display, value, icon)
-        #   * dict -> { 'display': str, 'value': str, 'icon': str|QIcon }
-        SELF_GAP = 8
-        self.items = []
+
+        # keep the original list around so we can re-sort if the user toggles
+        # the sorting behaviour later.
+        self._raw_items = items
+        self.sort_items = sort_items
+
+        # construct normalized items and mappings
+        self.items = self._normalize_items(items)
+        if self.sort_items:
+            self.items.sort(key=lambda d: d['display'].lower())
+
         # mappings for quick lookup by value
-        self.value_to_display = {}
-        self.value_to_icon = {}
-        for it in items:
-            display = ''
-            value = None
-            icon = None
-            if isinstance(it, dict):
-                display = it.get('display') or it.get('text', '')
-                value = it.get('value', display)
-                icon = it.get('icon')
-            elif isinstance(it, tuple):
-                if len(it) == 1:
-                    display = str(it[0])
-                    value = display
-                elif len(it) == 2:
-                    # ambiguous: second element may be value or icon
-                    if isinstance(it[1], (str, QIcon)) and (it[1].endswith('.png') or it[1].endswith('.svg') if isinstance(it[1], str) else False):
-                        display = str(it[0])
-                        value = display
-                        icon = it[1]
-                    else:
-                        display = str(it[0])
-                        value = it[1]
-                else:
-                    display = str(it[0])
-                    value = it[1]
-                    icon = it[2]
-            else:
-                display = str(it)
-                value = display
-            if isinstance(icon, str):
-                icon = QIcon(icon)
-                # no modification to icon; spacing will be added when updating button text
-            pass
-
-            if value is None:
-                value = display
-
-            self.items.append({'display': display, 'value': value, 'icon': icon})
-            self.value_to_display[value] = display
-            self.value_to_icon[value] = icon
+        self.value_to_display = {d['value']: d['display'] for d in self.items}
+        self.value_to_icon = {d['value']: d['icon'] for d in self.items}
 
         self.button_object_name = button_object_name
         self.popup_object_name = popup_object_name
@@ -145,6 +114,63 @@ class DropdownButton(QWidget):
         except Exception as e:
             log_exception('Error loading dropdown stylesheet', e,
                           category='dropdown', action='load_stylesheet')
+
+    def _normalize_items(self, items: list) -> list[dict]:
+        """Convert raw item descriptions into normalized dicts.
+
+        Accepts the same flexible formats documented in ``__init__`` and
+        ``set_items``.  Returns a list of ``{'display', 'value', 'icon'}``
+        dictionaries.  The caller may sort the returned list as needed.
+        """
+        normalized = []
+        for it in items:
+            display = ''
+            value = None
+            icon = None
+            if isinstance(it, dict):
+                display = it.get('display') or it.get('text', '')
+                value = it.get('value', display)
+                icon = it.get('icon')
+            elif isinstance(it, tuple):
+                if len(it) == 1:
+                    display = str(it[0])
+                    value = display
+                elif len(it) == 2:
+                    # second element could be icon path or actual value
+                    second = it[1]
+                    if isinstance(second, (str, QIcon)) and (
+                        (isinstance(second, str) and (second.endswith('.png') or second.endswith('.svg')))
+                    ):
+                        display = str(it[0])
+                        value = display
+                        icon = second
+                    else:
+                        display = str(it[0])
+                        value = second
+                else:
+                    display = str(it[0])
+                    value = it[1]
+                    icon = it[2]
+            else:
+                display = str(it)
+                value = display
+            if isinstance(icon, str):
+                icon = QIcon(icon)
+            if value is None:
+                value = display
+            normalized.append({'display': display, 'value': value, 'icon': icon})
+        return normalized
+
+    def set_sorting(self, enabled: bool) -> None:
+        """Enable or disable alphabetical sorting of entries.
+
+        When toggled the list is immediately rebuilt from the original raw
+        items passed to the widget.  This keeps the ``value``/``display``
+        mappings in sync.
+        """
+        self.sort_items = enabled
+        # rebuild the list using the preserved raw sequence
+        self.set_items(self._raw_items)
     
     def _show_popup(self):
         """Show popup above the button.
@@ -233,41 +259,16 @@ class DropdownButton(QWidget):
 
         Supports same flexible item formats as constructor.
         """
-        # rebuild normalization (value/display/icon) with icon padding
-        SELF_GAP = 8
-        self.items = []
-        self.value_to_display = {}
-        self.value_to_icon = {}
-        for it in items:
-            display = ''
-            value = None
-            icon = None
-            if isinstance(it, dict):
-                display = it.get('display') or it.get('text', '')
-                value = it.get('value', display)
-                icon = it.get('icon')
-            elif isinstance(it, tuple):
-                if len(it) == 1:
-                    display = str(it[0]); value = display; icon = None
-                elif len(it) == 2:
-                    if isinstance(it[1], str) and (it[1].endswith('.png') or it[1].endswith('.svg')):
-                        display = str(it[0]); value = display; icon = it[1]
-                    else:
-                        display = str(it[0]); value = it[1]; icon = None
-                else:
-                    display = str(it[0]); value = it[1]; icon = it[2]
-            else:
-                display = str(it); value = display; icon = None
-            if isinstance(icon, str):
-                icon = QIcon(icon)
-            # pad icon if present
-            if icon and not icon.isNull():
-                icon = self._pad_icon(icon, SELF_GAP)
-            if value is None:
-                value = display
-            self.items.append({'display': display, 'value': value, 'icon': icon})
-            self.value_to_display[value] = display
-            self.value_to_icon[value] = icon
+        self._raw_items = items
+
+        # normalize and optionally sort
+        self.items = self._normalize_items(items)
+        if self.sort_items:
+            self.items.sort(key=lambda d: d['display'].lower())
+
+        # rebuild lookup maps
+        self.value_to_display = {d['value']: d['display'] for d in self.items}
+        self.value_to_icon = {d['value']: d['icon'] for d in self.items}
 
         current_value = self.btn.text()
         self.popup.setParent(None)

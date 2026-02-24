@@ -11,7 +11,7 @@ from .connection import get_events_collection
 from core.errors import log
 
 
-def update_event(event_id: str, name: str = None, tires: str = None, length: str = None) -> bool:
+def update_event(event_id: str, name: str = None, tires: str = None, length: str = None, start_time: str = None) -> bool:
     """
     Update event details.
     
@@ -20,7 +20,7 @@ def update_event(event_id: str, name: str = None, tires: str = None, length: str
         name: Event name (optional)
         tires: Starting tire count as string (optional)
         length: Race length in HH:MM:SS format (optional)
-        
+        start_time: Start time in HH:MM:SS format (optional)
     Returns:
         True if update successful, False otherwise
         
@@ -38,7 +38,8 @@ def update_event(event_id: str, name: str = None, tires: str = None, length: str
         update_fields['tires'] = tires
     if length is not None:
         update_fields['length'] = length
-    
+    if start_time is not None:
+        update_fields['start_time'] = start_time
     if not update_fields:
         raise ValueError("At least one field must be provided for update")
     

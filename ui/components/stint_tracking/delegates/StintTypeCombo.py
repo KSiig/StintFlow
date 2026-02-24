@@ -68,6 +68,7 @@ class StintTypeCombo(QStyledItemDelegate):
         dropdown = DropdownButton(
             items=self.items,
             current_value=str(index.data()) or "",
+            sort_items=False,  # maintain numeric/sequential order
             parent=editor
         )
         dropdown.setSizePolicy(
