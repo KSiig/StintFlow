@@ -12,6 +12,7 @@ from .get_strategies import get_strategies
 from .get_event import get_event
 from .get_team import get_team
 from .update_event import update_event
+from .delete_strategy import delete_strategy
 from .update_session import update_session
 from .update_strategy import update_strategy
 from .get_latest_stint import get_latest_stint
@@ -49,6 +50,7 @@ __all__ = [
     'create_strategy',
     'upsert_official_stint',
     'delete_stint',
+    'delete_strategy',
     'get_stints_collection',
     'get_events_collection',
     'get_sessions_collection',

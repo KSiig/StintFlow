@@ -159,11 +159,16 @@ class StrategiesView(QWidget):
         Returns:
             StrategyTab widget with cloned table model
         """
-        return StrategyTab(
+        tab = StrategyTab(
             strategy=strategy,
             table_model=self.table_model,
             selection_model=self.selection_model
         )
+        # keep track of name changes so the tab bar text stays in sync
+        tab.name_changed.connect(lambda new_name, t=tab: self._update_tab_label(t, new_name))
+        # when the tab requests deletion propagate it so we can remove it
+        tab.deleted.connect(lambda sid, t=tab: self._remove_tab(t))
+        return tab
     
     def _on_strategy_created(self, strategy: dict):
         """
@@ -271,6 +276,44 @@ class StrategiesView(QWidget):
         while self.stacked_widget.count() > 0:
             widget = self.stacked_widget.widget(0)
             self.stacked_widget.removeWidget(widget)
+
+    def _remove_tab(self, widget: QWidget) -> None:
+        """Remove a specific widget/tab from the interface.
+
+        The caller usually passes the StrategyTab instance that emitted a
+        deletion signal.  The method also calls ``deleteLater`` to help clean
+        up resources.
+        """
+        index = self.stacked_widget.indexOf(widget)
+        if index != -1:
+            self.tab_bar.removeTab(index)
+            self.stacked_widget.removeWidget(widget)
+            widget.deleteLater()
+            log('INFO', 'Removed strategy tab after deletion',
+                category='strategies_view', action='remove_tab')
+        else:
+            log('WARNING', 'Attempted to remove non-existent tab',
+                category='strategies_view', action='remove_tab')
+
+    def _update_tab_label(self, widget: QWidget, new_label: str) -> None:
+        """Update the tab bar text corresponding to a given widget.
+
+        Args:
+            widget: The widget that resides in ``self.stacked_widget``.
+            new_label: The new label text to set on the tab bar.
+        """
+        index = self.stacked_widget.indexOf(widget)
+        if index != -1:
+            log('INFO', f'Updating tab label at index {index} to "{new_label}"',
+                category='strategies_view', action='update_tab_label')
+            self.tab_bar.setTabText(index, new_label)
+            # some stylesheets or platform themes may not repaint automatically
+            # after a text change, so force a refresh
+            self.tab_bar.update()
+            self.tab_bar.repaint()
+        else:
+            log('WARNING', 'Attempted to update label for non-existent tab',
+                category='strategies_view', action='update_tab_label')
     
     def _add_tab(self, widget: QWidget, label: str):
         """
