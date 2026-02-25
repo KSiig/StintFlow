@@ -46,7 +46,10 @@ python processors/stint_tracker/run.py \
 - `--agent-name`: Optional string to uniquely identify this tracker process.  When
   provided (or a default generated from the PID) the tracker will register
   itself in the ``agents`` collection and periodically update a heartbeat so
-  that the UI can display currently connected agents (see issue #59).
+  that the UI can display currently connected agents (see issue #59).  This
+  value can also be configured persistently via the Settings view ("Tracker
+  agent" field) or by setting the `AGENT_NAME` environment variable; the UI
+  automatically passes the stored name when starting the processor.
 
 ## Communication Protocol
 

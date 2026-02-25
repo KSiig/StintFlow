@@ -15,7 +15,7 @@ from datetime import datetime
 from .TeamSection import TeamSection
 from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT
-from core.utilities import resource_path, get_stint_tracker_command
+from core.utilities import resource_path, get_stint_tracker_command, load_user_settings
 from core.database import (
     get_event, get_session, get_sessions, get_team,
     update_event, update_session, update_team_drivers,
@@ -398,6 +398,19 @@ class ConfigOptions(QWidget):
                 '--session-id', str(self.selection_model.session_id),
                 '--drivers', *self.drivers
             ]
+            # add optional agent name if user configured one
+            try:
+                settings = load_user_settings()
+                if isinstance(settings, dict):
+                    agent_name = settings.get('agent', {}).get('name')
+                else:
+                    agent_name = None
+                if agent_name:
+                    process_args += ['--agent-name', agent_name]
+            except Exception:
+                # ignore errors reading settings; fall back to default behaviour
+                pass
+
             if is_practice:
                 process_args.append('--practice')
             
