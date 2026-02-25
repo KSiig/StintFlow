@@ -22,13 +22,21 @@ from core.errors import log
 
 
 def register_agent(name: str) -> bool:
-    """Insert or refresh an agent record.
+    """Insert a new agent record.
+
+    This function **is not idempotent**.  An agent name must be unique; if a
+    document with the given name already exists registration fails and the
+    caller can react (for example by generating a different name).
+
+    Heartbeats for already-registered agents should be maintained with
+    :func:`update_agent_heartbeat` instead of re-registering.
 
     Args:
         name: Unique name for the agent instance (e.g. "stint_tracker_1234").
 
     Returns:
-        True on success, False on error.
+        True on success (new document created).
+        False if the name already exists or a database error occurred.
     """
     if not name or not isinstance(name, str):
         raise ValueError("agent name must be a non-empty string")
@@ -36,17 +44,23 @@ def register_agent(name: str) -> bool:
     try:
         agents_col = get_agents_collection()
         now = datetime.now(timezone.utc)
-        agents_col.update_one(
-            {"name": name},
-            {
-                "$setOnInsert": {"connected_at": now},
-                "$set": {"last_heartbeat": now},
-            },
-            upsert=True,
-        )
-        log('DEBUG', f'Registered/updated agent "{name}"',
-            category='database', action='register_agent')
-        return True
+        try:
+            agents_col.insert_one({
+                "name": name,
+                "connected_at": now,
+                "last_heartbeat": now,
+            })
+            log('DEBUG', f'Registered agent "{name}"',
+                category='database', action='register_agent')
+            return True
+        except PyMongoError as e:
+            # Duplicate key error is expected if the name already exists.
+            if getattr(e, 'code', None) == 11000:
+                log('WARNING', f'Agent already exists: "{name}"',
+                    category='database', action='register_agent')
+                return False
+            # otherwise fall through to generic handler below
+            raise
     except PyMongoError as e:
         log('ERROR', f'Database error registering agent {name}: {e}',
             category='database', action='register_agent')

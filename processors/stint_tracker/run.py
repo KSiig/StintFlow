@@ -61,13 +61,20 @@ def main():
     # determine agent name and register in database
     agent_name = args.agent_name or f"stint_tracker_{os.getpid()}"
     try:
-        register_agent(agent_name)
-        log('DEBUG', f'Agent registered as {agent_name}',
-            category='stint_tracker', action='main')
+        registered = register_agent(agent_name)
+        if registered:
+            log('DEBUG', f'Agent registered as {agent_name}',
+                category='stint_tracker', action='agent_registration')
+        else:
+            # registration returned False: often means name already exists
+            log('WARNING',
+                f'Agent name already in use: "{agent_name}"; ' \
+                'tracking will continue but duplicate names may confuse UI',
+                category='stint_tracker', action='agent_registration')
     except Exception:
-        # registration failure shouldn't prevent tracking
+        # unexpected errors shouldn't prevent tracking
         log('WARNING', f'Failed to register agent {agent_name}',
-            category='stint_tracker', action='main')
+            category='stint_tracker', action='agent_registration')
     
     try:
         # Open LMU shared memory

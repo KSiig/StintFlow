@@ -26,7 +26,7 @@ from ..config import (
     ConfigLayout, ConfigLabels,
     handle_stint_tracker_output
 )
-from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton
+from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton, PopUp
 
 
 class ConfigOptions(QWidget):
@@ -396,7 +396,8 @@ class ConfigOptions(QWidget):
             program, process_args = get_stint_tracker_command()
             process_args += [
                 '--session-id', str(self.selection_model.session_id),
-                '--drivers', *self.drivers
+                '--drivers', *self.drivers,
+                '--agent-name', 'test'
             ]
             if is_practice:
                 process_args.append('--practice')
@@ -425,6 +426,7 @@ class ConfigOptions(QWidget):
         
         data = self.p.readAllStandardError()
         stderr = bytes(data).decode("utf8")
+        self._handle_output(stderr)  # Attempt to parse structured events from stderr as well
         log('ERROR', f'Stint tracker stderr: {stderr}',
             category='config_options', action='handle_stderr')
     
@@ -449,7 +451,8 @@ class ConfigOptions(QWidget):
             stdout,
             on_stint_created=lambda: self.stint_created.emit(),
             on_return_to_garage=lambda: self._show_info_lbl("Please return to garage!"),
-            on_player_in_garage=self._reset_info_lbl
+            on_player_in_garage=self._reset_info_lbl,
+            on_registration_conflict=self._handle_agent_registration_conflict
         )
 
     def _show_info_lbl(self, text):
@@ -462,6 +465,18 @@ class ConfigOptions(QWidget):
         """Hide return to garage warning."""
         self.lbl_info.setText("")
         self.lbl_info.hide()
+
+    def _handle_agent_registration_conflict(self):
+        """Handle agent name conflict by showing a warning."""
+        dialog = PopUp(
+            title="Agent name conflict",
+            message="Agent name conflict detected! Please choose a different name in settings.",
+            buttons=["Ok"],
+            type="error",
+            parent=self
+        )
+        dialog.exec()
+        self._toggle_track() # Stop the process since it won't function properly with a registration conflict
 
     def _flash_taskbar(self):
         """Request taskbar icon attention (flash orange on Windows) using QApplication.alert."""
