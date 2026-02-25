@@ -27,6 +27,7 @@ from .delete_strategy import delete_strategy
 # agent registry operations
 from .register_agent import register_agent
 from .update_agent_heartbeat import update_agent_heartbeat
+from .clean_stale_agents import clean_stale_agents
 from .get_agents import get_agents
 from .delete_agent import delete_agent
 

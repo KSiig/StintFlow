@@ -396,8 +396,7 @@ class ConfigOptions(QWidget):
             program, process_args = get_stint_tracker_command()
             process_args += [
                 '--session-id', str(self.selection_model.session_id),
-                '--drivers', *self.drivers,
-                '--agent-name', 'test'
+                '--drivers', *self.drivers
             ]
             if is_practice:
                 process_args.append('--practice')
