@@ -8,7 +8,7 @@ from core.errors import log, log_exception
 
 
 def handle_stint_tracker_output(stdout: str, on_stint_created=None, 
-                                on_return_to_garage=None, on_player_in_garage=None):
+                                on_return_to_garage=None, on_player_in_garage=None, on_registration_conflict=None):
     """
     Parse structured event messages from stint_tracker.
     
@@ -25,7 +25,7 @@ def handle_stint_tracker_output(stdout: str, on_stint_created=None,
         
         # Handle log format: "INFO: [category:action] message"
         if ': [stint_tracker:' in stdout:
-            # Parse structured log messages
+            # Handle stint tracker specific events
             if '[stint_tracker:create_stint]' in stdout and any(
                 marker in stdout for marker in ('Created stint', 'Deduped stint')
             ):
@@ -37,6 +37,13 @@ def handle_stint_tracker_output(stdout: str, on_stint_created=None,
             elif '[stint_tracker:track_session]' in stdout and 'in garage' in stdout.lower():
                 if on_player_in_garage:
                     on_player_in_garage()
+
+        # Always examine database-related messages regardless of earlier matches
+        if ': [database:' in stdout:
+            if '[database:register_agent]' in stdout and 'agent already exists' in stdout.lower():
+                # user-visible warning so they know the name collision occurred
+                if on_registration_conflict:
+                    on_registration_conflict()
     
     except Exception as e:
         log_exception(e, f'Failed to parse output: {stdout}',

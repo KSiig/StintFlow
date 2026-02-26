@@ -78,10 +78,7 @@ class FONT(Enum):
         "point_size": 9,
         "weight": QFont.Weight.Normal
     }
-    input_field = {
-        "point_size": 10.5,
-        "weight": QFont.Weight.Normal
-    }
+    input_field = dialog_msg
 
 
 def get_fonts(typography):

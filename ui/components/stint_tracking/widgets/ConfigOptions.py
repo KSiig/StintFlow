@@ -15,18 +15,18 @@ from datetime import datetime
 from .TeamSection import TeamSection
 from ui.models import ModelContainer
 from ui.utilities import get_fonts, FONT
-from core.utilities import resource_path, get_stint_tracker_command
+from core.utilities import resource_path, get_stint_tracker_command, load_user_settings
 from core.database import (
     get_event, get_session, get_sessions, get_team,
     update_event, update_session, update_team_drivers,
-    create_event, create_session
+    create_event, create_session, delete_agent
 )
 from core.errors import log, log_exception
 from ..config import (
     ConfigLayout, ConfigLabels,
     handle_stint_tracker_output
 )
-from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton
+from ui.components.common import SectionHeader, LabeledInputRow, ConfigButton, PopUp
 
 
 class ConfigOptions(QWidget):
@@ -41,6 +41,8 @@ class ConfigOptions(QWidget):
     """
     
     stint_created = pyqtSignal()
+    tracker_started = pyqtSignal()
+    tracker_stopped = pyqtSignal()
     
     def __init__(self, models: ModelContainer):
         """
@@ -375,6 +377,7 @@ class ConfigOptions(QWidget):
             self.start_btn.hide()
             self.stop_btn.show()
             self._start_process()
+            self.tracker_started.emit()
         # Stop tracking
         else:
             self._revert_tracking_state()
@@ -382,7 +385,8 @@ class ConfigOptions(QWidget):
             if self.p:
                 self.p.kill()
                 self.p = None
-    
+            self.tracker_stopped.emit()
+
     def _start_process(self):
         """Launch the stint_tracker process."""
         try:
@@ -398,6 +402,29 @@ class ConfigOptions(QWidget):
                 '--session-id', str(self.selection_model.session_id),
                 '--drivers', *self.drivers
             ]
+            # add optional agent name if user configured one
+            try:
+                settings = load_user_settings()
+                if isinstance(settings, dict):
+                    agent_name = settings.get('agent', {}).get('name')
+                else:
+                    # Avoid importing heavy modules at top‑level since this method is
+                    # only called from the settings view.  ``socket.gethostname`` is the
+                    # most reliable cross‑platform way to obtain the device name.
+                    try: 
+                        import socket
+                        agent_name = socket.gethostname()
+                    except Exception:
+                        agent_name = None
+                if agent_name:
+                    process_args += ['--agent-name', agent_name]
+            except Exception:
+                # ignore errors reading settings; fall back to default behaviour
+                pass
+                agent_name = None
+
+            self.agent_name = agent_name  # Store for later use in error handling
+
             if is_practice:
                 process_args.append('--practice')
             
@@ -425,6 +452,7 @@ class ConfigOptions(QWidget):
         
         data = self.p.readAllStandardError()
         stderr = bytes(data).decode("utf8")
+        self._handle_output(stderr)  # Attempt to parse structured events from stderr as well
         log('ERROR', f'Stint tracker stderr: {stderr}',
             category='config_options', action='handle_stderr')
     
@@ -449,7 +477,8 @@ class ConfigOptions(QWidget):
             stdout,
             on_stint_created=lambda: self.stint_created.emit(),
             on_return_to_garage=lambda: self._show_info_lbl("Please return to garage!"),
-            on_player_in_garage=self._reset_info_lbl
+            on_player_in_garage=self._reset_info_lbl,
+            on_registration_conflict=self._handle_agent_registration_conflict
         )
 
     def _show_info_lbl(self, text):
@@ -462,6 +491,18 @@ class ConfigOptions(QWidget):
         """Hide return to garage warning."""
         self.lbl_info.setText("")
         self.lbl_info.hide()
+
+    def _handle_agent_registration_conflict(self):
+        """Handle agent name conflict by showing a warning."""
+        dialog = PopUp(
+            title="Agent name conflict",
+            message="Agent name conflict detected! Please choose a different name in settings.",
+            buttons=["Ok"],
+            type="error",
+            parent=self
+        )
+        dialog.exec()
+        self._toggle_track() # Stop the process since it won't function properly with a registration conflict
 
     def _flash_taskbar(self):
         """Request taskbar icon attention (flash orange on Windows) using QApplication.alert."""
@@ -496,3 +537,4 @@ class ConfigOptions(QWidget):
         self.stop_btn.hide()
         self.start_btn.show()
         self.lbl_info.hide()
+        delete_agent(self.agent_name)  # Attempt to clean up agent registration on failure

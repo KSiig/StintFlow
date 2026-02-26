@@ -6,8 +6,15 @@ Monitors game state and creates stint records when pit stops are detected.
 
 import time
 from typing import Any, Optional
+import time
 from core.errors import log
-from core.database import get_session, get_event, get_latest_stint
+from core.database import (
+    get_session,
+    get_event,
+    get_latest_stint,
+    update_agent_heartbeat,
+    clean_stale_agents,
+)
 from ..pit_detection import (
     get_pit_state, PitState, is_in_garage, find_player_scoring_vehicle
 )
@@ -62,7 +69,8 @@ def track_session(
     lmu_scoring: Any,
     session_id: str,
     drivers: list[str],
-    is_practice: bool = False
+    is_practice: bool = False,
+    agent_name: str | None = None,
 ) -> None:
     """
     Track session and create stints when pit stops are detected.
@@ -73,6 +81,8 @@ def track_session(
         session_id: Database session ID
         drivers: List of driver names
         is_practice: Whether this is a practice session
+        agent_name: Optional name of this tracker instance; if provided
+            periodic heartbeat updates will be written to the database.
     """
     # State tracking
     pit_stop_in_progress = False
@@ -92,8 +102,35 @@ def track_session(
     log('INFO', f'Tracking session {session_id}',
         category='stint_tracker', action='track_session')
     
+    # health/cleanup timers (seconds)
+    last_cleanup = time.time()
+    CLEANUP_INTERVAL = 5
+    STALE_THRESHOLD = 60
+
     # Main tracking loop
     while True:
+        # refresh heartbeat for UI monitoring
+        if agent_name:
+            try:
+                update_agent_heartbeat(agent_name)
+            except Exception:
+                # non-fatal; log only at debug level
+                log('DEBUG', f'Failed to update heartbeat for {agent_name}',
+                    category='stint_tracker', action='track_session')
+
+        # periodic cleanup of stale agents
+        now = time.time()
+        if now - last_cleanup >= CLEANUP_INTERVAL:
+            try:
+                # Use a short threshold as per requirement; multiple trackers
+                # can call this concurrently without issue because the
+                # delete_many query is atomic per-document.
+                clean_stale_agents(grace_period_seconds=STALE_THRESHOLD)
+            except Exception:
+                log('DEBUG', 'Error while cleaning stale agents',
+                    category='stint_tracker', action='track_session')
+            last_cleanup = now
+
         # Get player vehicle data
         player_idx = lmu_telemetry.playerVehicleIdx
         player_vehicle = lmu_telemetry.telemInfo[player_idx]

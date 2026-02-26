@@ -23,6 +23,14 @@ from .create_session import create_session
 from .create_strategy import create_strategy
 from .upsert_official_stint import upsert_official_stint
 from .delete_stint import delete_stint
+from .delete_strategy import delete_strategy
+# agent registry operations
+from .register_agent import register_agent
+from .update_agent_heartbeat import update_agent_heartbeat
+from .clean_stale_agents import clean_stale_agents
+from .get_agents import get_agents
+from .delete_agent import delete_agent
+
 from .connection import (
     close_connection,
     get_stints_collection,
@@ -30,6 +38,7 @@ from .connection import (
     get_sessions_collection,
     get_teams_collection,
     get_strategies_collection,
+    get_agents_collection,
 )
 
 __all__ = [
@@ -56,5 +65,10 @@ __all__ = [
     'get_sessions_collection',
     'get_teams_collection',
     'get_strategies_collection',
+    'get_agents_collection',
+    'register_agent',
+    'update_agent_heartbeat',
+    'get_agents',
+    'delete_agent',
     'close_connection',
 ]

@@ -14,6 +14,7 @@ from . import table_processors
 # Helper functions
 from .stint_helpers import sanitize_stints
 from .mongo_docs_to_rows import mongo_docs_to_rows
+from .agent_helpers import docs_to_rows as agent_docs_to_rows
 
 __all__ = [
     'ModelContainer',

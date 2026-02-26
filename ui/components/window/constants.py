@@ -13,6 +13,7 @@ WINDOW_HEIGHT = 832
 # Layout margins and spacing
 WORKSPACE_MARGINS_HOR = 16
 WORKSPACE_MARGINS_VER = 48
+WORKSPACE_MARGINS_BOT = 8
 
 # Draggable area configuration
 DRAGGABLE_AREA_HEIGHT = 40

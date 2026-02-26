@@ -71,6 +71,7 @@ class SettingsView(QWidget):
         layout.setSpacing(16)
 
         # add each section via helper methods
+        self._build_agent_section(layout)
         self._build_mongo_section(layout)
         self._build_logging_section(layout)
         self._build_status_section(layout)
@@ -129,6 +130,34 @@ class SettingsView(QWidget):
     # ------------------------------------------------------------------
     # section builders
     # ------------------------------------------------------------------
+    def _build_agent_section(self, parent_layout: QVBoxLayout) -> None:
+        """Create a settings frame that allows the user to specify a custom
+        agent name for stint tracker processes.
+
+        The value is optional; if the field is left blank the tracker will
+        fall back to a PID‑based default.  Providing a name here can help when
+        multiple trackers are run on the same machine (e.g. testing).
+        """
+        agent_frame = QFrame()
+        agent_frame.setObjectName('AgentFrame')
+        agent_layout = QVBoxLayout(agent_frame)
+        agent_layout.setContentsMargins(0, 0, 0, 0)
+        agent_layout.setSpacing(12)
+
+        title = QLabel('Tracker agent')
+        title.setFont(get_fonts(FONT.header_nav))
+        agent_layout.addWidget(title)
+
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(8)
+        form_layout.setHorizontalSpacing(24)
+
+        self._add_input(form_layout, 'Agent name', 'agent_name', 'stint_tracker_<pid>')
+
+        agent_layout.addLayout(form_layout)
+        parent_layout.addWidget(agent_frame)
+
     def _build_mongo_section(self, parent_layout: QVBoxLayout) -> None:
         """Construct the MongoDB settings frame and add it to the parent layout."""
         mongo_frame = QFrame()
@@ -219,8 +248,20 @@ class SettingsView(QWidget):
             settings = load_user_settings()
             mongo_settings = settings.get('mongodb', {}) if isinstance(settings, dict) else {}
             logging_settings = settings.get('logging', {}) if isinstance(settings, dict) else {}
+            agent_settings = settings.get('agent', {}) if isinstance(settings, dict) else {}
             mongo_defaults = self._get_default_mongo_settings()
             log_defaults = self._get_default_logging_settings()
+            agent_defaults = self._get_default_agent_settings()
+
+            # populate agent field
+            agent_field = self.inputs.get('agent_name')
+            if agent_field is not None:
+                value = agent_settings.get('name')
+                if isinstance(value, str):
+                    value = value.strip()
+                if not value:
+                    value = agent_defaults.get('name', '')
+                agent_field.setText(value or '')
 
             # populate mongo fields
             for key in ('uri', 'host', 'database', 'username', 'password', 'auth_source'):
@@ -249,6 +290,31 @@ class SettingsView(QWidget):
             if self.status_label:
                 self.status_label.setText('Failed to load settings.')
 
+    def _get_default_agent_settings(self) -> dict:
+        """Return default agent-related settings.
+
+        The only supported key at the moment is ``name``.  We first check the
+        ``AGENT_NAME`` environment variable for explicit configuration (this
+        is handy for CI or headless operation).  If that isn't set we fall back
+        to the machine's host name so the tracker instance can still be
+        distinguished without requiring manual UI input.
+        """
+        # Avoid importing heavy modules at top‑level since this method is
+        # only called from the settings view.  ``socket.gethostname`` is the
+        # most reliable cross‑platform way to obtain the device name.
+        import socket
+
+        default_name = os.getenv('AGENT_NAME', '')
+        if not default_name:
+            try:
+                default_name = socket.gethostname()
+            except Exception:
+                default_name = ''
+
+        return {
+            'name': default_name
+        }
+
     def _get_default_logging_settings(self) -> dict:
         """Return default logging settings from environment or sane defaults."""
         return {
@@ -264,6 +330,13 @@ class SettingsView(QWidget):
 
             mongo_settings = {}
             # known mongo keys ensure we don't accidentally include logging
+            # agent settings
+            agent_settings = {}
+            agent_field = self.inputs.get('agent_name')
+            if agent_field is not None:
+                text = agent_field.text().strip()
+                agent_settings['name'] = text if text else None
+
             for key in ('uri', 'host', 'database', 'username', 'password', 'auth_source'):
                 input_field = self.inputs.get(key)
                 if input_field is None:
@@ -276,6 +349,8 @@ class SettingsView(QWidget):
             if retention_field is not None:
                 text = retention_field.text().strip()
                 logging_settings['retention_days'] = int(text) if text else None
+
+            current_settings['agent'] = agent_settings
 
             current_settings['mongodb'] = mongo_settings
             current_settings['logging'] = logging_settings

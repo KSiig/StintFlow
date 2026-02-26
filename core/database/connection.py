@@ -334,6 +334,31 @@ def get_strategies_collection() -> Collection:
     return _get_collection('strategies')
 
 
+def get_agents_collection() -> Collection:
+    """
+    Get the agents collection.
+
+    This collection holds an entry for each running tracker/agent process.
+    Documents have the following fields:
+    - name: str (unique agent identifier)
+    - connected_at: datetime (when the agent first registered)
+    - last_heartbeat: datetime (most recent heartbeat timestamp)
+
+    Returns:
+        MongoDB Collection instance for agents
+    """
+    col = _get_collection('agents')
+    # ensure a unique index on name so that registration/upsert behaves
+    # predictably. any call after the first simply returns the existing index.
+    try:
+        col.create_index('name', unique=True)
+    except Exception:
+        # index creation failure isn't fatal; log and continue
+        log('WARNING', 'Failed to create unique index on agents.name',
+            category='database', action='get_agents_collection')
+    return col
+
+
 
 
 def test_connection() -> bool:
