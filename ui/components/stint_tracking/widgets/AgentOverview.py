@@ -1,5 +1,7 @@
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel, QHBoxLayout
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPainter, QColor, QPolygon
+from PyQt6.QtCore import QPoint
 
 from datetime import datetime, timedelta
 
@@ -128,6 +130,7 @@ class AgentOverview(QFrame):
                 else:
                     return ts.strftime("%H:%M")
 
+            heartbeat_dt = None
             for field in ['name', 'connected_at', 'last_heartbeat']:
                 if field not in agent:
                     log_exception(
@@ -139,9 +142,50 @@ class AgentOverview(QFrame):
                 value = raw
                 if field in ('connected_at', 'last_heartbeat') and raw != 'N/A':
                     value = _format_ts(raw)
+                    if field == 'last_heartbeat':
+                        # keep datetime object for age evaluation
+                        try:
+                            parsed = datetime.fromisoformat(str(raw))
+                        except Exception:
+                            parsed = None
+                        if parsed is not None:
+                            if parsed.tzinfo is None:
+                                from datetime import timezone
+                                parsed = parsed.replace(tzinfo=timezone.utc)
+                            try:
+                                parsed = parsed.astimezone()
+                            except Exception:
+                                pass
+                            heartbeat_dt = parsed
                 lbl = QLabel(f"{field.capitalize()}: {value}")
                 lbl.setFont(get_fonts(FONT.input_lbl))
                 # tooltip shows unformatted value for time fields
                 if field in ('connected_at', 'last_heartbeat') and raw != 'N/A':
                     lbl.setToolTip(str(raw))
                 layout.addWidget(lbl)
+            # store heartbeat for painting
+            self.heartbeat_dt = heartbeat_dt
+
+        def paintEvent(self, event):
+            """Draw attention triangle if heartbeat is stale."""
+            super().paintEvent(event)
+            dt = getattr(self, 'heartbeat_dt', None)
+            if not isinstance(dt, datetime):
+                return
+            age = datetime.now(dt.tzinfo) - dt
+            if age > timedelta(minutes=5):
+                color = '#FF3B30'  # red
+            elif age > timedelta(minutes=1):
+                color = '#FF9500'  # orange
+            else:
+                return
+
+            painter = QPainter(self)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(color))
+            size = 10
+            p1 = QPoint(0, 0)
+            p2 = QPoint(size, 0)
+            p3 = QPoint(0, size)
+            painter.drawPolygon(QPolygon([p1, p2, p3]))
+            painter.end()
