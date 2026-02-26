@@ -1,11 +1,11 @@
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel, QHBoxLayout
 from PyQt6.QtCore import Qt
 
 from datetime import datetime, timedelta
 
 from core.utilities import resource_path
 from core.errors import log_exception
-from ui.components.common import SectionHeader
+from ui.components.common import SectionHeader, ConfigButton
 from ..config import (
     ConfigLayout,
 )
@@ -20,7 +20,7 @@ class AgentOverview(QFrame):
     this widget will render a card for each one.
     """
 
-    def __init__(self, models: ModelContainer) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.setObjectName('AgentOverview')
 
@@ -40,6 +40,11 @@ class AgentOverview(QFrame):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(8)
 
+        # header area with title on left and action button on right
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(4)
+
         header = SectionHeader(
             title="Agent Overview",
             icon_path="resources/icons/race_config/radio.svg",
@@ -47,7 +52,15 @@ class AgentOverview(QFrame):
             icon_size=ConfigLayout.ICON_SIZE,
             spacing=ConfigLayout.HEADER_SPACING
         )
-        layout.addWidget(header)
+        header_layout.addWidget(header)
+        header_layout.addStretch()
+
+        # placeholder button; will be wired up later
+        btn = ConfigButton("", icon_path="resources/icons/race_config/cloud-sync.svg", width_type="min", icon_size=12)
+        btn.clicked.connect(self._load_agents)
+        header_layout.addWidget(btn)
+
+        layout.addLayout(header_layout)
 
         self._cards_layout: QVBoxLayout | None = QVBoxLayout()
         layout.addLayout(self._cards_layout)
@@ -100,6 +113,15 @@ class AgentOverview(QFrame):
                         ts = datetime.fromisoformat(str(val))
                     except Exception:
                         return str(val)
+                # if the timestamp is naive assume UTC (our DB writes UTC)
+                if ts.tzinfo is None:
+                    from datetime import timezone
+                    ts = ts.replace(tzinfo=timezone.utc)
+                # convert to local timezone before formatting
+                try:
+                    ts = ts.astimezone()
+                except Exception:
+                    pass
                 age = datetime.now(ts.tzinfo) - ts
                 if age > timedelta(days=1):
                     return ts.strftime("%d-%m/%y %H:%M")

@@ -54,7 +54,7 @@ class ConfigView(QWidget):
                 QSizePolicy.Policy.Expanding
             )
             layout = QHBoxLayout(frame)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(0, 0, 0, 16)
             layout.setSpacing(self.SPACING)
 
             # left column will stack the main options and the agent overview
@@ -68,11 +68,11 @@ class ConfigView(QWidget):
             self.config_options.tracker_stopped.connect(self._on_tracker_stopped)
             left_col.addWidget(self.config_options)
 
-            self.agent_overview = AgentOverview(models)
+            self.agent_overview = AgentOverview()
             left_col.addWidget(self.agent_overview)
 
             # load agents from database so the overview isn't empty
-            self._load_agents()
+            self.agent_overview._load_agents()
 
             layout.addLayout(left_col)
 
@@ -110,7 +110,7 @@ class ConfigView(QWidget):
     def _on_tracker_started(self) -> None:
         """Begin reloading agent list: burst for a few seconds then normal pace."""
         # load once immediately; agent may register shortly thereafter
-        self._load_agents()
+        self.agent_overview._load_agents()
 
         # start a short-lived 1‑second timer for the first 5 seconds
         self._startup_count = 0
@@ -121,7 +121,7 @@ class ConfigView(QWidget):
     def _startup_tick(self) -> None:
         """Handler for the 1s startup timer; stops after 5 ticks."""
         self._startup_count += 1
-        self._load_agents()
+        self.agent_overview._load_agents()
         if self._startup_count >= 5:
             if getattr(self, '_startup_timer', None):
                 self._startup_timer.stop()
@@ -139,7 +139,7 @@ class ConfigView(QWidget):
             interval = 5
 
         self._poll_timer = QTimer(self)
-        self._poll_timer.timeout.connect(self._load_agents)
+        self._poll_timer.timeout.connect(self.agent_overview._load_agents)
         self._poll_timer.start(interval * 1000)
 
     def _on_tracker_stopped(self) -> None:
@@ -150,16 +150,4 @@ class ConfigView(QWidget):
         if getattr(self, '_poll_timer', None):
             self._poll_timer.stop()
             self._poll_timer = None
-        self._load_agents()
-
-    def _load_agents(self) -> None:
-        """Fetch agent documents and pass them to the overview widget."""
-        try:
-            from core.database.connection import get_agents_collection
-            agents_col = get_agents_collection()
-            agents = list(agents_col.find())
-            if self.agent_overview:
-                self.agent_overview.set_agents(agents)
-        except Exception as e:
-            log_exception(e, 'Failed to load agents in config view',
-                         category='config_view', action='load_agents')
+        self.agent_overview._load_agents()

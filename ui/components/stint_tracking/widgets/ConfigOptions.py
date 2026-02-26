@@ -386,6 +386,7 @@ class ConfigOptions(QWidget):
                 self.p.kill()
                 self.p = None
             self.tracker_stopped.emit()
+
     def _start_process(self):
         """Launch the stint_tracker process."""
         try:
