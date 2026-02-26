@@ -49,7 +49,11 @@ python processors/stint_tracker/run.py \
   that the UI can display currently connected agents (see issue #59).  This
   value can also be configured persistently via the Settings view ("Tracker
   agent" field) or by setting the `AGENT_NAME` environment variable; the UI
-  automatically passes the stored name when starting the processor.
+  automatically passes the stored name when starting the processor.  If no
+  value is supplied by any of these mechanisms the application now defaults
+  to using the host machine name (previously the field would simply remain
+  blank).  This makes it easier to distinguish agents running on different
+  devices.
 
 ## Communication Protocol
 

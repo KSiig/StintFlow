@@ -22,9 +22,8 @@ import os
 from datetime import datetime
 from pyLMUSharedMemory import lmu_data
 from core.errors import log, log_exception
-from core.database import register_agent
+from core.database import register_agent, delete_agent
 from processors.stint_tracker.core.track_session import track_session
-
 
 def main():
     """Parse arguments and start stint tracking."""
@@ -53,17 +52,17 @@ def main():
 
     parser.add_argument(
         "--agent-name",
-        help="Optional unique name for this tracker instance. If omitted a default based on PID will be used."
+        help="Optional unique name for this tracker instance. If omitted a default based on host name will be used."
     )
     
     args = parser.parse_args()
     
     # determine agent name and register in database
-    agent_name = args.agent_name or f"stint_tracker_{os.getpid()}"
+    agent_name = args.agent_name
     try:
-        registered = register_agent(agent_name)
+        registered, agent_name = register_agent(agent_name)
         if registered:
-            log('DEBUG', f'Agent registered as {agent_name}',
+            log('INFO', f'Agent registered as {agent_name}',
                 category='stint_tracker', action='agent_registration')
         else:
             # registration returned False: often means name already exists
@@ -98,13 +97,15 @@ def main():
             is_practice=args.practice,
             agent_name=agent_name,
         )
+        # while True:
+        #     print("next loop")
+        #     time.sleep(1)
         
     except KeyboardInterrupt:
         log('INFO', 'Stint tracker stopped by user',
             category='stint_tracker', action='main')
         # unregister agent if possible
         try:
-            from core.database import delete_agent
             delete_agent(agent_name)
         except Exception:
             pass
@@ -114,6 +115,7 @@ def main():
         log_exception(e, 'Fatal error in stint tracker',
                      category='stint_tracker', action='main')
         print(f"__error__:stint_tracker:{str(e)}", file=sys.stderr)
+        delete_agent(agent_name)
         sys.exit(1)
 
 

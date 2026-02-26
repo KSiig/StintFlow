@@ -11,7 +11,7 @@ from pymongo.errors import PyMongoError
 
 from .connection import get_agents_collection
 from core.errors import log
-
+import socket
 
 def delete_agent(name: str) -> bool:
     """Delete the agent record with the given name.
@@ -23,8 +23,10 @@ def delete_agent(name: str) -> bool:
         True if a document was deleted or the operation succeeded; False on
         database error.
     """
-    if not name or not isinstance(name, str):
-        raise ValueError("agent name must be a non-empty string")
+    if not name:
+        name = socket.gethostname()
+    elif not isinstance(name, str):
+        raise ValueError("agent name must be a string")
 
     try:
         agents_col = get_agents_collection()

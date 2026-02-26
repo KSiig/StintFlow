@@ -19,7 +19,7 @@ from core.utilities import resource_path, get_stint_tracker_command, load_user_s
 from core.database import (
     get_event, get_session, get_sessions, get_team,
     update_event, update_session, update_team_drivers,
-    create_event, create_session
+    create_event, create_session, delete_agent
 )
 from core.errors import log, log_exception
 from ..config import (
@@ -404,12 +404,24 @@ class ConfigOptions(QWidget):
                 if isinstance(settings, dict):
                     agent_name = settings.get('agent', {}).get('name')
                 else:
-                    agent_name = None
+                    # Avoid importing heavy modules at top‑level since this method is
+                    # only called from the settings view.  ``socket.gethostname`` is the
+                    # most reliable cross‑platform way to obtain the device name.
+                    try: 
+                        import socket
+                        agent_name = socket.gethostname()
+                    except Exception:
+                        agent_name = None
                 if agent_name:
                     process_args += ['--agent-name', agent_name]
             except Exception:
                 # ignore errors reading settings; fall back to default behaviour
                 pass
+                agent_name = None
+
+            self.agent_name = agent_name  # Store for later use in error handling
+            print("self.agent_name:", self.agent_name)  # Debug print to verify agent name
+            print("agent_name:", agent_name)  # Debug print to verify agent name
 
             if is_practice:
                 process_args.append('--practice')
@@ -523,3 +535,4 @@ class ConfigOptions(QWidget):
         self.stop_btn.hide()
         self.start_btn.show()
         self.lbl_info.hide()
+        delete_agent(self.agent_name)  # Attempt to clean up agent registration on failure

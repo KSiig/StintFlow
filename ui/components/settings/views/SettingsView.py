@@ -293,12 +293,26 @@ class SettingsView(QWidget):
     def _get_default_agent_settings(self) -> dict:
         """Return default agent-related settings.
 
-        The only supported key at the moment is ``name``.  By default we allow
-        an environment variable so the program can be configured externally
-        (useful for testing or CI where the UI may not be used).
+        The only supported key at the moment is ``name``.  We first check the
+        ``AGENT_NAME`` environment variable for explicit configuration (this
+        is handy for CI or headless operation).  If that isn't set we fall back
+        to the machine's host name so the tracker instance can still be
+        distinguished without requiring manual UI input.
         """
+        # Avoid importing heavy modules at top‑level since this method is
+        # only called from the settings view.  ``socket.gethostname`` is the
+        # most reliable cross‑platform way to obtain the device name.
+        import socket
+
+        default_name = os.getenv('AGENT_NAME', '')
+        if not default_name:
+            try:
+                default_name = socket.gethostname()
+            except Exception:
+                default_name = ''
+
         return {
-            'name': os.getenv('AGENT_NAME', '')
+            'name': default_name
         }
 
     def _get_default_logging_settings(self) -> dict:

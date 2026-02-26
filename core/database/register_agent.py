@@ -19,6 +19,7 @@ from pymongo.errors import PyMongoError
 
 from .connection import get_agents_collection
 from core.errors import log
+import socket
 
 
 def register_agent(name: str) -> bool:
@@ -38,8 +39,10 @@ def register_agent(name: str) -> bool:
         True on success (new document created).
         False if the name already exists or a database error occurred.
     """
-    if not name or not isinstance(name, str):
-        raise ValueError("agent name must be a non-empty string")
+    if not name:
+        name = socket.gethostname()
+    elif not isinstance(name, str):
+        raise ValueError("agent name must be a string")
 
     try:
         agents_col = get_agents_collection()
@@ -52,20 +55,20 @@ def register_agent(name: str) -> bool:
             })
             log('DEBUG', f'Registered agent "{name}"',
                 category='database', action='register_agent')
-            return True
+            return True, name
         except PyMongoError as e:
             # Duplicate key error is expected if the name already exists.
             if getattr(e, 'code', None) == 11000:
                 log('WARNING', f'Agent already exists: "{name}"',
                     category='database', action='register_agent')
-                return False
+                return False, name
             # otherwise fall through to generic handler below
             raise
     except PyMongoError as e:
         log('ERROR', f'Database error registering agent {name}: {e}',
             category='database', action='register_agent')
-        return False
+        return False, name
     except Exception as e:
         log('ERROR', f'Failed to register agent {name}: {e}',
             category='database', action='register_agent')
-        return False
+        return False, name
