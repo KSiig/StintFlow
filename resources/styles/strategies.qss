@@ -47,17 +47,17 @@ QTabBar::tab:hover {
 }
 
 /* Add Strategy Button */
-QPushButton#AddStrategyButton {
+QPushButton#AddStrategyButton, QPushButton#CloneStrategyButton {
   background-color: transparent;
   border: none;
   border-radius: 8px;
   padding: 4px;
 }
 
-QPushButton#AddStrategyButton:hover {
+QPushButton#AddStrategyButton:hover, QPushButton#CloneStrategyButton:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-QPushButton#AddStrategyButton:pressed {
+QPushButton#AddStrategyButton:pressed, QPushButton#CloneStrategyButton:pressed {
   background-color: rgba(255, 255, 255, 0.2);
 }
