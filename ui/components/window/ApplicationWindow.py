@@ -12,6 +12,8 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QWidget
 from PyQt6.QtCore import Qt, QEvent, QTimer
 from PyQt6.QtGui import QMouseEvent
 
+from core.errors.log_error import log_exception
+
 from ..navigation import NavigationMenu
 from .WindowButtons import WindowButtons
 from ..common import DraggableArea
@@ -295,18 +297,63 @@ class ApplicationWindow(QMainWindow):
         """
         Switch the active workspace widget.
         
-        Adds widget to stacked layout on first use, then switches to it.
+        Only the current page (plus the loading overlay) is kept in the stacked
+        layout at any given time.  This avoids the default behaviour of
+        ``QStackedLayout`` which calculates its size hint as the maximum size
+        hint of *all* children; when a very tall widget (e.g. ``ConfigView``)
+        is added the layout would remain that height even after switching to a
+        shorter page, causing strange overflow when the scroll area was used.
+
+        By removing previous widgets from the layout we ensure the container's
+        size hint is based solely on the active widget.  The removed widgets
+        are not deleted; they are simply reparented later when they become
+        active again, so their state is preserved.
+
+        After switching we also force a geometry recalculation and reset the
+        scroll position so that the scroll area behaves correctly.
         """
         widget = self.navigation_model.active_widget
-        
-        # Check if widget already in layout
+
+        # remove any non-current, non-overlay widgets from the layout; keep
+        # the widget objects alive so they can be re-added later
+        for i in reversed(range(self.central_container_layout.count())):
+            w = self.central_container_layout.widget(i)
+            if w is widget or w is getattr(self, 'loading_overlay', None):
+                continue
+            self.central_container_layout.removeWidget(w)
+            w.setParent(None)
+
+        # Add the widget if it's not already present
         if self.central_container_layout.indexOf(widget) == -1:
-            # First time showing this widget, add it to layout
             widget.setParent(self.central_container)
             self.central_container_layout.addWidget(widget)
-        
+
         # Switch to the widget
         self.central_container_layout.setCurrentWidget(widget)
+
+        # Force geometry recalculation so that the scroll area shrinks to the
+        # natural size of the new widget rather than staying at the previous
+        # (potentially larger) height.  See issue described in bug report:
+        # switching from tall ConfigView to shorter StrategiesView left the
+        # stacked container at the old height which made strategy settings
+        # panels stretch past the bottom of the window.
+        try:
+            widget.adjustSize()
+            self.central_container.adjustSize()
+            # updateGeometry on the scroll area's inner widget also helps
+            if hasattr(self, 'central_scroll_area') and self.central_scroll_area.widget():
+                self.central_scroll_area.widget().updateGeometry()
+            # reset vertical scroll so new page is shown from top
+            if hasattr(self, 'central_scroll_area'):
+                vs = self.central_scroll_area.verticalScrollBar()
+                if vs:
+                    vs.setValue(0)
+        except Exception as e:
+            # non‑critical; just log and continue silently
+            log_exception(e, 'Error adjusting geometry after workspace switch',
+                         category='ui', action='switch_workspace')
+
+            pass
     
     def eventFilter(self, obj: QWidget, event: QEvent) -> bool:
         """
