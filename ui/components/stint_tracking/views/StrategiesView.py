@@ -7,6 +7,7 @@ Displays tabbed interface with main strategy creator and existing strategies.
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabBar, QStackedWidget, QFrame, QPushButton, QSizePolicy, QApplication
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
+import copy
 from bson import ObjectId
 from core.errors import log, log_exception
 from core.utilities import resource_path
@@ -97,6 +98,7 @@ class StrategiesView(QWidget):
         clone_btn.setIcon(QIcon(load_icon('resources/icons/strategies/copy-plus.svg', 16)))
         clone_btn.setFixedSize(32, 32)
         clone_btn.setToolTip("Clone selected strategy")
+        clone_btn.clicked.connect(self._on_clone_strategy)
 
         tab_bar_layout.addWidget(add_btn)
         tab_bar_layout.addWidget(clone_btn)
@@ -254,6 +256,58 @@ class StrategiesView(QWidget):
         except Exception as e:
             log_exception(e, 'Failed to create strategy',
                          category='strategies_view', action='create_strategy')
+
+    def _on_clone_strategy(self):
+        """Clone the currently selected strategy tab.
+
+        The new strategy is inserted into the database with a " - Clone"
+        suffix appended to the name and then displayed as a new tab.
+        """
+        try:
+            if not self.selection_model.session_id:
+                log('WARNING', 'No session selected - cannot clone strategy',
+                    category='strategies_view', action='clone_strategy')
+                return
+
+            idx = self.tab_bar.currentIndex()
+            if idx < 0 or idx >= self.stacked_widget.count():
+                log('WARNING', 'No strategy tab is currently selected',
+                    category='strategies_view', action='clone_strategy')
+                return
+
+            widget = self.stacked_widget.widget(idx)
+            if not isinstance(widget, StrategyTab):
+                log('WARNING', 'Selected tab cannot be cloned (not a StrategyTab)',
+                    category='strategies_view', action='clone_strategy')
+                return
+
+            original = widget.strategy
+            if not original:
+                log('WARNING', 'Selected strategy has no data to clone',
+                    category='strategies_view', action='clone_strategy')
+                return
+
+            # deep copy to avoid mutating the existing doc
+            new_strategy = copy.deepcopy(original)
+            new_strategy['name'] = f"{original.get('name','Unnamed Strategy')} - Clone"
+            new_strategy.pop('_id', None)
+            # ensure the session_id is an ObjectId
+            new_strategy['session_id'] = ObjectId(self.selection_model.session_id)
+
+            strategy_id = create_strategy(new_strategy)
+            new_strategy['_id'] = strategy_id
+
+            log('INFO', f'Cloned strategy "{original.get("name")}"',
+                category='strategies_view', action='clone_strategy')
+
+            # reuse existing handler to add tab and emit signals
+            self._on_strategy_created(new_strategy)
+
+            return new_strategy
+
+        except Exception as e:
+            log_exception(e, 'Failed to clone strategy',
+                         category='strategies_view', action='clone_strategy')
     
     def _on_session_changed(self, session_id=None, session_name=None):
         """Handle session change by reloading strategies.
