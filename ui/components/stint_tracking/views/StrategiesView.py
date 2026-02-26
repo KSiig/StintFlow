@@ -88,8 +88,18 @@ class StrategiesView(QWidget):
         add_btn.setObjectName("AddStrategyButton")
         add_btn.setIcon(QIcon(load_icon('resources/icons/strategies/plus.svg', 16)))
         add_btn.setFixedSize(32, 32)
+        add_btn.setToolTip("Create a new strategy")
         add_btn.clicked.connect(self._on_create_strategy)
+
+        # Clone strategy button
+        clone_btn = QPushButton()
+        clone_btn.setObjectName("CloneStrategyButton")
+        clone_btn.setIcon(QIcon(load_icon('resources/icons/strategies/copy-plus.svg', 16)))
+        clone_btn.setFixedSize(32, 32)
+        clone_btn.setToolTip("Clone selected strategy")
+
         tab_bar_layout.addWidget(add_btn)
+        tab_bar_layout.addWidget(clone_btn)
         
         # Content area container (for rounded corners styling)
         content_frame = QFrame()
