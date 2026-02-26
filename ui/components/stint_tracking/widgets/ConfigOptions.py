@@ -41,6 +41,8 @@ class ConfigOptions(QWidget):
     """
     
     stint_created = pyqtSignal()
+    tracker_started = pyqtSignal()
+    tracker_stopped = pyqtSignal()
     
     def __init__(self, models: ModelContainer):
         """
@@ -375,6 +377,7 @@ class ConfigOptions(QWidget):
             self.start_btn.hide()
             self.stop_btn.show()
             self._start_process()
+            self.tracker_started.emit()
         # Stop tracking
         else:
             self._revert_tracking_state()
@@ -382,7 +385,7 @@ class ConfigOptions(QWidget):
             if self.p:
                 self.p.kill()
                 self.p = None
-    
+            self.tracker_stopped.emit()
     def _start_process(self):
         """Launch the stint_tracker process."""
         try:

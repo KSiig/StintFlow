@@ -19,6 +19,7 @@ import argparse
 import mmap
 import ctypes
 import os
+import time
 from datetime import datetime
 from pyLMUSharedMemory import lmu_data
 from core.errors import log, log_exception
@@ -77,29 +78,29 @@ def main():
     
     try:
         # Open LMU shared memory
-        shared_mem = mmap.mmap(
-            fileno=0,
-            length=ctypes.sizeof(lmu_data.LMUObjectOut),
-            tagname=lmu_data.LMUConstants.LMU_SHARED_MEMORY_FILE
-        )
+        # shared_mem = mmap.mmap(
+        #     fileno=0,
+        #     length=ctypes.sizeof(lmu_data.LMUObjectOut),
+        #     tagname=lmu_data.LMUConstants.LMU_SHARED_MEMORY_FILE
+        # )
         
-        lmu = lmu_data.LMUObjectOut.from_buffer(shared_mem)
+        # lmu = lmu_data.LMUObjectOut.from_buffer(shared_mem)
         
         # Start tracking
         log('INFO', f'Starting stint tracker for session {args.session_id}',
             category='stint_tracker', action='main')
         
-        track_session(
-            lmu_telemetry=lmu.telemetry,
-            lmu_scoring=lmu.scoring,
-            session_id=args.session_id,
-            drivers=args.drivers,
-            is_practice=args.practice,
-            agent_name=agent_name,
-        )
-        # while True:
-        #     print("next loop")
-        #     time.sleep(1)
+        # track_session(
+        #     lmu_telemetry=lmu.telemetry,
+        #     lmu_scoring=lmu.scoring,
+        #     session_id=args.session_id,
+        #     drivers=args.drivers,
+        #     is_practice=args.practice,
+        #     agent_name=agent_name,
+        # )
+        while True:
+            print("next loop")
+            time.sleep(1)
         
     except KeyboardInterrupt:
         log('INFO', 'Stint tracker stopped by user',
