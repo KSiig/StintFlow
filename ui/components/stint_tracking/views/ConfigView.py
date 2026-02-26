@@ -54,7 +54,7 @@ class ConfigView(QWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(self.SPACING)
 
-            # left column will stack the main options and an extras box
+            # left column will stack the main options and the agent overview
             left_col = QVBoxLayout()
             left_col.setContentsMargins(0, 0, 0, 0)
             left_col.setSpacing(12)
@@ -65,6 +65,9 @@ class ConfigView(QWidget):
 
             self.agent_overview = AgentOverview(models)
             left_col.addWidget(self.agent_overview)
+
+            # load agents from database so the overview isn't empty
+            self._load_agents()
 
             layout.addLayout(left_col)
 
@@ -95,3 +98,15 @@ class ConfigView(QWidget):
             pass  # Signal may already be disconnected
         
         super().closeEvent(event)
+
+    def _load_agents(self) -> None:
+        """Fetch agent documents and pass them to the overview widget."""
+        try:
+            from core.database.connection import get_agents_collection
+            agents_col = get_agents_collection()
+            agents = list(agents_col.find())
+            if self.agent_overview:
+                self.agent_overview.set_agents(agents)
+        except Exception as e:
+            log_exception(e, 'Failed to load agents in config view',
+                         category='config_view', action='load_agents')
