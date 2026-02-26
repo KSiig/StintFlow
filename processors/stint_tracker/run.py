@@ -19,6 +19,7 @@ import argparse
 import mmap
 import ctypes
 import os
+import time
 from datetime import datetime
 from pyLMUSharedMemory import lmu_data
 from core.errors import log, log_exception
@@ -76,6 +77,7 @@ def main():
             category='stint_tracker', action='agent_registration')
     
     try:
+        # Comment this if game is unavailable and you want to test the process
         # Open LMU shared memory
         shared_mem = mmap.mmap(
             fileno=0,
@@ -89,6 +91,7 @@ def main():
         log('INFO', f'Starting stint tracker for session {args.session_id}',
             category='stint_tracker', action='main')
         
+        # Comment this if game is unavailable and you want to test the process
         track_session(
             lmu_telemetry=lmu.telemetry,
             lmu_scoring=lmu.scoring,
@@ -97,6 +100,8 @@ def main():
             is_practice=args.practice,
             agent_name=agent_name,
         )
+
+        # Uncomment this if game is unavailable and you want to test the process
         # while True:
         #     print("next loop")
         #     time.sleep(1)

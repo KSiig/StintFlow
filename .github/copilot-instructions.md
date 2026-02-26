@@ -8,12 +8,6 @@ StintFlow is a PyQt6 desktop application for tracking racing stints, tire manage
 - Framework: PyQt6 | Language: Python 3.14 | Database: MongoDB | Integration: LMU Shared Memory (via `pyLMUSharedMemory` submodule)
 - Build: PyInstaller (`StintFlow.spec`) | Execution: `python3 .\main.py`
 
-**⚠️ CRITICAL: Currently in Migration/Redesign**
-- Old codebase preserved in `.old/` folder for reference
-- New structure being built incrementally from scratch with improved organization
-- **DO NOT** copy entire files from `.old/`—migrate functionality piece by piece
-- **Reference `.old/`** to understand how features currently work, then reimplement with improvements
-
 ## Architecture Overview
 
 **Layered Architecture**: Strict separation between UI, shared infrastructure, and domain-specific processes.
@@ -195,9 +189,9 @@ from .stint_ops import get_stint, create_stint
 
 ## Development Workflows
 
+- **Setup**: `python -m pip install --upgrade pip && pip install -r requirements.txt`
 - **Run**: `python3 .\main.py`
-- **Build executable**: `make build` (PyInstaller)
-- **Reference old code**: Check `.old/` folder to understand existing feature behavior
+- **Build executable**: `pyinstaller StintFlow.spec` (PyInstaller)
 
 ## Critical Integration Points
 
