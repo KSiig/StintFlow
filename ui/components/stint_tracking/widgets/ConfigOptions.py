@@ -420,8 +420,6 @@ class ConfigOptions(QWidget):
                 agent_name = None
 
             self.agent_name = agent_name  # Store for later use in error handling
-            print("self.agent_name:", self.agent_name)  # Debug print to verify agent name
-            print("agent_name:", agent_name)  # Debug print to verify agent name
 
             if is_practice:
                 process_args.append('--practice')

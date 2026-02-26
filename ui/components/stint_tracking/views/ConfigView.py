@@ -4,11 +4,11 @@ Configuration view for stint tracking.
 Displays configuration options and stint tracker side-by-side.
 """
 
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSizePolicy
 
 from ui.models import ModelContainer
 from core.errors import log_exception
-from ..widgets import StintTable, ConfigOptions
+from ..widgets import StintTable, ConfigOptions, AgentOverview
 
 
 class ConfigView(QWidget):
@@ -33,6 +33,7 @@ class ConfigView(QWidget):
         self.selection_model = models.selection_model
         self.table_model = models.table_model
         self.config_options = None
+        self.agent_overview = None
         self.stint_table = None
         
         self._setup_ui(models)
@@ -53,10 +54,19 @@ class ConfigView(QWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(self.SPACING)
 
-            # Add ConfigOptions component
+            # left column will stack the main options and an extras box
+            left_col = QVBoxLayout()
+            left_col.setContentsMargins(0, 0, 0, 0)
+            left_col.setSpacing(12)
+
             self.config_options = ConfigOptions(models)
             self.config_options.stint_created.connect(self.table_model.update_data)
-            layout.addWidget(self.config_options)
+            left_col.addWidget(self.config_options)
+
+            self.agent_overview = AgentOverview(models)
+            left_col.addWidget(self.agent_overview)
+
+            layout.addLayout(left_col)
 
             # Add stint table (read-only for config view)
             self.stint_table = StintTable(
