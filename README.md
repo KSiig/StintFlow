@@ -1,5 +1,7 @@
 # StintFlow
 
+![Config options and table overview](https://github.com/user-attachments/assets/bca84d0a-7789-406b-a2fa-b71fb4f07b78)
+
 StintFlow helps Le Mans Ultimate racers keep track of their sessions and plan their races. It runs on your desktop and provides:
 
 - automatic logging of stints while you drive
@@ -50,10 +52,9 @@ The generated executable will appear in the `dist\StintFlow` directory.
 
 ## Features
 
-![Config options and table overview](docs\screenshots\config_options.png)
-- Track race sessions and stints
+![Strategies overview](https://github.com/user-attachments/assets/048c6cae-1b73-49a6-ac66-f13ed34a6b94)
 
-![Strategies overview](docs\screenshots\strategies.png)
+- Track race sessions and stints
 - Calculate optimal strategies
 - LMU shared memory integration for real-time data
 - Modular architecture with independent processor subprocesses
