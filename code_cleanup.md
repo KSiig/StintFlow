@@ -6,10 +6,10 @@ This document lists every folder recursively in the project with a checkbox for 
   - [x] workflows/
 - [x] core/
   - [x] database/
-  - [ ] errors/
-  - [ ] utilities/
-- [ ] docs/
-  - [ ] screenshots/
+  - [x] errors/
+  - [x] utilities/
+- [x] docs/
+  - [x] screenshots/
 - [ ] processors/
   - [ ] stint_tracker/
     - [ ] core/

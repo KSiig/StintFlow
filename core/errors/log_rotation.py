@@ -167,7 +167,7 @@ def purge_old_logs(directory: Path, max_age_days: int = 30) -> None:
     # supply a custom value.  import locally to avoid circular imports
     # when this module is pulled in via ``core.errors.__init__``.
     if max_age_days == 30:
-        from core.utilities.load_user_settings import load_user_settings
+        from core.utilities.settings.load_user_settings import load_user_settings
 
         settings = load_user_settings()
         logging_settings = settings.get('logging', {}) if isinstance(settings, dict) else {}
