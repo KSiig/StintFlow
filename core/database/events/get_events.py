@@ -7,7 +7,7 @@ Results are returned as a materialized list and can be optionally sorted.
 
 from pymongo.errors import PyMongoError
 from core.errors import log, log_exception
-from .connection import get_events_collection
+from ..connection import get_events_collection
 
 
 def get_events(sort_by: str = 'name', ascending: bool = False) -> list[dict]:

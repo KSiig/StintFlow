@@ -7,7 +7,7 @@ Ensures only one official stint exists for a given stint key.
 from typing import Any
 from pymongo.errors import PyMongoError
 from core.errors import log, log_exception
-from .connection import get_stints_collection
+from ..connection import get_stints_collection
 
 
 def upsert_official_stint(stint: dict[str, Any], stint_key: str) -> tuple[str, bool]:

@@ -6,7 +6,7 @@ Query function for loading a single event by ID.
 
 from bson.objectid import ObjectId
 
-from .connection import get_events_collection
+from ..connection import get_events_collection
 from core.errors import log
 
 

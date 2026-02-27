@@ -17,7 +17,7 @@ both cases in one database round-trip.
 from datetime import datetime, timezone
 from pymongo.errors import PyMongoError
 
-from .connection import get_agents_collection
+from ..connection import get_agents_collection
 from core.errors import log
 import socket
 

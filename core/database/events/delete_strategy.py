@@ -10,7 +10,7 @@ tabs or models.
 from bson.objectid import ObjectId
 from pymongo.errors import PyMongoError
 
-from .connection import get_strategies_collection
+from ..connection import get_strategies_collection
 from core.errors import log
 
 

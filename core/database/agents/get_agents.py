@@ -8,7 +8,7 @@ processes appear first.  The UI can call this function to populate the
 
 from pymongo.errors import PyMongoError
 
-from .connection import get_agents_collection
+from ..connection import get_agents_collection
 from core.errors import log
 
 

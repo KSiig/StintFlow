@@ -6,7 +6,7 @@ Query function for loading team data including driver names.
 
 from pymongo.errors import PyMongoError
 
-from .connection import get_teams_collection
+from ..connection import get_teams_collection
 from core.errors import log
 
 

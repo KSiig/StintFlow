@@ -7,7 +7,7 @@ Inserts event document with name, tires, and length.
 from pymongo.errors import PyMongoError
 from pymongo.results import InsertOneResult
 
-from .connection import get_events_collection
+from ..connection import get_events_collection
 from core.errors import log
 
 

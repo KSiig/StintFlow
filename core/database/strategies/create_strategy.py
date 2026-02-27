@@ -5,7 +5,7 @@ Inserts a strategy document into the strategies collection.
 """
 
 from bson import ObjectId
-from .connection import get_strategies_collection
+from ..connection import get_strategies_collection
 
 
 def create_strategy(strategy: dict) -> ObjectId:

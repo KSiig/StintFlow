@@ -5,7 +5,7 @@ Retrieves strategy documents from the strategies collection.
 """
 
 from bson import ObjectId
-from .connection import get_strategies_collection
+from ..connection import get_strategies_collection
 
 
 def get_strategies(session_id: str):

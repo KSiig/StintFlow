@@ -7,7 +7,7 @@ Modifies event name, tire count, and race length.
 from bson.objectid import ObjectId
 from pymongo.errors import PyMongoError
 
-from .connection import get_events_collection
+from ..connection import get_events_collection
 from core.errors import log
 
 

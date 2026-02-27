@@ -7,7 +7,7 @@ Inserts session document with race_id and name.
 from pymongo.errors import PyMongoError
 from pymongo.results import InsertOneResult
 
-from .connection import get_sessions_collection
+from ..connection import get_sessions_collection
 from core.errors import log
 
 

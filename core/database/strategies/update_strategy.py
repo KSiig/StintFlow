@@ -5,7 +5,7 @@ Updates strategy document with new model data.
 """
 
 from bson import ObjectId
-from .connection import get_strategies_collection
+from ..connection import get_strategies_collection
 
 
 def update_strategy(strategy_id: str | ObjectId=None, model_data: dict=None, strategy=None) -> None:

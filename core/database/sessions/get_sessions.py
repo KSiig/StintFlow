@@ -8,7 +8,7 @@ Results are returned as a materialized list and can be optionally sorted.
 from bson.objectid import ObjectId
 from pymongo.errors import PyMongoError
 from core.errors import log, log_exception
-from .connection import get_sessions_collection
+from ..connection import get_sessions_collection
 
 
 def get_sessions(event_id: str, sort_by: str = "name", ascending: bool = True) -> list[dict]:

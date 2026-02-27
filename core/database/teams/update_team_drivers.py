@@ -7,7 +7,7 @@ Modifies the drivers field for the team.
 from bson.objectid import ObjectId
 from pymongo.errors import PyMongoError
 
-from .connection import get_teams_collection
+from ..connection import get_teams_collection
 from core.errors import log
 
 

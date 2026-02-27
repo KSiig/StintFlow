@@ -89,19 +89,9 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 
 ## Error Handling & Logging
 
-**Centralized Error Handling**:
-- Registry system in `core/errors/handle_error.py` with registered handlers
-- Log format: `__event__:category:action` (e.g., `__error__:stint_tracker:stint_created`)
-- Example: `print("__event__:stint_tracker:stint_created")`
-
 **Graceful Degradation**: App continues operation on error—no flat-out crashes
 - Resources missing? Log warning, continue with defaults
 - DB operation fails? Degrade gracefully, allow user to retry
-
-**Logging to File**: 
-- Write logs to file (not just console)
-- File must be accessible to non-technical users for debugging
-- Consider log rotation and user-friendly location
 
 ## Code Quality & Improvement Guidance
 
@@ -134,65 +124,6 @@ UI model                → ui/models/<model_name>.py
 Export function         → Add to relevant __init__.py
 ```
 
-**Stint Tracker Example** (independent OS process):
-```python
-# processors/stint_tracker/run.py - Entry point, runs as separate OS process
-import argparse
-from .core.get_stints import get_stints
-from .core.validate_compound import validate_compound
-from .strategies.get_strategies import get_strategies
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--session-id', required=True)
-    parser.add_argument('--drivers', nargs='+', required=True)
-    parser.add_argument('--practice', action='store_true')
-    args = parser.parse_args()
-    
-    # Use processor-specific functions
-    stints = get_stints(args.session_id)
-    
-    # Report back to UI via stdout
-    print("__event__:stint_tracker:stint_created")
-    print("__info__:stint_tracker:return_to_garage")
-
-if __name__ == '__main__':
-    main()
-
-# processors/stint_tracker/core/get_stints.py
-def get_stints(session_id):
-    """Load stints for this process's session."""
-    # Stint-tracker-specific logic
-
-# processors/stint_tracker/core/validate_compound.py
-def validate_compound(compound):
-    """Validate tire compound."""
-    # Validation logic
-
-# processors/stint_tracker/__init__.py (internal barrel exports)
-from .core.get_stints import get_stints
-from .core.validate_compound import validate_compound
-from .strategies.get_strategies import get_strategies
-```
-
-**Shared Database Operation Example**:
-```python
-# core/database/session_ops.py
-def get_session(session_id):
-    """Retrieve session from MongoDB."""
-    # Database access (shared by all processors)
-
-# core/database/__init__.py (barrel exports for shared operations)
-from .session_ops import get_session
-from .stint_ops import get_stint, create_stint
-```
-
-## Development Workflows
-
-- **Setup**: `python -m pip install --upgrade pip && pip install -r requirements.txt`
-- **Run**: `python3 .\main.py`
-- **Build executable**: `pyinstaller StintFlow.spec` (PyInstaller)
-
 ## Critical Integration Points
 
 - **LMU Shared Memory**: Access via `pyLMUSharedMemory` submodule (typically from `processors/stint_tracker/`)
@@ -201,77 +132,15 @@ from .stint_ops import get_stint, create_stint
 - **Asset Loading**: Use `resource_path()` helper only
 - **UI-to-Process Communication**: UI components launch processors; processes report back via stdout events
 
-## Process Orchestration Pattern
-
-UI components launch processes via `QProcess` and communicate through stdout/stderr:
-
-```python
-# UI component (ui/components/config_options.py)
-from PyQt6.QtCore import QProcess
-
-def start_stint_tracking(self, session_id, drivers):
-    """Launch stint_tracker as separate OS process."""
-    self.p = QProcess()
-    self.p.readyReadStandardOutput.connect(self.handle_stdout)
-    self.p.readyReadStandardError.connect(self.handle_stderr)
-    
-    # Pass arguments to the process
-    process_args = [
-        'processors/stint_tracker/run.py',
-        '--session-id', str(session_id),
-        '--drivers', *drivers
-    ]
-    # Start as separate OS process (not imported as module)
-    self.p.start("python3", process_args)
-
-def handle_stdout(self):
-    """Parse event messages from stint_tracker process."""
-    stdout = bytes(self.p.readAllStandardOutput()).decode("utf8")
-    if stdout.startswith('__event__:stint_tracker:stint_created'):
-        self.stint_created.emit()  # Trigger UI signal
-    
-def handle_stderr(self):
-    """Log process errors."""
-    stderr = bytes(self.p.readAllStandardError()).decode("utf8")
-    # Log or handle error appropriately
-```
-
-```python
-# Independent process (processors/stint_tracker/run.py)
-import argparse
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--session-id', required=True)
-    parser.add_argument('--drivers', nargs='+', required=True)
-    args = parser.parse_args()
-    
-    try:
-        # Process runs independently, doing domain-specific work
-        stints = get_stints(args.session_id)
-        
-        # Report events back to UI via stdout (structured format)
-        print("__event__:stint_tracker:stint_created")
-        print("__info__:stint_tracker:return_to_garage")
-    except Exception as e:
-        # Report errors via stderr
-        print(f"__error__:stint_tracker:{str(e)}", file=sys.stderr)
-        sys.exit(1)
-
-if __name__ == '__main__':
-    main()
-```
-
 **Key Principles**:
 - Processors are entirely separate OS processes—they don't share Python state with UI
-- Communication only via stdout/stderr with structured event messages (`__event__:`, `__info__:`, `__error__:`)
 - Each processor can be run standalone or integrated; design accordingly
 - Use exit codes to signal success/failure to the UI
 - Processors handle their own error logging; UI logs what it receives from stdout/stderr
 
 ## Processor Design Guidelines
 
-**Scope**: Create a new processor for distinct domains (e.g., `stint_tracker` for tire/stint logic). Don't create separate processors for minor variations.
+**Scope**: Do not create a new processor, unless the user explicitly requests it. Instead, add functionality to existing processors (e.g., `stint_tracker`) or create new functions within the existing processor structure.
 
 **Working Directory**: When launching via `QProcess`, paths are relative to the main app's working directory. Use `os.path.abspath()` or `pathlib.Path` for relative imports and resource access.
 

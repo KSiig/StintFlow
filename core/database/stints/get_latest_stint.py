@@ -17,7 +17,7 @@ stints are found or an error occurs.
 
 from bson.objectid import ObjectId
 
-from .connection import get_stints_collection
+from ..connection import get_stints_collection
 from core.errors import log
 
 

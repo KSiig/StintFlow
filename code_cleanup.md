@@ -1,0 +1,50 @@
+# Project Folder Structure Checklist
+
+This document lists every folder recursively in the project with a checkbox for tracking cleanup activities.
+
+- [x] .github/
+  - [x] workflows/
+- [x] core/
+  - [x] database/
+  - [ ] errors/
+  - [ ] utilities/
+- [ ] docs/
+  - [ ] screenshots/
+- [ ] processors/
+  - [ ] stint_tracker/
+    - [ ] core/
+    - [ ] pit_detection/
+    - [ ] tire_management/
+- [ ] pyLMUSharedMemory/
+- [ ] resources/
+  - [ ] favicons/
+  - [ ] fonts/
+  - [ ] icons/
+    - [ ] nav_menu/
+    - [ ] popup/
+    - [ ] race_config/
+    - [ ] session_picker/
+    - [ ] strategies/
+    - [ ] table_cells/
+    - [ ] table_headers/
+    - [ ] tires/
+    - [ ] window_buttons/
+  - [ ] styles/
+- [ ] tools/
+- [ ] ui/
+  - [ ] components/
+    - [ ] common/
+    - [ ] navigation/
+    - [ ] settings/
+      - [ ] views/
+    - [ ] stint_tracking/
+      - [ ] config/
+      - [ ] delegates/
+      - [ ] strategies/
+      - [ ] table/
+      - [ ] views/
+      - [ ] widgets/
+    - [ ] window/
+  - [ ] models/
+    - [ ] table_processors/
+  - [ ] utilities/
