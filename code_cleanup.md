@@ -10,12 +10,12 @@ This document lists every folder recursively in the project with a checkbox for 
   - [x] utilities/
 - [x] docs/
   - [x] screenshots/
-- [ ] processors/
-  - [ ] stint_tracker/
-    - [ ] core/
-    - [ ] pit_detection/
-    - [ ] tire_management/
-- [ ] pyLMUSharedMemory/
+- [x] processors/
+  - [x] stint_tracker/
+    - [x] core/
+    - [x] pit_detection/
+    - [x] tire_management/
+- [x] pyLMUSharedMemory/
 - [ ] resources/
   - [ ] favicons/
   - [ ] fonts/
