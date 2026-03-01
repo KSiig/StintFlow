@@ -34,7 +34,7 @@ This document lists every folder recursively in the project with a checkbox for 
 - [x] ui/
   - [x] components/
     - [x] common/
-    - [ ] navigation/
+    - [x] navigation/
     - [ ] settings/
       - [ ] views/
     - [ ] stint_tracking/

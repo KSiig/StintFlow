@@ -1,4 +1,4 @@
-"""Barrel file for settings components."""
+"""Settings view package exports."""
 
 from .SettingsView import SettingsView
 
