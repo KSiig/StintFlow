@@ -169,6 +169,8 @@ def generate_pending_stints(
     current_pit_time = rows[-1][ColumnIndex.PIT_END_TIME]
     tires_left = starting_tires_left
     
+    i = 0
+    
     while True:
         time_of_day = calculate_time_of_day(prev_time_of_day, prev_stint_time)
 
@@ -177,6 +179,8 @@ def generate_pending_stints(
         # row (it represents the last stint that runs past midnight), but we
         # should stop afterwards to avoid an infinite loop.
         cross = is_last_stint(current_pit_time, mean_stint_time)
+        if i == 40:  # safety check to prevent infinite loop
+            break
 
         # Calculate next pit time by subtracting mean stint time
         next_pit = _subtract_time_from_pit_time(current_pit_time, mean_stint_time)
@@ -228,6 +232,7 @@ def generate_pending_stints(
 
         # otherwise continue with the new pit as the starting point
         current_pit_time = next_pit
+        i += 1
 
 
 def _subtract_time_from_pit_time(pit_time_str: str, delta: timedelta) -> str:

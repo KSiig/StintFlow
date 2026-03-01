@@ -306,7 +306,7 @@ def is_last_stint(pit_end_time: str, mean_stint: timedelta) -> bool:
     # should ideally supply a timedelta.
     if isinstance(mean_stint, timedelta):
         result = dt1 - mean_stint
-        return result.day < dt1.day
+        return result.date() < dt1.date()
 
     # ``mean_stint`` is probably a ``datetime.time`` object – fall back to
     # the original behaviour.

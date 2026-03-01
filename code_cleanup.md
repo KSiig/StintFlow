@@ -16,24 +16,24 @@ This document lists every folder recursively in the project with a checkbox for 
     - [x] pit_detection/
     - [x] tire_management/
 - [x] pyLMUSharedMemory/
-- [ ] resources/
-  - [ ] favicons/
-  - [ ] fonts/
-  - [ ] icons/
-    - [ ] nav_menu/
-    - [ ] popup/
-    - [ ] race_config/
-    - [ ] session_picker/
-    - [ ] strategies/
-    - [ ] table_cells/
-    - [ ] table_headers/
-    - [ ] tires/
-    - [ ] window_buttons/
-  - [ ] styles/
-- [ ] tools/
-- [ ] ui/
-  - [ ] components/
-    - [ ] common/
+- [x] resources/
+  - [x] favicons/
+  - [x] fonts/
+  - [x] icons/
+    - [x] nav_menu/
+    - [x] popup/
+    - [x] race_config/
+    - [x] session_picker/
+    - [x] strategies/
+    - [x] table_cells/
+    - [x] table_headers/
+    - [x] tires/
+    - [x] window_buttons/
+  - [x] styles/
+- [x] tools/
+- [x] ui/
+  - [x] components/
+    - [x] common/
     - [ ] navigation/
     - [ ] settings/
       - [ ] views/

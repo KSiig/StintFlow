@@ -14,6 +14,7 @@ from .constants import BTN_WIDTH_THIRD, BTN_WIDTH_HALF, BTN_WIDTH_FULL, BTN_HEIG
 
 from core.utilities import resource_path
 from core.errors import log
+from ui.utilities import load_style
 
 class ConfigButton(QPushButton):
     """Button with consistent sizing and optional icon.
@@ -32,8 +33,7 @@ class ConfigButton(QPushButton):
         parent=None,
     ) -> None:
         super().__init__(text, parent)
-
-        self._setup_styles()
+        load_style('resources/styles/config_button.qss', widget=self)
 
         width_map = {
             "third": BTN_WIDTH_THIRD,
@@ -52,12 +52,3 @@ class ConfigButton(QPushButton):
             icon = load_icon(icon_path, size=icon_size, color=icon_color)
             if icon:
                 self.setIcon(QIcon(icon))
-
-    def _setup_styles(self) -> None:
-        """Load and apply config button stylesheet."""
-        try:
-            with open(resource_path('resources/styles/config_button.qss'), 'r') as f:
-                self.setStyleSheet(f.read())
-        except FileNotFoundError:
-            log('WARNING', 'Config button stylesheet not found', 
-                category='config_button', action='load_stylesheet')

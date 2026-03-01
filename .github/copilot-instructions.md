@@ -15,7 +15,7 @@ StintFlow is a PyQt6 desktop application for tracking racing stints, tire manage
   - `errors/`: Centralized error handling & logging system
   - `database/`: MongoDB operations (shared by all processes)
 - **`ui/`**: PyQt6 components, models, styles, and UI orchestration
-  - `components/`: Reusable PyQt6 widgets
+  - `components/`: Reusable PyQt6 widgets (folder-per-component architecture)
   - `models/`: Table models, custom roles, view state management
   - `styles/`: QSS stylesheets
 - **`processors/`**: Independent domain-specific processes
@@ -30,6 +30,21 @@ StintFlow is a PyQt6 desktop application for tracking racing stints, tire manage
 - Barrel files (`__init__.py`) export functions from modules
 - Example: `processors/stint_tracker/__init__.py` exports `get_stints()`, `validate_compound()`, etc.
 - **Enforce this pattern rigorously** when adding functionality
+
+**Critical Pattern: Folder-Per-Feature + Function Delegation (Project-Wide)**
+- This structure is the default for the entire project, not only UI components.
+- For any non-trivial module/feature, prefer:
+  - `<FeatureName>/__init__.py` (barrel exports)
+  - `<FeatureName>/<FeatureName>.py` or a small orchestrator file (state/composition only)
+  - `<FeatureName>/bounded_functions/` (public delegated functions, one file per function)
+  - `<FeatureName>/helpers/` (private/internal helpers, one file per function)
+- Keep **one function per file** in `bounded_functions/` and `helpers/`.
+- Export symbols via package `__init__.py` barrel files.
+- Preferred binding style for class-based features: assign delegated methods inside the class body (e.g., `setCurrentIndex = setCurrentIndex`) instead of post-class monkey patch blocks.
+- Naming conventions:
+  - Public delegated functions: existing local convention (`camelCase` where already used)
+  - Private helpers: underscore-prefixed filenames and function names (e.g., `_refresh_items.py`, `_refresh_items`)
+- Keep orchestrator/class files focused on constructor/state/composition; move behavioral logic into `bounded_functions/` or `helpers/`.
 
 **Independent Processes (Separate OS Processes)**
 - Each processor is a **standalone Python script** that runs in its own OS process via `QProcess`
@@ -64,6 +79,7 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 
 ### PyQt6 Patterns
 - **Signals/Slots**: Use PyQt6 signals for cross-component communication, NOT direct function calls
+- **Component Packaging**: Components follow the same project-wide feature structure (`<ComponentName>.py` + `bounded_functions` + `helpers` + barrel exports)
 - **Model Container Pattern**: Pass models to UI components using `ModelContainer` dataclass
   - Defined in `ui/models/model_container.py`
   - Example: `OverviewMainWindow(ModelContainer(selection_model=..., table_model=...))`
@@ -118,10 +134,19 @@ When adding new functionality:
 ```
 Shared DB operation     → core/database/<operation_name>.py
 Domain-specific logic   → processors/<domain>/core/<function_name>.py
-Domain strategies       → processors/<domain>/strategies/<function_name>.py
-UI component            → ui/components/<component_name>.py
+UI component            → ui/components/<ComponentName>/<ComponentName>.py
+Component public method → ui/components/<ComponentName>/bounded_functions/<method_name>.py
+Component helper        → ui/components/<ComponentName>/helpers/<helper_name>.py
 UI model                → ui/models/<model_name>.py
 Export function         → Add to relevant __init__.py
+```
+
+General feature-module pattern (use whenever a module grows beyond a single small file):
+```
+<domain>/<FeatureName>/__init__.py
+<domain>/<FeatureName>/<FeatureName>.py
+<domain>/<FeatureName>/bounded_functions/<public_function>.py
+<domain>/<FeatureName>/helpers/<_private_helper>.py
 ```
 
 ## Critical Integration Points
