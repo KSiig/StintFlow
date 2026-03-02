@@ -39,6 +39,7 @@ from .connection import (
     get_teams_collection,
     get_strategies_collection,
     get_agents_collection,
+    test_connection,
 )
 
 __all__ = [
@@ -66,6 +67,7 @@ __all__ = [
     'get_teams_collection',
     'get_strategies_collection',
     'get_agents_collection',
+    'test_connection',
     'register_agent',
     'update_agent_heartbeat',
     'get_agents',
