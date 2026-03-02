@@ -35,16 +35,16 @@ This document lists every folder recursively in the project with a checkbox for 
   - [x] components/
     - [x] common/
     - [x] navigation/
-    - [ ] settings/
-      - [ ] views/
-    - [ ] stint_tracking/
-      - [ ] config/
-      - [ ] delegates/
-      - [ ] strategies/
+    - [x] settings/
+      - [x] views/
+    - [x] stint_tracking/
+      - [x] config/
+      - [x] delegates/
+      - [x] strategies/
       - [ ] table/
-      - [ ] views/
+      - [x] views/
       - [ ] widgets/
-    - [ ] window/
+    - [x] window/
   - [ ] models/
     - [ ] table_processors/
   - [ ] utilities/
