@@ -6,7 +6,7 @@ from PyQt6.QtGui import QIcon, QPixmap
 
 from core.utilities import resource_path
 from ui.components.common import DropdownButton
-from ui.utilities import load_icon
+from ui.utilities.load_icon import load_icon
 
 
 class TirePopup(QWidget):

@@ -1,10 +1,10 @@
 """Compose the StrategiesView layout."""
 
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QPushButton, QStackedWidget, QTabBar, QVBoxLayout
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QPushButton, QStackedWidget, QTabBar, QVBoxLayout, QSizePolicy
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 
-from ui.utilities import load_icon
+from ui.utilities.load_icon import load_icon
 
 
 def _setup_ui(self) -> None:
@@ -14,13 +14,13 @@ def _setup_ui(self) -> None:
 
     tab_bar_frame = QFrame()
     tab_bar_frame.setObjectName("TabBarFrame")
+    tab_bar_frame.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
     tab_bar_layout = QHBoxLayout(tab_bar_frame)
     tab_bar_layout.setContentsMargins(0, 0, 0, 0)
     tab_bar_layout.setSpacing(0)
 
     self.tab_bar = QTabBar()
     self.tab_bar.setObjectName("StrategyTabBar")
-    self.tab_bar.setExpanding(False)
     self.tab_bar.currentChanged.connect(self._on_tab_changed)
     tab_bar_layout.addWidget(self.tab_bar)
 

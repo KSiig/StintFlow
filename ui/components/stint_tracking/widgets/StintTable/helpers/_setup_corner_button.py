@@ -3,7 +3,7 @@ from __future__ import annotations
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QAbstractButton, QHBoxLayout, QLabel, QTableView, QWidget
 
-from ui.utilities import load_icon
+from ui.utilities.load_icon import load_icon
 from ....constants import VERTICAL_HEADER_LABEL, VERTICAL_HEADER_WIDTH
 
 

@@ -1,6 +1,6 @@
 """Set the popup icon and color."""
 
-from ui.utilities import load_icon
+from ui.utilities.load_icon import load_icon
 
 
 def _set_icon(self, popup_type: str) -> None:

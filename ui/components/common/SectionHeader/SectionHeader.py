@@ -3,7 +3,8 @@ Section header widget with optional icon and title.
 """
 
 from PyQt6.QtWidgets import QLabel, QHBoxLayout, QWidget
-from ui.utilities import FONT, get_fonts, load_icon
+from ui.utilities.fonts import FONT, get_fonts
+from ui.utilities.load_icon import load_icon
 
 
 class SectionHeader(QWidget):

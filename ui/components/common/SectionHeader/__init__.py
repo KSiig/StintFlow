@@ -1,3 +1,3 @@
 from .SectionHeader import SectionHeader
 
-__all__ = ['SectionHeader']
+__all__ = ["SectionHeader"]

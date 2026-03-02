@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QRect
 from PyQt6.QtGui import QColor
 
 from ui.components.stint_tracking.delegates.delegate_utils import paint_model_background
-from ui.utilities import load_icon
+from ui.utilities.load_icon import load_icon
 from core.utilities import resource_path
 
 

@@ -1,7 +1,8 @@
 from PyQt6.QtCore import Qt
 
 from ui.components.stint_tracking import get_header_icon
-from ui.utilities import FONT, load_icon
+from ui.utilities import FONT
+from ui.utilities.load_icon import load_icon
 
 from ..constants import HEADER_ICON_COLOR, VERTICAL_HEADER_START_INDEX
 

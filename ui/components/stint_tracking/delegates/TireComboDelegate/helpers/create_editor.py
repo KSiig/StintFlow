@@ -3,7 +3,7 @@
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QAbstractItemView, QHBoxLayout, QSizePolicy, QWidget
 
-from ui.components.common import ConfigButton
+from ui.components.common.ConfigButton import ConfigButton
 from ui.components.stint_tracking.delegates.TireComboDelegate.TirePopup import TirePopup
 from ui.models.table_constants import ColumnIndex
 from ui.models.TableRoles import TableRoles

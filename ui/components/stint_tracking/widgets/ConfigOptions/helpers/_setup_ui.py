@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PyQt6.QtWidgets import QFrame, QVBoxLayout
 
-from ui.components.common import SectionHeader
+from ui.components.common.SectionHeader.SectionHeader import SectionHeader
 from ....config import ConfigLayout
 
 

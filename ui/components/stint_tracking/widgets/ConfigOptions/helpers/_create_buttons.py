@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PyQt6.QtWidgets import QCheckBox, QLabel
 
-from ui.components.common import ConfigButton
+from ui.components.common.ConfigButton import ConfigButton
 from ui.utilities import FONT, get_fonts
 from ....config import ConfigLabels
 

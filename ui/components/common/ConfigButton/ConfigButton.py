@@ -9,12 +9,12 @@ callers can instantiate directly.
 
 from PyQt6.QtWidgets import QPushButton, QSizePolicy
 from PyQt6.QtGui import QIcon
-from ui.utilities import load_icon
-from .constants import BTN_WIDTH_THIRD, BTN_WIDTH_HALF, BTN_WIDTH_FULL, BTN_HEIGHT
 
 from core.utilities import resource_path
 from core.errors import log
-from ui.utilities import load_style
+from ui.utilities.load_icon import load_icon
+from ui.utilities.load_style import load_style
+from .constants import BTN_WIDTH_THIRD, BTN_WIDTH_HALF, BTN_WIDTH_FULL, BTN_HEIGHT
 
 class ConfigButton(QPushButton):
     """Button with consistent sizing and optional icon.

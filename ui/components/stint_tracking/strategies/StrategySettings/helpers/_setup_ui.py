@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
 
-from ui.components.common import ConfigButton, SectionHeader
+from ui.components.common.ConfigButton import ConfigButton
+from ui.components.common.SectionHeader.SectionHeader import SectionHeader
 from ui.components.stint_tracking.config import ConfigLabels
 
 
