@@ -40,3 +40,5 @@ class ConfigLabels:
     BTN_NEW_SESSION = "+ New session"
     BTN_START_TRACK = "Track"
     BTN_STOP_TRACK = "Stop"
+    BTN_HIDE_OPTIONS = "Hide options"
+    BTN_SHOW_OPTIONS = "Show options"

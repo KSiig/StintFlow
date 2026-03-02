@@ -3,6 +3,7 @@
 from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QWidget
 
 from ui.models import ModelContainer
+from ui.utilities.load_style import load_style
 
 from .bounded_functions import alert_db_connection_failure
 from .helpers import (
@@ -18,7 +19,6 @@ from .helpers import (
     _load_settings,
     _restart_app,
     _save_settings,
-    _setup_styles,
     _setup_ui,
 )
 
@@ -26,7 +26,6 @@ from .helpers import (
 class SettingsView(QWidget):
     """Application settings view."""
 
-    _setup_styles = _setup_styles
     _setup_ui = _setup_ui
     _add_input = _add_input
     _build_agent_section = _build_agent_section
@@ -49,6 +48,6 @@ class SettingsView(QWidget):
         self.status_label: QLabel | None = None
         self.reload_button: QPushButton | None = None
 
-        self._setup_styles()
+        load_style('resources/styles/settings/settings.qss', widget=self)
         self._setup_ui()
         self._load_settings()

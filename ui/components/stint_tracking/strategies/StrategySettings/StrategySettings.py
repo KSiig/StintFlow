@@ -4,6 +4,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
 from ui.models import ModelContainer
+from ui.utilities.load_style import load_style
 
 from .helpers import (
     _create_labeled_input_rows,
@@ -13,7 +14,6 @@ from .helpers import (
     _on_save_clicked,
     _realign_rows,
     _set_inputs,
-    _setup_styles,
     _setup_ui,
     _toggle_edit,
 )
@@ -25,7 +25,6 @@ class StrategySettings(QWidget):
     strategy_updated = pyqtSignal(dict)
     strategy_deleted = pyqtSignal(str)
 
-    _setup_styles = _setup_styles
     _setup_ui = _setup_ui
     _create_labeled_input_rows = _create_labeled_input_rows
     _toggle_edit = _toggle_edit
@@ -44,7 +43,7 @@ class StrategySettings(QWidget):
         self.inputs: dict = {}
         self.strategy = strategy
 
-        self._setup_styles()
+        load_style('resources/styles/stint_tracking/strategy_settings.qss', widget=self)
         self._setup_ui()
 
         if self.table_model is not None:

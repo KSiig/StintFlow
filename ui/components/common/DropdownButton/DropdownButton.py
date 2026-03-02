@@ -5,6 +5,7 @@ Reusable dropdown button widget with custom popup.
 from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QWidget
 from PyQt6.QtCore import pyqtSignal
 
+from ui.utilities.load_style import load_style
 from .bounded_functions import (
     get_value,
     set_items,
@@ -17,7 +18,6 @@ from .helpers import (
     _normalize_items,
     _on_value_changed,
     _pad_text,
-    _setup_styles,
     _show_popup,
 )
 
@@ -33,7 +33,6 @@ class DropdownButton(QWidget):
     set_items = set_items
     get_value = get_value
 
-    _setup_styles = _setup_styles
     _normalize_items = _normalize_items
     _pad_text = _pad_text
     _show_popup = _show_popup
@@ -53,7 +52,7 @@ class DropdownButton(QWidget):
         super().__init__(parent)
 
         if load_styles:
-            self._setup_styles()
+            load_style('resources/styles/common/dropdown.qss', widget=self)
 
         self._raw_items = items
         self.sort_items = sort_items

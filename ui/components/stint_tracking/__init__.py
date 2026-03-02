@@ -17,7 +17,7 @@ constants.py - Shared constants used across multiple modules
 from .views import OverviewView, ConfigView, StrategiesView
 
 # Widgets - reusable components
-from .widgets import ConfigOptions, StintTable
+from .widgets import ConfigOptions, StintTable, AgentOverview, TeamSection
 
 # Delegates - table cell renderers
 from .delegates import DriverPillDelegate, StatusDelegate, TireComboDelegate, StintTypeCombo
@@ -41,6 +41,8 @@ __all__ = [
     # Widgets
     'ConfigOptions',
     'StintTable',
+    'AgentOverview',
+    'TeamSection',
     
     # Delegates
     'DriverPillDelegate',

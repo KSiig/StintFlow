@@ -1,4 +1,3 @@
-from ._setup_styles import _setup_styles
 from ._setup_ui import _setup_ui
 from ._on_tab_changed import _on_tab_changed
 from ._load_strategies import _load_strategies
@@ -13,7 +12,6 @@ from ._update_tab_label import _update_tab_label
 from ._add_tab import _add_tab
 
 __all__ = [
-    "_setup_styles",
     "_setup_ui",
     "_on_tab_changed",
     "_load_strategies",

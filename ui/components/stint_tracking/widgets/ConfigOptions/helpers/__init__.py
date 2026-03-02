@@ -14,7 +14,6 @@ from ._refresh_labels import _refresh_labels
 from ._reset_info_lbl import _reset_info_lbl
 from ._revert_tracking_state import _revert_tracking_state
 from ._save_config import _save_config
-from ._setup_styles import _setup_styles
 from ._setup_ui import _setup_ui
 from ._show_info_lbl import _show_info_lbl
 from ._start_process import _start_process
@@ -38,7 +37,6 @@ __all__ = [
     '_reset_info_lbl',
     '_revert_tracking_state',
     '_save_config',
-    '_setup_styles',
     '_setup_ui',
     '_show_info_lbl',
     '_start_process',

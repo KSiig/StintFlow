@@ -1,4 +1,3 @@
-from ._setup_styles import _setup_styles
 from ._setup_ui import _setup_ui
 from ._add_input import _add_input
 from ._build_agent_section import _build_agent_section
@@ -14,7 +13,6 @@ from ._save_settings import _save_settings
 from ._restart_app import _restart_app
 
 __all__ = [
-    "_setup_styles",
     "_setup_ui",
     "_add_input",
     "_build_agent_section",

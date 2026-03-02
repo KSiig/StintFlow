@@ -33,7 +33,23 @@ def _setup_ui(self, models) -> None:
         left_col.addWidget(self.agent_overview)
         self.agent_overview._load_agents()
 
-        layout.addLayout(left_col)
+        left_container = QFrame(frame)
+        left_container.setFrameShape(QFrame.Shape.NoFrame)
+        left_container.setLayout(left_col)
+        left_container.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.left_column_container = left_container
+        layout.addWidget(left_container)
+
+        right_container = QFrame(frame)
+        right_container.setFrameShape(QFrame.Shape.NoFrame)
+        right_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        right_layout = QVBoxLayout(right_container)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(12)
+
+        table_controls = self._create_table_controls()
+        right_layout.addWidget(table_controls)
 
         self.stint_table = StintTable(
             models=models,
@@ -41,8 +57,11 @@ def _setup_ui(self, models) -> None:
             auto_update=True,
             allow_editors=False,
         )
-        layout.addWidget(self.stint_table)
-        layout.addStretch()
+        right_layout.addWidget(self.stint_table)
+        right_layout.setStretch(1, 1)
+
+        layout.addWidget(right_container)
+        layout.setStretchFactor(right_container, 1)
 
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)

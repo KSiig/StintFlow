@@ -6,11 +6,13 @@ from ui.models import ModelContainer
 
 from .bounded_functions import closeEvent
 from .helpers import (
+    _create_table_controls,
     _on_tracker_started,
     _on_tracker_stopped,
     _setup_ui,
     _start_polling_timer,
     _startup_tick,
+    _toggle_left_column,
 )
 
 
@@ -19,11 +21,13 @@ class ConfigView(QWidget):
 
     SPACING = 16
 
+    _create_table_controls = _create_table_controls
     _setup_ui = _setup_ui
     _on_tracker_started = _on_tracker_started
     _on_tracker_stopped = _on_tracker_stopped
     _startup_tick = _startup_tick
     _start_polling_timer = _start_polling_timer
+    _toggle_left_column = _toggle_left_column
     closeEvent = closeEvent
 
     def __init__(self, models: ModelContainer) -> None:

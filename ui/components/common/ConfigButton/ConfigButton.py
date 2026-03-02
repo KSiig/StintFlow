@@ -33,7 +33,7 @@ class ConfigButton(QPushButton):
         parent=None,
     ) -> None:
         super().__init__(text, parent)
-        load_style('resources/styles/config_button.qss', widget=self)
+        load_style('resources/styles/common/config_button.qss', widget=self)
 
         width_map = {
             "third": BTN_WIDTH_THIRD,

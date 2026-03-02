@@ -6,21 +6,20 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QFrame, QLineEdit, QSizePolicy, QVBoxLayout
 
 from ui.utilities import FONT, get_fonts
+from ui.utilities.load_style import load_style
 
 from .bounded_functions import get_input_field
-from .helpers import _setup_styles
 
 
 class LabeledInputRow(QFrame):
     """Frame containing a label and a `QLineEdit` input."""
 
     get_input_field = get_input_field
-    _setup_styles = _setup_styles
 
     def __init__(self, title: str, input_height: int = None, spacing: int = None, parent=None):
         super().__init__(parent)
 
-        self._setup_styles()
+        load_style('resources/styles/common/labeled_input_row.qss', widget=self)
 
         self.setObjectName("Setting")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)

@@ -13,23 +13,23 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
 from ui.utilities import FONT, get_fonts
+from ui.utilities.load_style import load_style
 
 from .bounded_functions import showEvent
-from .helpers import _center_on_parent, _handle_click, _set_icon, _setup_styles
+from .helpers import _center_on_parent, _handle_click, _set_icon
 
 
 class PopUp(QDialog):
     """Frameless popup dialog with icon, title, message, and buttons."""
 
     showEvent = showEvent
-    _setup_styles = _setup_styles
     _set_icon = _set_icon
     _center_on_parent = _center_on_parent
     _handle_click = _handle_click
 
     def __init__(self, title: str, message: str, buttons=None, type: str = "info", parent: QWidget = None):
         super().__init__(parent)
-        self._setup_styles()
+        load_style('resources/styles/common/popup.qss', widget=self)
 
         self._icon_map = {
             "info": ("resources/icons/popup/info.svg", "#3b82f6"),

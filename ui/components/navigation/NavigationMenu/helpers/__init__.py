@@ -1,4 +1,3 @@
-from ._setup_styles import _setup_styles
 from ._create_layout import _create_layout
 from ._update_event_selection import _update_event_selection
 from ._add_title_and_icon import _add_title_and_icon
@@ -10,7 +9,6 @@ from ._set_active_menu_item import _set_active_menu_item
 from ._create_menu_section import _create_menu_section
 
 __all__ = [
-    '_setup_styles',
     '_create_layout',
     '_update_event_selection',
     '_add_title_and_icon',

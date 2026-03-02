@@ -2,7 +2,7 @@
 
 The public function `load_style` takes a single argument `file_name` which
 is the resource-relative path to the stylesheet (for example:
-`resources/styles/config_button.qss`). When logging, the `file_name` is
+`resources/styles/common/config_button.qss`). When logging, the `file_name` is
 used as the `category` with `/` replaced by `-`.
 """
 from core.utilities import resource_path
