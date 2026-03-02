@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from ui.models.stint_helpers import calculate_time_of_day, get_default_tire_dict
+from ui.models.stint_helpers import calculate_time_of_day, get_default_tire_dict, is_last_stint
 from ui.models.table_constants import FULL_TIRE_SET
-from ui.models.table_processors.stint_processor import _subtract_time_from_pit_time, is_last_stint
+from ui.models.table_processors._subtract_time_from_pit_time import _subtract_time_from_pit_time
 
 
 def _realign_rows(self, new_mean_sec: int) -> None:

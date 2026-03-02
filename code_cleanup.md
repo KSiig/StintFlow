@@ -41,10 +41,10 @@ This document lists every folder recursively in the project with a checkbox for 
       - [x] config/
       - [x] delegates/
       - [x] strategies/
-      - [ ] table/
+      - [x] table/
       - [x] views/
-      - [ ] widgets/
+      - [x] widgets/
     - [x] window/
-  - [ ] models/
-    - [ ] table_processors/
+  - [x] models/
+    - [x] table_processors/
   - [ ] utilities/

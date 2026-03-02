@@ -1,0 +1,7 @@
+"""Constants used by the TableModel."""
+
+DEFAULT_TIRE_COUNT = "0"
+DEFAULT_RACE_LENGTH = "00:00:00"
+DEFAULT_START_TIME = "00:00:00"
+HEADER_ICON_COLOR = "#FFFFFF"
+VERTICAL_HEADER_START_INDEX = 1  # Row numbers are 1-indexed
