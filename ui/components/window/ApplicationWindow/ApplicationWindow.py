@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from ui.models import NavigationModel, SelectionModel
 from ui.utilities import ResizeController
+from ui.utilities.loading_queue import LoadingQueue
 
 from .bounded_functions._assemble_layout import _assemble_layout
 from .bounded_functions._change_event import changeEvent
@@ -17,7 +18,6 @@ from .bounded_functions._mouse_press_event import mousePressEvent
 from .bounded_functions._mouse_release_event import mouseReleaseEvent
 from .bounded_functions._on_connection_failed import _on_connection_failed
 from .bounded_functions._on_initialization_done import _on_initialization_done
-from .bounded_functions._on_status_update import _on_status_update
 from .bounded_functions._resize_event import resizeEvent
 from .bounded_functions._setup_mouse_tracking import _setup_mouse_tracking
 from .bounded_functions._setup_window_properties import _setup_window_properties
@@ -34,7 +34,6 @@ class ApplicationWindow(QMainWindow):
     _create_components = _create_components
     _create_loading_overlay = _create_loading_overlay
     _start_initialization = _start_initialization
-    _on_status_update = _on_status_update
     show_loading = show_loading
     hide_loading = hide_loading
     _on_connection_failed = _on_connection_failed
@@ -63,6 +62,7 @@ class ApplicationWindow(QMainWindow):
         self._create_loading_overlay()
 
         self._loading_widget_stack: list = []
+        LoadingQueue.register_window(self)
         QTimer.singleShot(0, self._start_initialization)
 
         self._setup_mouse_tracking()

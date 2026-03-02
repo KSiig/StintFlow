@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from PyQt6.QtWidgets import QApplication
+from ui.utilities.loading_queue import LoadingQueue
+
+MESSAGE = "Loading session data..."
 
 
 def refresh_table(self, skip_model_update: bool = False) -> None:
@@ -11,19 +13,12 @@ def refresh_table(self, skip_model_update: bool = False) -> None:
     if isinstance(skip_model_update, str):
         skip_model_update = False
 
-    app_window = self.window() or (QApplication.instance().activeWindow() if QApplication.instance() else None)
-    if not skip_model_update and app_window and hasattr(app_window, 'show_loading'):
-        app_window.show_loading('Loading session data...')
-
     if not skip_model_update:
+        LoadingQueue.push(MESSAGE)
         try:
             self.table_model.update_data()
         finally:
-            if app_window and hasattr(app_window, 'hide_loading'):
-                app_window.hide_loading()
-    else:
-        if app_window and hasattr(app_window, 'hide_loading'):
-            app_window.hide_loading()
+            LoadingQueue.pop(MESSAGE)
 
     if self.table_model.rowCount() == 0:
         self._show_placeholder()

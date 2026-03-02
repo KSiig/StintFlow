@@ -8,12 +8,16 @@ from core.database import get_events, get_sessions
 from core.database.connection import test_connection
 from core.errors import log_exception
 from ui.models.table_loader import load_table_data
+from ui.utilities.loading_queue import LoadingQueue
+
+_MSG_CONNECT = "Connecting to database..."
+_MSG_NAV = "Loading navigation data..."
+_MSG_TABLE = "Loading table data..."
 
 
 class InitializationWorker(QThread):
     """Thread that loads data needed to populate the initial views."""
 
-    status = pyqtSignal(str)
     connectionFailed = pyqtSignal()
     finished = pyqtSignal(list, list, timedelta, list, list)
 
@@ -23,28 +27,38 @@ class InitializationWorker(QThread):
 
     def run(self) -> None:
         try:
-            self.status.emit("Connecting to database...")
-            if not test_connection():
-                self.status.emit("Unable to connect to MongoDB")
+            LoadingQueue.push(_MSG_CONNECT)
+            try:
+                connected = test_connection()
+            finally:
+                LoadingQueue.pop(_MSG_CONNECT)
+
+            if not connected:
                 self.connectionFailed.emit()
                 return
 
-            self.status.emit("Loading navigation data...")
+            LoadingQueue.push(_MSG_NAV)
             try:
-                events = list(get_events(sort_by=None))
-            except Exception:
-                events = []
-            sessions = []
-            if events:
                 try:
-                    sessions = list(get_sessions(str(events[0].get("_id")), sort_by=None))
+                    events = list(get_events(sort_by=None))
                 except Exception:
-                    sessions = []
+                    events = []
+                sessions = []
+                if events:
+                    try:
+                        sessions = list(get_sessions(str(events[0].get("_id")), sort_by=None))
+                    except Exception:
+                        sessions = []
+            finally:
+                LoadingQueue.pop(_MSG_NAV)
 
-            self.status.emit("Loading table data...")
-            data, tires, mean = load_table_data(self.selection_model)
-            self.status.emit("Initialization complete")
-            self.finished.emit(data, tires, mean, events, sessions)
+            LoadingQueue.push(_MSG_TABLE)
+            try:
+                data, tires, mean = load_table_data(self.selection_model)
+                self.finished.emit(data, tires, mean, events, sessions)
+            finally:
+                LoadingQueue.pop(_MSG_TABLE)
+
         except Exception as e:
             log_exception(
                 e,

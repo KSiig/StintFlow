@@ -11,11 +11,7 @@ def _start_initialization(self) -> None:
         load_on_init=False,
     )
 
-    if hasattr(self, "loading_overlay") and self.loading_overlay:
-        self.loading_overlay.set_status("Initializing...")
-
     self._init_worker = InitializationWorker(self.selection_model)
-    self._init_worker.status.connect(self._on_status_update)
     self._init_worker.connectionFailed.connect(self._on_connection_failed)
     self._init_worker.finished.connect(self._on_initialization_done)
     self._init_worker.start()
