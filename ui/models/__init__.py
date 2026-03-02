@@ -17,17 +17,18 @@ from .mongo_docs_to_rows import mongo_docs_to_rows
 from .agent_helpers import docs_to_rows as agent_docs_to_rows
 
 __all__ = [
-    'ModelContainer',
-    'SelectionModel',
-    'NavigationModel',
-    'TableModel',
-    'TableRoles',
-    'ColumnIndex',
-    'TableRow',
-    'TireData',
-    'create_table_row',
-    'is_completed_row',
-    'table_processors',
-    'sanitize_stints',
-    'mongo_docs_to_rows'
+    "ModelContainer",
+    "SelectionModel",
+    "NavigationModel",
+    "TableModel",
+    "TableRoles",
+    "ColumnIndex",
+    "TableRow",
+    "TireData",
+    "create_table_row",
+    "is_completed_row",
+    "table_processors",
+    "sanitize_stints",
+    "mongo_docs_to_rows",
+    "agent_docs_to_rows",
 ]

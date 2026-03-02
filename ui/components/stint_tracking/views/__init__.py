@@ -1,15 +1,7 @@
-"""
-View components for stint tracking.
-
-Top-level views that compose widgets and manage UI state.
-"""
+"""View components for stint tracking."""
 
 from .OverviewView import OverviewView
 from .ConfigView import ConfigView
 from .StrategiesView import StrategiesView
 
-__all__ = [
-    'OverviewView',
-    'ConfigView',
-    'StrategiesView'
-]
+__all__ = ["OverviewView", "ConfigView", "StrategiesView"]

@@ -1,197 +1,137 @@
-"""
-Main tracking loop for stint tracker.
+"""Main tracking loop for the stint tracker.
 
-Monitors game state and creates stint records when pit stops are detected.
+Poll the LMU shared memory, detect pit activity for the player and
+create stint records when pit stops are completed.
 """
+
+from __future__ import annotations
 
 import time
-from typing import Any, Optional
-import time
+from typing import Any, Dict, Tuple, List
+
 from core.errors import log
-from core.database import (
-    get_session,
-    get_event,
-    get_latest_stint,
-    update_agent_heartbeat,
-    clean_stale_agents,
+from processors.stint_tracker.helpers import (
+    _get_tire_state,
+    _get_practice_baseline_time,
+    _get_pit_state,
+    PitState,
+    _is_in_garage,
+    _calculate_remaining_time,
+    _maybe_update_heartbeat,
+    _maybe_cleanup_stale_agents,
+    _get_player_info
 )
-from ..pit_detection import (
-    get_pit_state, PitState, is_in_garage, find_player_scoring_vehicle
-)
-from ..tire_management import get_tire_state
 from .create_stint import create_stint
-from .calculate_remaining_time import calculate_remaining_time
 
 
-# Polling frequency for game state monitoring (Hz)
-POLLING_FREQUENCY = 1
+# --- Configuration ---
+POLLING_FREQUENCY: int = 1  # Hz
 
-
-def _get_practice_baseline_time(session_id: str) -> Optional[str]:
-    """
-    Get baseline time for practice mode tracking.
-
-    Practice tracking always calculates remaining time relative to the
-    *previous* pit end.  When a tracker is restarted mid‑session we need
-    to know what the most recent pit record is so that the offset can be
-    applied correctly.  The earlier implementation simply called
-    :func:`get_stints` and took ``stints[-1]``.  Mongo cursors are not
-    guaranteed to return documents in chronological order, which meant the
-    "latest" stint could be wrong and the calculated lap time would be
-    completely off.
-
-    The new version asks the database for the latest stint explicitly
-    (sorted by ``pit_end_time_bucket``) and falls back to the event length
-    only if no stints exist at all.
-
-    Args:
-        session_id: Database session ID
-
-    Returns:
-        Baseline time in HH:MM:SS format, or ``None`` if the session or
-        race cannot be loaded (which should normally not happen).
-    """
-    # try to locate the most recent stint from the database
-    latest = get_latest_stint(session_id)
-    if latest:
-        return latest.get('pit_end_time')
-
-    # no stints recorded yet; fall back to the event length
-    session = get_session(session_id)
-    if not session:
-        return None
-    event = get_event(str(session['race_id']))
-    return event.get('length')
+_LOG_CATEGORY = "stint_tracker"
+_LOG_ACTION = "track_session"
 
 
 def track_session(
     lmu_telemetry: Any,
     lmu_scoring: Any,
     session_id: str,
-    drivers: list[str],
+    drivers: List[str],
     is_practice: bool = False,
     agent_name: str | None = None,
+    dry_run: bool = False,
 ) -> None:
+    """Track session and create stints when pit stops are detected.
+
+    The function is intended to run in a standalone process. It performs
+    a simple event loop that updates a heartbeat, cleans stale agents
+    periodically, and inspects LMU memory for player pit activity.
     """
-    Track session and create stints when pit stops are detected.
-    
-    Args:
-        lmu_telemetry: LMU telemetry data object
-        lmu_scoring: LMU scoring data object
-        session_id: Database session ID
-        drivers: List of driver names
-        is_practice: Whether this is a practice session
-        agent_name: Optional name of this tracker instance; if provided
-            periodic heartbeat updates will be written to the database.
-    """
-    # State tracking
-    pit_stop_in_progress = False
-    num_penalties = 0
-    garage_time_snapshot = "00:00:00"  # Time when player was last in garage
-    tracking_enabled = False  # For practice mode: wait for player to return to garage
-    tracked_driver_name = ""
-    tires_coming_in = {}
-    practice_baseline_time = None
-    
-    # Load baseline time for practice mode
+
+    # Runtime state
+    pit_stop_in_progress: bool = False
+    num_penalties: int = 0
+    garage_time_snapshot: str = "00:00:00"
+    tracking_enabled: bool = False
+    tracked_driver_name: str = ""
+    tires_coming_in: Dict[str, Any] = {}
+    practice_baseline_time: str | None = None
+
     if is_practice:
         practice_baseline_time = _get_practice_baseline_time(session_id)
-        log('DEBUG', f'Practice mode baseline time: {practice_baseline_time}',
-            category='stint_tracker', action='track_session')
-    
-    log('INFO', f'Tracking session {session_id}',
-        category='stint_tracker', action='track_session')
-    
-    # health/cleanup timers (seconds)
+        log("DEBUG", f"Practice mode baseline time: {practice_baseline_time}",
+            category=_LOG_CATEGORY, action=_LOG_ACTION)
+
+    log("INFO", f"Tracking session {session_id} ({'dry run' if dry_run else 'live'})",
+        category=_LOG_CATEGORY, action=_LOG_ACTION)
+
     last_cleanup = time.time()
-    CLEANUP_INTERVAL = 5
-    STALE_THRESHOLD = 60
 
-    # Main tracking loop
+    # Main loop
     while True:
-        # refresh heartbeat for UI monitoring
-        if agent_name:
-            try:
-                update_agent_heartbeat(agent_name)
-            except Exception:
-                # non-fatal; log only at debug level
-                log('DEBUG', f'Failed to update heartbeat for {agent_name}',
-                    category='stint_tracker', action='track_session')
+        # --- housekeeping -------------------------------------------------
+        _maybe_update_heartbeat(agent_name)
+        last_cleanup = _maybe_cleanup_stale_agents(last_cleanup)
 
-        # periodic cleanup of stale agents
-        now = time.time()
-        if now - last_cleanup >= CLEANUP_INTERVAL:
-            try:
-                # Use a short threshold as per requirement; multiple trackers
-                # can call this concurrently without issue because the
-                # delete_many query is atomic per-document.
-                clean_stale_agents(grace_period_seconds=STALE_THRESHOLD)
-            except Exception:
-                log('DEBUG', 'Error while cleaning stale agents',
-                    category='stint_tracker', action='track_session')
-            last_cleanup = now
-
-        # Get player vehicle data
-        player_idx = lmu_telemetry.playerVehicleIdx
-        player_vehicle = lmu_telemetry.telemInfo[player_idx]
-        player_scoring, driver_name = find_player_scoring_vehicle(
-            lmu_telemetry, lmu_scoring, drivers
-        )
-        
-        if not player_scoring:
-            time.sleep(1 / POLLING_FREQUENCY)
+        # Dry-run keeps heartbeats/cleanup but skips LMU access
+        if dry_run:
+            print("next loop")
+            time.sleep(1.0 / POLLING_FREQUENCY)
             continue
-        
-        pit_state = get_pit_state(player_scoring)
-        
+
+        # --- player/session info -----------------------------------------
+        player_info = _get_player_info(lmu_telemetry, lmu_scoring, drivers)
+        if not player_info:
+            time.sleep(1.0 / POLLING_FREQUENCY)
+            continue
+
+        player_vehicle, player_scoring, driver_name = player_info
+        pit_state = _get_pit_state(player_scoring)
+
         # Capture tire state when coming into pits
         if pit_state == PitState.COMING_IN and not pit_stop_in_progress:
-            log('DEBUG', f'Driver {driver_name} entering pits',
-                category='stint_tracker', action='track_session')
-            tires_coming_in = get_tire_state(player_vehicle)
+            log("DEBUG", f"Driver {driver_name} entering pits",
+                category=_LOG_CATEGORY, action=_LOG_ACTION)
+            tires_coming_in = _get_tire_state(player_vehicle)
             tracked_driver_name = driver_name
-        
-        # Practice mode: wait for player to return to garage before tracking
+
+        # Practice mode: enable tracking once player is in garage
         if is_practice and not tracking_enabled:
-            if is_in_garage(player_scoring):
-                log('INFO', 'Player in garage - tracking enabled',
-                    category='stint_tracker', action='track_session')
+            if _is_in_garage(player_scoring):
+                log("INFO", "Player in garage - tracking enabled",
+                    category=_LOG_CATEGORY, action=_LOG_ACTION)
                 tracking_enabled = True
             else:
-                log('INFO', 'Return to garage - tracking disabled',
-                    category='stint_tracker', action='track_session')
-                time.sleep(1)
+                log("INFO", "Return to garage - tracking disabled",
+                    category=_LOG_CATEGORY, action=_LOG_ACTION)
+                time.sleep(1.0)
                 continue
-        else:
-            tracking_enabled = True
-        
-        # Track remaining time when in garage
-        if is_in_garage(player_scoring):
+
+        # When in garage we snapshot remaining time for later calculations
+        if _is_in_garage(player_scoring):
             print("__info__:stint_tracker:player_in_garage")
             pit_stop_in_progress = True
-            garage_time_snapshot = calculate_remaining_time(lmu_scoring)
-        
-        # Detect pit stop completion
+            garage_time_snapshot = _calculate_remaining_time(lmu_scoring)
+
+        # Detect pit stop completion and create stint
+        # Detect pit stop completion and create stint
         if not pit_stop_in_progress and pit_state == PitState.LEAVING:
-            log('INFO', f'Driver {tracked_driver_name} leaving pits - creating stint',
-                category='stint_tracker', action='track_session')
+            log("INFO", f"Driver {tracked_driver_name} leaving pits - creating stint",
+                category=_LOG_CATEGORY, action=_LOG_ACTION)
             pit_stop_in_progress = True
-            
-            # Calculate remaining time
+
+            # Compute remaining time depending on mode
             if is_practice and practice_baseline_time:
-                # Practice mode: calculate time from baseline with garage offset
-                remaining_time = calculate_remaining_time(
+                remaining_time = _calculate_remaining_time(
                     lmu_scoring,
                     start_time=garage_time_snapshot,
-                    offset_time=practice_baseline_time
+                    offset_time=practice_baseline_time,
                 )
-                log('DEBUG', f'Practice stint time: {remaining_time} (baseline: {practice_baseline_time}, offset: {garage_time_snapshot})',
-                    category='stint_tracker', action='track_session')
+                log("DEBUG", f"Practice stint time: {remaining_time} (baseline: {practice_baseline_time}, offset: {garage_time_snapshot})",
+                    category=_LOG_CATEGORY, action=_LOG_ACTION)
             else:
-                # Race mode: use current race time
-                remaining_time = calculate_remaining_time(lmu_scoring)
-            
-            # Create stint record
+                remaining_time = _calculate_remaining_time(lmu_scoring)
+
+            # Create database record for the stint
             stint_id = create_stint(
                 remaining_time=remaining_time,
                 player_vehicle=player_vehicle,
@@ -199,20 +139,19 @@ def track_session(
                 num_penalties=num_penalties,
                 session_id=session_id,
                 driver_name=tracked_driver_name,
-                tires_coming_in=tires_coming_in
+                tires_coming_in=tires_coming_in,
             )
-            
-            # Update baseline for next practice stint
+
             if is_practice and stint_id:
                 practice_baseline_time = remaining_time
-                log('DEBUG', f'Updated practice baseline to: {practice_baseline_time}',
-                    category='stint_tracker', action='track_session')
-        
+                log("DEBUG", f"Updated practice baseline to: {practice_baseline_time}",
+                    category=_LOG_CATEGORY, action=_LOG_ACTION)
+
         # Reset state when back on track
         if pit_state == PitState.ON_TRACK and pit_stop_in_progress:
-            log('DEBUG', f'Driver {tracked_driver_name} back on track',
-                category='stint_tracker', action='track_session')
+            log("DEBUG", f"Driver {tracked_driver_name} back on track",
+                category=_LOG_CATEGORY, action=_LOG_ACTION)
             num_penalties = player_scoring.mNumPenalties
             pit_stop_in_progress = False
-        
-        time.sleep(1 / POLLING_FREQUENCY)
+
+        time.sleep(1.0 / POLLING_FREQUENCY)

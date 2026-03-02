@@ -1,0 +1,14 @@
+from __future__ import annotations
+
+from ui.components.stint_tracking.config import handle_stint_tracker_output
+
+
+def _handle_output(self, stdout: str) -> None:
+    """Parse structured event messages from stint_tracker."""
+    handle_stint_tracker_output(
+        stdout,
+        on_stint_created=lambda: self.stint_created.emit(),
+        on_return_to_garage=lambda: self._show_info_lbl("Please return to garage!"),
+        on_player_in_garage=self._reset_info_lbl,
+        on_registration_conflict=self._handle_agent_registration_conflict,
+    )

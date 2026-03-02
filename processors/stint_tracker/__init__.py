@@ -1,43 +1,16 @@
-"""
-Stint Tracker Processor.
+"""Stint tracker package public surface.
 
-Independent process that monitors LMU shared memory and creates stint records
-when pit stops are detected.
+This package contains the independent processor responsible for
+monitoring LMU shared memory and creating stint records when pit
+stops are detected. The package intentionally exposes only the
+core functions used by external callers.
 
-Directory Structure:
--------------------
-run.py              - Main entry point (run as separate OS process)
-core/               - Core tracking logic (session loop, stint creation, time calc)
-pit_detection/      - Pit state detection and player vehicle finding
-tire_management/    - Tire wear, compound detection, and change tracking
-
-Usage:
-------
-python run.py --session-id <id> --drivers <names> [--practice]
-
-The process runs continuously, monitoring game state and reporting events
-back to the UI via stdout using the __event__ format.
+Note: run.py is a script-style entrypoint and is not re-exported here.
 """
 
-from .core import track_session, create_stint, calculate_remaining_time
-from .pit_detection import PitState, get_pit_state, is_in_garage, find_player_scoring_vehicle
-from .tire_management import get_tire_state, get_tire_wear, get_tire_compound, detect_tire_changes
+from .core import create_stint, track_session
 
-__all__ = [
-    # Core
-    'track_session',
-    'create_stint',
-    'calculate_remaining_time',
-    
-    # Pit detection
-    'PitState',
-    'get_pit_state',
-    'is_in_garage',
-    'find_player_scoring_vehicle',
-    
-    # Tire management
-    'get_tire_state',
-    'get_tire_wear',
-    'get_tire_compound',
-    'detect_tire_changes'
-]
+__all__ = (
+    "create_stint",
+    "track_session",
+)

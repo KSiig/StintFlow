@@ -1,17 +1,13 @@
-"""
-Reusable widgets for stint tracking.
+"""Reusable widgets for stint tracking."""
 
-Self-contained widgets that can be used in various views.
-"""
-
-from .ConfigOptions import ConfigOptions
 from .AgentOverview import AgentOverview
+from .ConfigOptions import ConfigOptions
 from .StintTable import StintTable
 from .TeamSection import TeamSection
 
 __all__ = [
-    'ConfigOptions',
     'AgentOverview',
+    'ConfigOptions',
     'StintTable',
-    'TeamSection'
+    'TeamSection',
 ]

@@ -1,7 +1,5 @@
-"""
-Barrel file for settings components.
-"""
+"""Barrel file for settings components."""
 
-from .views import SettingsView
+from .SettingsView import SettingsView
 
-__all__ = ['SettingsView']
+__all__ = ["SettingsView"]
