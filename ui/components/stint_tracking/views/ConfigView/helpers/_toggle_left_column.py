@@ -17,3 +17,4 @@ def _toggle_left_column(self) -> None:
     button.setText(
         ConfigLabels.BTN_HIDE_OPTIONS if currently_hidden else ConfigLabels.BTN_SHOW_OPTIONS
     )
+    self._update_controls_width()

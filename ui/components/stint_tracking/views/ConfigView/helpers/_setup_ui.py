@@ -19,6 +19,7 @@ def _setup_ui(self, models) -> None:
         layout.setContentsMargins(0, 0, 0, 16)
         layout.setSpacing(self.SPACING)
 
+        # Left column: config options and agent overview.
         left_col = QVBoxLayout()
         left_col.setContentsMargins(0, 0, 0, 0)
         left_col.setSpacing(12)
@@ -40,12 +41,14 @@ def _setup_ui(self, models) -> None:
         self.left_column_container = left_container
         layout.addWidget(left_container)
 
+        # Right column: table controls above, stint table below.
         right_container = QFrame(frame)
         right_container.setFrameShape(QFrame.Shape.NoFrame)
         right_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.right_column_container = right_container
 
         right_layout = QVBoxLayout(right_container)
-        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setContentsMargins(0, 0, 8, 0)
         right_layout.setSpacing(12)
 
         table_controls = TableControls(
@@ -53,6 +56,7 @@ def _setup_ui(self, models) -> None:
             on_toggle_left_column=self._toggle_left_column,
         )
         self._left_column_toggle_btn = table_controls._left_column_toggle_btn
+        self.table_controls = table_controls
         right_layout.addWidget(table_controls)
 
         self.stint_table = StintTable(
