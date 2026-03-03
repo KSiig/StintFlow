@@ -2,7 +2,7 @@
 
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QSizePolicy
 
-from ui.components.stint_tracking.widgets import AgentOverview, ConfigOptions, StintTable
+from ui.components.stint_tracking.widgets import AgentOverview, ConfigOptions, StintTable, TableControls
 from core.errors import log_exception
 
 
@@ -48,7 +48,11 @@ def _setup_ui(self, models) -> None:
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(12)
 
-        table_controls = self._create_table_controls()
+        table_controls = TableControls(
+            config_options=self.config_options,
+            on_toggle_left_column=self._toggle_left_column,
+        )
+        self._left_column_toggle_btn = table_controls._left_column_toggle_btn
         right_layout.addWidget(table_controls)
 
         self.stint_table = StintTable(

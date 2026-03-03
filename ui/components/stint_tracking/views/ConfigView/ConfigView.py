@@ -6,7 +6,6 @@ from ui.models import ModelContainer
 
 from .bounded_functions import closeEvent
 from .helpers import (
-    _create_table_controls,
     _on_tracker_started,
     _on_tracker_stopped,
     _setup_ui,
@@ -21,7 +20,6 @@ class ConfigView(QWidget):
 
     SPACING = 16
 
-    _create_table_controls = _create_table_controls
     _setup_ui = _setup_ui
     _on_tracker_started = _on_tracker_started
     _on_tracker_stopped = _on_tracker_stopped
