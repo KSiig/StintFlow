@@ -9,10 +9,10 @@ from .bounded_functions.set_agents import set_agents
 
 class AgentOverviewPopup(QWidget):
     """Floating list of agents that aligns under the overview control."""
+    _setup_ui = _setup_ui
+    set_agents = set_agents
 
     def __init__(self, parent=None):
         super().__init__(parent, Qt.WindowType.Popup)
         self._setup_ui()
 
-    _setup_ui = _setup_ui
-    set_agents = set_agents
