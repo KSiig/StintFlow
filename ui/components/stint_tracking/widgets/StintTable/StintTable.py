@@ -43,7 +43,6 @@ class StintTable(QWidget):
     CORNER_PADDING_LEFT = 8
     CORNER_PADDING_RIGHT = 4
     VERTICAL_HEADER_PADDING_LEFT = 12
-    MIN_WIDTH_EXTRA_PADDING = 20
     CORNER_HEIGHT_ADJUSTMENT = 26
 
     _load_stylesheet = _load_stylesheet
@@ -72,7 +71,7 @@ class StintTable(QWidget):
 
         table_frame = QFrame(self)
         table_frame.setSizePolicy(
-            QSizePolicy.Policy.Minimum,
+            QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding,
         )
         table_frame.setObjectName("StintTableFrame")

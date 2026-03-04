@@ -4,6 +4,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
 from ui.models import ModelContainer
+from ui.utilities.load_style import load_style
 
 from .helpers import (
     _add_tab,
@@ -16,7 +17,6 @@ from .helpers import (
     _on_strategy_created,
     _on_tab_changed,
     _remove_tab,
-    _setup_styles,
     _setup_ui,
     _update_tab_label,
 )
@@ -27,7 +27,6 @@ class StrategiesView(QWidget):
 
     strategy_created = pyqtSignal(dict)
 
-    _setup_styles = _setup_styles
     _setup_ui = _setup_ui
     _on_tab_changed = _on_tab_changed
     _load_strategies = _load_strategies
@@ -55,5 +54,5 @@ class StrategiesView(QWidget):
         self.selection_model.sessionChanged.connect(self._on_session_changed)
 
         self._setup_ui()
-        self._setup_styles()
+        load_style('resources/styles/stint_tracking/strategies.qss', widget=self)
         self._load_strategies()

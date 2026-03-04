@@ -7,7 +7,7 @@ Provides access to all UI components organized by category.
 from .common import ClickableWidget, UpwardComboBox, DraggableArea
 from .window import ApplicationWindow, WindowButtons
 from .navigation import NavigationMenu, SessionPicker, MenuItemConfig, create_menu_item, update_menu_item_state
-from .stint_tracking import OverviewView, ConfigView
+from .stint_tracking import TrackerView
 from .settings import SettingsView
 
 __all__ = [
@@ -25,8 +25,7 @@ __all__ = [
     'create_menu_item',
     'update_menu_item_state',
     # Stint tracking views
-    'OverviewView',
-    'ConfigView',
+    'TrackerView',
     # Settings views
     'SettingsView'
 ]

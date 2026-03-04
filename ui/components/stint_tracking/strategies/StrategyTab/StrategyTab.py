@@ -4,6 +4,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
 from ui.models import SelectionModel, TableModel
+from ui.utilities.load_style import load_style
 
 from .helpers import (
     _load_strategy_data,
@@ -12,7 +13,6 @@ from .helpers import (
     _on_settings_deleted,
     _open_persistent_editors,
     _setup_strategy_delegates,
-    _setup_styles,
     _setup_ui,
     _strategy_updated,
 )
@@ -24,7 +24,6 @@ class StrategyTab(QWidget):
     name_changed = pyqtSignal(str)
     deleted = pyqtSignal(str)
 
-    _setup_styles = _setup_styles
     _setup_ui = _setup_ui
     _load_strategy_data = _load_strategy_data
     _setup_strategy_delegates = _setup_strategy_delegates
@@ -46,6 +45,6 @@ class StrategyTab(QWidget):
         self.table_model._is_strategy = True
         self._lock_completed = False
 
-        self._setup_styles()
+        load_style('resources/styles/stint_tracking/strategy_tab.qss', widget=self)
         self._setup_ui()
         self._load_strategy_data()

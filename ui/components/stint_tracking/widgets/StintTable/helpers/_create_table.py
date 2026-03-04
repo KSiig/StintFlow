@@ -13,8 +13,8 @@ def _create_table(self, focus: bool):
     """Create and configure the QTableView instance."""
     table = QTableView(self)
     table.setShowGrid(False)
-    table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    table.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+    table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     table.setObjectName("StintsTable")
     table.setItemDelegate(BackgroundRespectingDelegate(table))
 

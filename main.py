@@ -78,7 +78,7 @@ def _load_application_stylesheet(app):
     default PyQt6 styling (graceful degradation).
     """
     try:
-        stylesheet_path = resource_path('resources/styles/main.qss')
+        stylesheet_path = resource_path('resources/styles/window/main.qss')
         
         if not Path(stylesheet_path).exists():
             log('WARNING', f'Stylesheet file not found: {stylesheet_path}', 

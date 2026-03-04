@@ -1,5 +1,5 @@
 from ui.components.settings import SettingsView
-from ui.components.stint_tracking import ConfigView, OverviewView, StrategiesView
+from ui.components.stint_tracking import TrackerView, StrategiesView
 from ui.models import ModelContainer
 
 
@@ -30,11 +30,8 @@ def _on_initialization_done(self, data, tires, mean_stint_time, events, sessions
 
     models = ModelContainer(selection_model=self.selection_model, table_model=self.table_model)
 
-    overview_view = OverviewView(models)
-    self.navigation_model.add_widget(OverviewView, overview_view)
-
-    config_view = ConfigView(models)
-    self.navigation_model.add_widget(ConfigView, config_view)
+    tracker_view = TrackerView(models)
+    self.navigation_model.add_widget(TrackerView, tracker_view)
 
     strategies_view = StrategiesView(models)
     self.navigation_model.add_widget(StrategiesView, strategies_view)
@@ -42,7 +39,8 @@ def _on_initialization_done(self, data, tires, mean_stint_time, events, sessions
     settings_view = SettingsView(models)
     self.navigation_model.add_widget(SettingsView, settings_view)
 
-    self.navigation_model.set_active_widget(overview_view)
+    # Start the app on the Tracker landing view.
+    self.navigation_model.set_active_widget(tracker_view)
 
     if hasattr(self, "loading_overlay") and self.loading_overlay:
         self.loading_overlay.hide()

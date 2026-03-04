@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget
 
 from ui.components.common import PopUp
 from ui.models import ModelContainer
+from ui.utilities.load_style import load_style
 
 from .helpers import (
     _add_config_rows,
@@ -23,7 +24,6 @@ from .helpers import (
     _reset_info_lbl,
     _revert_tracking_state,
     _save_config,
-    _setup_styles,
     _setup_ui,
     _show_info_lbl,
     _start_process,
@@ -39,7 +39,6 @@ class ConfigOptions(QWidget):
     tracker_started = pyqtSignal()
     tracker_stopped = pyqtSignal()
 
-    _setup_styles = _setup_styles
     _setup_ui = _setup_ui
     _create_buttons = _create_buttons
     _add_config_rows = _add_config_rows
@@ -77,7 +76,7 @@ class ConfigOptions(QWidget):
         self._tracking_active = False
         self.agent_name = None
 
-        self._setup_styles()
+        load_style('resources/styles/stint_tracking/config_options/config_options.qss', widget=self)
 
         self.selection_model.eventChanged.connect(self._refresh_labels)
         self.selection_model.sessionChanged.connect(self._refresh_labels)
