@@ -1,0 +1,22 @@
+/* Popup that shows the full list of connected agents. */
+
+QWidget#AgentOverviewPopup {
+  background: transparent;
+}
+
+QFrame#AgentOverviewPopupContainer {
+  background-color: #1b262c;
+  border: 1px solid #334e68;
+  border-radius: 8px;
+}
+
+QLabel#AgentOverviewPopupHeader {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+QScrollArea#AgentOverviewPopupScroll {
+  border: none;
+  background-color: transparent;
+}

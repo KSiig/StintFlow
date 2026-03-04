@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QSizePolicy, QVBoxLayout
 
 from ui.components.common import ConfigButton
 from ui.components.stint_tracking.config.config_constants import ConfigLabels
+from ui.components.stint_tracking.widgets.AgentOverview import AgentOverview
 
 
 def _setup_ui(self) -> None:
@@ -27,6 +29,13 @@ def _setup_ui(self) -> None:
     self._left_column_toggle_btn = ConfigButton(ConfigLabels.BTN_HIDE_OPTIONS, width_type="half")
     self._left_column_toggle_btn.clicked.connect(self._on_toggle_left_column)
     layout.addWidget(self._left_column_toggle_btn)
+
+    layout.addStretch()
+
+    self.agent_overview = AgentOverview()
+    layout.addWidget(self.agent_overview)
+    layout.setAlignment(self.agent_overview, Qt.AlignmentFlag.AlignHCenter)
+    self.agent_overview._load_agents()
 
     layout.addStretch()
 

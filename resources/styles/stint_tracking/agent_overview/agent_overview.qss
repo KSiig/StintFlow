@@ -6,7 +6,6 @@ QFrame#AgentOverview {
   background-color: #1b262c;
   border: 1px solid #334e68;
   border-radius: 8px;
-  padding: 12px;
 }
 
 QFrame#AgentOverview > QFrame, 
@@ -20,6 +19,10 @@ QLabel#AgentOverviewHeader {
   font-weight: bold;
   font-size: 14px;
   margin-bottom: 8px;
+}
+
+QLabel#AgentOverviewSummary {
+  color: #9fadc4;
 }
 
 QFrame#AgentCard {

@@ -10,7 +10,9 @@ def _load_agents(self) -> None:
 
         agents_col = get_agents_collection()
         agents = list(agents_col.find())
-        self.set_agents(agents)
+        self._last_agents = agents
+        self._update_summary_label(agents)
+        self._popup.set_agents(agents)
     except Exception as e:
         log_exception(
             e,
