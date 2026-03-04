@@ -21,9 +21,23 @@ def set_agents(self, agents: list[dict]) -> None:
 
     if content_widget is not None and scroll_area is not None:
         cards_layout.invalidate()
+        cards_layout.activate()
         content_widget.adjustSize()
-        content_height = content_widget.sizeHint().height()
-        target_height = min(content_height, 220)
-        scroll_area.setFixedHeight(target_height)
+
+        content_height = cards_layout.sizeHint().height()
+        if content_height <= 0:
+            content_height = content_widget.sizeHint().height()
+
+        if agents:
+            if content_height <= 0:
+                content_height = max(getattr(self, "_last_scroll_height", 0), 1)
+            target_height = min(content_height, 220)
+            self._last_scroll_height = target_height
+            scroll_area.setMinimumHeight(1)
+            scroll_area.setMaximumHeight(220)
+            scroll_area.setFixedHeight(target_height)
+        else:
+            self._last_scroll_height = 0
+            scroll_area.setFixedHeight(0)
 
     self.adjustSize()

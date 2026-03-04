@@ -10,9 +10,24 @@ def _load_agents(self) -> None:
 
         agents_col = get_agents_collection()
         agents = list(agents_col.find())
-        self._last_agents = agents
-        self._update_summary_label(agents)
-        self._popup.set_agents(agents)
+
+        if agents:
+            self._empty_agent_reads = 0
+            self._last_agents = agents
+            self._update_summary_label(agents)
+            self._popup.set_agents(agents)
+            return
+
+        self._empty_agent_reads = getattr(self, '_empty_agent_reads', 0) + 1
+
+        if self._empty_agent_reads < 3 and self._last_agents:
+            self._update_summary_label(self._last_agents)
+            self._popup.set_agents(self._last_agents)
+            return
+
+        self._last_agents = []
+        self._update_summary_label([])
+        self._popup.set_agents([])
     except Exception as e:
         log_exception(
             e,

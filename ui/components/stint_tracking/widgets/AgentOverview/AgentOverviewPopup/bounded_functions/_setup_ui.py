@@ -47,6 +47,7 @@ def _setup_ui(self) -> None:
     scroll.setFrameShape(QFrame.Shape.NoFrame)
     scroll.setWidgetResizable(True)
     scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
     scroll.setMinimumHeight(0)
     scroll.setMaximumHeight(220)
 
@@ -61,3 +62,4 @@ def _setup_ui(self) -> None:
     self._cards_layout = cards_layout
     self._content_widget = content
     self._scroll_area = scroll
+    self._last_scroll_height = 0

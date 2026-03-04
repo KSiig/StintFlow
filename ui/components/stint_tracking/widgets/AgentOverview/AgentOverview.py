@@ -32,6 +32,7 @@ class AgentOverview(QFrame):
         self.setObjectName('AgentOverview')
 
         self._last_agents: list[dict] = []
+        self._empty_agent_reads = 0
         self._popup = AgentOverviewPopup(self)
 
         load_style('resources/styles/stint_tracking/agent_overview/agent_overview.qss', widget=self)
