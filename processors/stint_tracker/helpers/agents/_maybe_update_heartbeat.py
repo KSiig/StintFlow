@@ -1,4 +1,5 @@
 from core.database import update_agent_heartbeat
+from core.errors import log
 
 def _maybe_update_heartbeat(agent_name: str | None) -> None:
     """Update the agent heartbeat in the database (non-fatal).

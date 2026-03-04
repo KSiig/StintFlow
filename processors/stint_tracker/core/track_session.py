@@ -70,7 +70,10 @@ def track_session(
     while True:
         # --- housekeeping -------------------------------------------------
         _maybe_update_heartbeat(agent_name)
-        last_cleanup = _maybe_cleanup_stale_agents(last_cleanup)
+        # Stale agents should be cleaned up, but further refining in regards to
+        # UI needs to be implemented. Right now it's confusing to just see agents
+        # disappearing
+        # last_cleanup = _maybe_cleanup_stale_agents(last_cleanup)
 
         # Dry-run keeps heartbeats/cleanup but skips LMU access
         if dry_run:
