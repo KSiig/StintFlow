@@ -4,16 +4,15 @@ from PyQt6.QtWidgets import QFrame, QVBoxLayout
 
 from ...menu_item_factory import create_menu_item
 from ui.components.navigation.SessionPicker import SessionPicker
-from ui.components.stint_tracking import ConfigView, OverviewView, StrategiesView
+from ui.components.stint_tracking import TrackerView, StrategiesView
 from ui.components.settings import SettingsView
-from ...constants import MENU_SPACING, MENU_WIDTH, ICON_COG, ICON_EYE, ICON_LOGO, ICON_SETTINGS, ICON_TARGET, ICON_TIMER
+from ...constants import MENU_SPACING, MENU_WIDTH, ICON_COG, ICON_LOGO, ICON_SETTINGS, ICON_TARGET, ICON_TIMER
 from ._add_title_and_icon import _add_title_and_icon
 from ._create_menu_section import _create_menu_section
 from ._set_active_menu_item import _set_active_menu_item
-from ._switch_to_config import _switch_to_config
-from ._switch_to_overview import _switch_to_overview
 from ._switch_to_settings import _switch_to_settings
 from ._switch_to_strategies import _switch_to_strategies
+from ._switch_to_tracker import _switch_to_tracker
 
 
 def _create_layout(self) -> None:
@@ -36,15 +35,12 @@ def _create_layout(self) -> None:
 
     stint_tracking_layout = _create_menu_section(self, "Stint tracking", ICON_TIMER)
 
-    overview_item = create_menu_item("Overview", lambda: _switch_to_overview(self), ICON_EYE)
-    overview_item.window_class = OverviewView
-    self._menu_items[OverviewView] = overview_item
-    stint_tracking_layout.addWidget(overview_item.widget)
-
-    config_item = create_menu_item("Config", lambda: _switch_to_config(self), ICON_COG)
-    config_item.window_class = ConfigView
-    self._menu_items[ConfigView] = config_item
-    stint_tracking_layout.addWidget(config_item.widget)
+    # Use a single primary entry called "Tracker" that points to the combined
+    # tracker landing view (serves as the app landing/track control screen).
+    tracker_item = create_menu_item("Tracker", lambda: _switch_to_tracker(self), ICON_COG)
+    tracker_item.window_class = TrackerView
+    self._menu_items[TrackerView] = tracker_item
+    stint_tracking_layout.addWidget(tracker_item.widget)
 
     strategies_item = create_menu_item("Strategies", lambda: _switch_to_strategies(self), ICON_TARGET)
     strategies_item.window_class = StrategiesView
@@ -53,7 +49,7 @@ def _create_layout(self) -> None:
 
     menu_layout.addLayout(stint_tracking_layout)
 
-    _set_active_menu_item(self, overview_item)
+    _set_active_menu_item(self, tracker_item)
 
     menu_layout.addStretch()
 

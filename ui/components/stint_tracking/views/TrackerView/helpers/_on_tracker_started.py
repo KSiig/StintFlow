@@ -1,4 +1,4 @@
-"""Handle tracker start event for ConfigView."""
+"""Handle tracker start event for TrackerView."""
 
 from PyQt6.QtCore import QTimer
 

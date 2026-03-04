@@ -1,4 +1,4 @@
-"""Configuration view for stint tracking."""
+"""Tracker view for managing stint tracking state and data."""
 
 from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QWidget
 
@@ -19,8 +19,8 @@ from .helpers import (
 )
 
 
-class ConfigView(QWidget):
-    """View for stint tracking configuration."""
+class TrackerView(QWidget):
+    """Primary tracker view for state control, configuration, and data."""
 
     SPACING = 16
 

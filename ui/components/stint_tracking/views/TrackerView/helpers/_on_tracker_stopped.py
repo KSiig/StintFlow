@@ -1,4 +1,4 @@
-"""Handle tracker stop event for ConfigView."""
+"""Handle tracker stop event for TrackerView."""
 
 
 def _on_tracker_stopped(self) -> None:

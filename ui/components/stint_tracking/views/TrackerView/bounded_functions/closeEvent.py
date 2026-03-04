@@ -1,4 +1,4 @@
-"""Handle cleanup when the ConfigView closes."""
+"""Handle cleanup when the TrackerView closes."""
 
 
 def closeEvent(self, event) -> None:

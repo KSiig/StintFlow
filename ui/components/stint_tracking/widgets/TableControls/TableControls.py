@@ -1,4 +1,4 @@
-"""Controls bar displayed above the stint table in ConfigView."""
+"""Controls bar displayed above the stint table in TrackerView."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Build the ConfigView layout."""
+"""Build the TrackerView layout."""
 
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QSizePolicy
 
@@ -10,7 +10,7 @@ def _setup_ui(self, models) -> None:
     """Build the UI with configuration options and stint table."""
     try:
         frame = QFrame(self)
-        frame.setObjectName("ConfigViewFrame")
+        frame.setObjectName("TrackerViewFrame")
         frame.setFrameShape(QFrame.Shape.NoFrame)
         frame.setFrameShadow(QFrame.Shadow.Plain)
         frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -57,6 +57,7 @@ def _setup_ui(self, models) -> None:
         )
         self._left_column_toggle_btn = table_controls._left_column_toggle_btn
         self.table_controls = table_controls
+        self._toggle_left_column()
         right_layout.addWidget(table_controls)
 
         self.stint_table = StintTable(
@@ -75,4 +76,4 @@ def _setup_ui(self, models) -> None:
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(frame)
     except Exception as exc:
-        log_exception(exc, "Failed to setup ConfigView UI", category="config_view", action="setup_ui")
+        log_exception(exc, "Failed to setup TrackerView UI", category="tracker_view", action="setup_ui")

@@ -15,8 +15,6 @@ def _create_button_layout(self) -> QHBoxLayout:
     btn_layout_save_clone.addWidget(self.edit_btn, alignment=Qt.AlignmentFlag.AlignTop)
     btn_layout_save_clone.addWidget(self.save_btn, alignment=Qt.AlignmentFlag.AlignTop)
     btn_layout_save_clone.addWidget(self.clone_btn, alignment=Qt.AlignmentFlag.AlignTop)
-    btn_layout_save_clone.addWidget(self.start_btn, alignment=Qt.AlignmentFlag.AlignTop)
-    btn_layout_save_clone.addWidget(self.stop_btn, alignment=Qt.AlignmentFlag.AlignTop)
 
     btn_tracking_layout = QVBoxLayout()
     btn_tracking_layout.setSpacing(8)

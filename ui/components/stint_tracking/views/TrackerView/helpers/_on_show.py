@@ -1,4 +1,4 @@
-"""Install viewport listener and apply initial width when ConfigView is shown."""
+"""Install viewport listener and apply initial width when TrackerView is shown."""
 
 from __future__ import annotations
 

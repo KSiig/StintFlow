@@ -29,7 +29,7 @@ class ConfigButton(QPushButton):
         icon_path: str = None,
         icon_size: int = 16,
         icon_color: str = "#FFFFFF",
-        width_type: str = "third",
+        width_type: int | str = "third",
         parent=None,
     ) -> None:
         super().__init__(text, parent)
@@ -40,6 +40,11 @@ class ConfigButton(QPushButton):
             "half": BTN_WIDTH_HALF,
             "full": BTN_WIDTH_FULL,
         }
+        # Allow explicit pixel width by passing an int for `width_type`.
+        if isinstance(width_type, int):
+            self.setFixedSize(width_type, BTN_HEIGHT)
+            return
+
         if width_type == "max":
             self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         elif width_type == "min":

@@ -34,7 +34,9 @@ def _setup_ui(self) -> None:
         ConfigLabels.BTN_START_TRACK,
         icon_path="resources/icons/race_config/play.svg",
         icon_color="#1E1F24",
+        width_type=152
     )
+    self.tracking_btn.setObjectName("TrackButton")
     self.tracking_btn.clicked.connect(self.config_options._toggle_track)
     layout.addWidget(self.tracking_btn)
 

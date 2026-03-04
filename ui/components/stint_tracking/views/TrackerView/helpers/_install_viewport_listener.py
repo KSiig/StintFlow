@@ -7,15 +7,15 @@ from PyQt6.QtWidgets import QScrollArea
 
 
 class _ViewportResizeFilter(QObject):
-    """Forwards viewport resize events to ConfigView._update_controls_width."""
+    """Forwards viewport resize events to TrackerView._update_controls_width."""
 
-    def __init__(self, config_view: QObject) -> None:
-        super().__init__(config_view)
-        self._config_view = config_view
+    def __init__(self, tracker_view: QObject) -> None:
+        super().__init__(tracker_view)
+        self._tracker_view = tracker_view
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         if event.type() == QEvent.Type.Resize:
-            self._config_view._update_controls_width()
+            self._tracker_view._update_controls_width()
         return False  # never swallow the event
 
 

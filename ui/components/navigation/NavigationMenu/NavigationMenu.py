@@ -12,10 +12,9 @@ from .helpers import (
     _create_layout,
     _create_menu_section,
     _set_active_menu_item,
-    _switch_to_config,
-    _switch_to_overview,
     _switch_to_settings,
     _switch_to_strategies,
+    _switch_to_tracker,
     _update_event_selection,
 )
 
@@ -26,8 +25,7 @@ class NavigationMenu(QWidget):
     _create_layout = _create_layout
     _update_event_selection = _update_event_selection
     _add_title_and_icon = _add_title_and_icon
-    _switch_to_overview = _switch_to_overview
-    _switch_to_config = _switch_to_config
+    _switch_to_tracker = _switch_to_tracker
     _switch_to_strategies = _switch_to_strategies
     _switch_to_settings = _switch_to_settings
     _set_active_menu_item = _set_active_menu_item

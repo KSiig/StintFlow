@@ -35,5 +35,4 @@ def _setup_ui(self) -> None:
     root_layout.addLayout(self._create_button_layout())
 
     self.save_btn.hide()
-    self.stop_btn.hide()
     root_layout.addStretch()
