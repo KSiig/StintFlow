@@ -18,5 +18,5 @@ QLabel#AgentOverviewPopupHeader {
 
 QScrollArea#AgentOverviewPopupScroll {
   border: none;
-  background-color: transparent;
+  background-color: #1b262c;
 }

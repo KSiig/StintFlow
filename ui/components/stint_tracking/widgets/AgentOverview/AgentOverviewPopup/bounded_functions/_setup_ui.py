@@ -48,15 +48,16 @@ def _setup_ui(self) -> None:
     scroll.setWidgetResizable(True)
     scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
     scroll.setMinimumHeight(0)
-    scroll.setMaximumHeight(420)
+    scroll.setMaximumHeight(220)
 
     content = QWidget()
     cards_layout = QVBoxLayout(content)
     cards_layout.setContentsMargins(0, 0, 0, 0)
-    cards_layout.setSpacing(4)
+    cards_layout.setSpacing(0)
     scroll.setWidget(content)
 
     layout.addWidget(scroll)
 
     self._cards_layout = cards_layout
+    self._content_widget = content
     self._scroll_area = scroll
