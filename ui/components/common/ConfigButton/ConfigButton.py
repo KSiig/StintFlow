@@ -8,12 +8,11 @@ callers can instantiate directly.
 """
 
 from PyQt6.QtWidgets import QPushButton, QSizePolicy
-from PyQt6.QtGui import QFontMetrics, QIcon
+from PyQt6.QtGui import QIcon
 
 from ui.utilities import FONT, get_fonts
 from ui.utilities.load_icon import load_icon
 from ui.utilities.load_style import load_style
-from .constants import BTN_HEIGHT
 
 class ConfigButton(QPushButton):
     """Button with consistent sizing and optional icon.

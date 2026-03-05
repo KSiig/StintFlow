@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame
 
 from ui.utilities import load_style, FONT, get_fonts
-from .AgentCard import AgentCard
 from .AgentOverviewPopup import AgentOverviewPopup
 from .helpers import (
     _handle_mouse_release,

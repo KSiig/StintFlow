@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy
 from PyQt6.QtCore import Qt
 
 from core.errors import log_exception
-from ui.utilities import FONT, get_fonts
 
 from ..helpers import _format_ts
 

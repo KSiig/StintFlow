@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-from PyQt6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QFrame
-
-from ui.components.common.ConfigButton import ConfigButton
-from ui.components.common.SectionHeader.SectionHeader import SectionHeader
-from ....config import ConfigLayout
-
+from PyQt6.QtWidgets import QLabel, QHBoxLayout, QFrame
 
 def _setup_ui(self: QFrame) -> None:
     """Build header and container for agent cards."""
