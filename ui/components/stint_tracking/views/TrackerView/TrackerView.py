@@ -45,6 +45,7 @@ class TrackerView(QWidget):
         self.config_options = None
         self.agent_overview = None
         self.stint_table = None
+        self.stats_strip = None
         self.table_controls = None
         self.right_column_container = None
         self._viewport_filter = None
