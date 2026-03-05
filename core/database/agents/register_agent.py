@@ -22,7 +22,7 @@ from core.errors import log
 import socket
 
 
-def register_agent(name: str) -> bool:
+def register_agent(name: str, session_id: str = "") -> tuple[bool, str]:
     """Insert a new agent record.
 
     This function **is not idempotent**.  An agent name must be unique; if a
@@ -34,6 +34,7 @@ def register_agent(name: str) -> bool:
 
     Args:
         name: Unique name for the agent instance (e.g. "stint_tracker_1234").
+        session_id: Related session identifier for this tracker process.
 
     Returns:
         True on success (new document created).
@@ -48,11 +49,15 @@ def register_agent(name: str) -> bool:
         agents_col = get_agents_collection()
         now = datetime.now(timezone.utc)
         try:
-            agents_col.insert_one({
+            agent_doc = {
                 "name": name,
                 "connected_at": now,
                 "last_heartbeat": now,
-            })
+            }
+            if session_id:
+                agent_doc["session_id"] = session_id
+
+            agents_col.insert_one(agent_doc)
             log('DEBUG', f'Registered agent "{name}"',
                 category='database', action='register_agent')
             return True, name

@@ -23,12 +23,13 @@ from ..connection import get_agents_collection
 from core.errors import log
 
 
-def clean_stale_agents(grace_period_seconds: int = 60) -> bool:
+def clean_stale_agents(grace_period_seconds: int = 3600) -> bool:
     """Delete agents whose ``last_heartbeat`` is older than the cutoff.
 
     Args:
         grace_period_seconds: Number of seconds an agent may go without a
             heartbeat before being considered stale.  Must be positive.
+            Defaults to an hour.
 
     Returns:
         True if the operation succeeded (even if zero documents were

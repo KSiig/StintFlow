@@ -33,9 +33,13 @@ def _setup_ui(self) -> None:
     layout.addStretch()
 
     self.agent_overview = AgentOverview()
+    self.agent_overview.selection_model = self.config_options.selection_model
     layout.addWidget(self.agent_overview)
     layout.setAlignment(self.agent_overview, Qt.AlignmentFlag.AlignHCenter)
     self.agent_overview._load_agents()
+
+    if getattr(self.config_options.selection_model, 'sessionChanged', None):
+        self.config_options.selection_model.sessionChanged.connect(self.agent_overview._load_agents)
 
     layout.addStretch()
 

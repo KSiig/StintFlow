@@ -1,14 +1,14 @@
 from core.database import register_agent
 from core.errors import log
 
-def _register_tracker_agent(agent_name: str) -> str:
+def _register_tracker_agent(agent_name: str, session_id: str) -> str:
     """Attempt to register an agent and log the outcome.
 
     Returns the final name assigned/used by the database (may differ if
     the original name collided).
     """
     try:
-        registered, final_name = register_agent(agent_name)
+        registered, final_name = register_agent(agent_name, session_id=session_id)
         if registered:
             log('INFO', f'Agent registered as {final_name}',
                 category='stint_tracker', action='agent_registration')

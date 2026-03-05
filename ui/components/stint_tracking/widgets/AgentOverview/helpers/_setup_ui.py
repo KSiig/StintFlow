@@ -13,15 +13,6 @@ def _setup_ui(self) -> None:
     layout.setContentsMargins(8, 0, 8, 0)
     layout.setSpacing(8)
 
-    btn = ConfigButton(
-        "",
-        icon_path="resources/icons/race_config/cloud-sync.svg",
-        width_type="min",
-        icon_size=12,
-    )
-    btn.clicked.connect(self._load_agents)
-
     self._summary_label = QLabel("0 / 0 agents")
     self._summary_label.setObjectName("AgentOverviewSummary")
     layout.addWidget(self._summary_label)
-    layout.addWidget(btn)

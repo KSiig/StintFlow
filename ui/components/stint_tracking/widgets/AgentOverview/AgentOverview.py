@@ -31,6 +31,7 @@ class AgentOverview(QFrame):
         super().__init__()
         self.setObjectName('AgentOverview')
 
+        self.selection_model = None
         self._last_agents: list[dict] = []
         self._empty_agent_reads = 0
         self._popup = AgentOverviewPopup(self)
