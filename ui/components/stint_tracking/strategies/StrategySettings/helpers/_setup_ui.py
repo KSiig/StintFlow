@@ -33,12 +33,12 @@ def _setup_ui(self) -> None:
     self.edit_btn = ConfigButton(
         ConfigLabels.BTN_EDIT,
         icon_path="resources/icons/race_config/square-pen.svg",
-        width_type="third",
+        width="content",
     )
     self.save_btn = ConfigButton(
         ConfigLabels.BTN_SAVE,
         icon_path="resources/icons/race_config/square-pen.svg",
-        width_type="third",
+        width="content",
     )
     self.save_btn.hide()
     self.edit_btn.clicked.connect(self._toggle_edit)
@@ -47,7 +47,7 @@ def _setup_ui(self) -> None:
     self.delete_btn = ConfigButton(
         "",
         icon_path="resources/icons/race_config/trash.svg",
-        width_type="third",
+        width="content",
         icon_color="#ff7070",
     )
     self.delete_btn.clicked.connect(self._on_delete_clicked)

@@ -31,5 +31,6 @@ class TableControls(QWidget):
         self._on_toggle_left_column = on_toggle_left_column
         self._left_column_toggle_btn = None
         self.tracking_btn = None
+        self.agent_overview = None
 
         self._setup_ui()

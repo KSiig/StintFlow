@@ -1,0 +1,8 @@
+QFrame#AgentCard {
+  background-color: #1b262c;
+  border: none;
+}
+
+QLabel#ConnectedLabel, QLabel#HeartbeatLabel {
+  color: gray;
+}

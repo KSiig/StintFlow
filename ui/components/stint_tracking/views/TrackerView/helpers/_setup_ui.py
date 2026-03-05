@@ -2,7 +2,7 @@
 
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QSizePolicy
 
-from ui.components.stint_tracking.widgets import AgentOverview, ConfigOptions, StintTable, TableControls
+from ui.components.stint_tracking.widgets import ConfigOptions, StintTable, TableControls
 from core.errors import log_exception
 
 
@@ -19,7 +19,7 @@ def _setup_ui(self, models) -> None:
         layout.setContentsMargins(0, 0, 0, 16)
         layout.setSpacing(self.SPACING)
 
-        # Left column: config options and agent overview.
+        # Left column: configuration options.
         left_col = QVBoxLayout()
         left_col.setContentsMargins(0, 0, 0, 0)
         left_col.setSpacing(12)
@@ -29,10 +29,6 @@ def _setup_ui(self, models) -> None:
         self.config_options.tracker_started.connect(self._on_tracker_started)
         self.config_options.tracker_stopped.connect(self._on_tracker_stopped)
         left_col.addWidget(self.config_options)
-
-        self.agent_overview = AgentOverview()
-        left_col.addWidget(self.agent_overview)
-        self.agent_overview._load_agents()
 
         left_container = QFrame(frame)
         left_container.setFrameShape(QFrame.Shape.NoFrame)
@@ -57,6 +53,7 @@ def _setup_ui(self, models) -> None:
         )
         self._left_column_toggle_btn = table_controls._left_column_toggle_btn
         self.table_controls = table_controls
+        self.agent_overview = table_controls.agent_overview
         self._toggle_left_column()
         right_layout.addWidget(table_controls)
 

@@ -37,7 +37,7 @@ def main() -> None:
     ensures the registration produced a non‑empty name.
     """
     args = _parse_args()
-    agent_name = _register_tracker_agent(args.agent_name)
+    agent_name = _register_tracker_agent(args.agent_name, args.session_id)
     assert agent_name, "Tracker agent name must be non‑empty"
 
     try:

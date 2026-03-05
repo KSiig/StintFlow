@@ -10,11 +10,9 @@ callers can instantiate directly.
 from PyQt6.QtWidgets import QPushButton, QSizePolicy
 from PyQt6.QtGui import QIcon
 
-from core.utilities import resource_path
-from core.errors import log
+from ui.utilities import FONT, get_fonts
 from ui.utilities.load_icon import load_icon
 from ui.utilities.load_style import load_style
-from .constants import BTN_WIDTH_THIRD, BTN_WIDTH_HALF, BTN_WIDTH_FULL, BTN_HEIGHT
 
 class ConfigButton(QPushButton):
     """Button with consistent sizing and optional icon.
@@ -29,29 +27,32 @@ class ConfigButton(QPushButton):
         icon_path: str = None,
         icon_size: int = 16,
         icon_color: str = "#FFFFFF",
-        width_type: int | str = "third",
+        width: int | str = "content",
         parent=None,
+        font = FONT.text_body_sm,
+        padding_height = 4,
+        padding_width = 0,
     ) -> None:
         super().__init__(text, parent)
         load_style('resources/styles/common/config_button.qss', widget=self)
 
-        width_map = {
-            "third": BTN_WIDTH_THIRD,
-            "half": BTN_WIDTH_HALF,
-            "full": BTN_WIDTH_FULL,
-        }
-        # Allow explicit pixel width by passing an int for `width_type`.
-        if isinstance(width_type, int):
-            self.setFixedSize(width_type, BTN_HEIGHT)
-            return
+        font_obj = get_fonts(font)
+        self.setFont(font_obj)
+        self.setContentsMargins(padding_width, padding_height, padding_width, padding_height)
 
-        if width_type == "max":
+        # Allow explicit pixel width by passing an int for `width`.
+        if isinstance(width, int):
+            self.setFixedWidth(width)
+        elif width == "fill":
             self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        elif width_type == "min":
-            self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+            self.setMinimumWidth(0)
+        elif width == "equal":
+            self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            self.setMinimumWidth(0)
+            self.setProperty("equal_width", True)
         else:
-            button_width = width_map.get(width_type, BTN_WIDTH_THIRD)
-            self.setFixedSize(button_width, BTN_HEIGHT)
+            # default: wrap around content
+            self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
 
         if icon_path:
             icon = load_icon(icon_path, size=icon_size, color=icon_color)

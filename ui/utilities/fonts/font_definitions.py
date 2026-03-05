@@ -6,6 +6,22 @@ from PyQt6.QtGui import QFont
 
 class FONT(Enum):
     """Typography definitions for different UI elements."""
+    text_micro = {"point_size": 6.75, "weight": QFont.Weight.Normal}
+    text_caption = {"point_size": 7.5, "weight": QFont.Weight.Normal}
+    text_label = {"point_size": 9, "weight": QFont.Weight.Medium}
+    text_label_bold = {"point_size": 9, "weight": QFont.Weight.DemiBold}
+    text_body_sm = {"point_size": 9.75, "weight": QFont.Weight.Normal}
+    text_body = {"point_size": 10.5, "weight": QFont.Weight.Normal}
+    text_ui = {"point_size": 12, "weight": QFont.Weight.Medium}
+    text_title_sm = {"point_size": 13.5, "weight": QFont.Weight.DemiBold}
+    text_title = {"point_size": 15, "weight": QFont.Weight.DemiBold}
+    text_heading = {"point_size": 18, "weight": QFont.Weight.DemiBold}
+    text_display = {"point_size": 24, "weight": QFont.Weight.DemiBold}
+
+    font_regular = {"point_size": 10.5, "weight": QFont.Weight.Normal}
+    font_medium = {"point_size": 10.5, "weight": QFont.Weight.Medium}
+    font_semibold = {"point_size": 10.5, "weight": QFont.Weight.DemiBold}
+    font_bold = {"point_size": 10.5, "weight": QFont.Weight.Bold}
 
     title = {"point_size": 15, "weight": QFont.Weight.DemiBold}
     header_nav = {"point_size": 14, "weight": QFont.Weight.DemiBold}

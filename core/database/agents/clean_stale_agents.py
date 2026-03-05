@@ -8,7 +8,7 @@ simple and atomic; a single ``delete_many`` query is used so that multiple
 trackers can perform the cleanup concurrently without interfering with one
 another.
 
-The grace period defaults to one minute (60 seconds) as requested by the
+The grace period defaults to one hour (3600 seconds) as requested by the
 UI logic, and callers typically poll at a much higher frequency (every
 5 seconds is sufficient since the stale threshold is large).
 
@@ -23,7 +23,7 @@ from ..connection import get_agents_collection
 from core.errors import log
 
 
-def clean_stale_agents(grace_period_seconds: int = 60) -> bool:
+def clean_stale_agents(grace_period_seconds: int = 3600) -> bool:
     """Delete agents whose ``last_heartbeat`` is older than the cutoff.
 
     Args:

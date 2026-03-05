@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QSizePolicy, QVBoxLayout
 
 from ui.components.common import ConfigButton
 from ui.components.stint_tracking.config.config_constants import ConfigLabels
+from ui.components.stint_tracking.widgets.AgentOverview import AgentOverview
 
 
 def _setup_ui(self) -> None:
@@ -24,9 +26,20 @@ def _setup_ui(self) -> None:
     layout.setContentsMargins(0, 0, 0, 0)
     layout.setSpacing(8)
 
-    self._left_column_toggle_btn = ConfigButton(ConfigLabels.BTN_HIDE_OPTIONS, width_type="half")
+    self._left_column_toggle_btn = ConfigButton(ConfigLabels.BTN_HIDE_OPTIONS, width="content")
     self._left_column_toggle_btn.clicked.connect(self._on_toggle_left_column)
     layout.addWidget(self._left_column_toggle_btn)
+
+    layout.addStretch()
+
+    self.agent_overview = AgentOverview()
+    self.agent_overview.selection_model = self.config_options.selection_model
+    layout.addWidget(self.agent_overview)
+    layout.setAlignment(self.agent_overview, Qt.AlignmentFlag.AlignHCenter)
+    self.agent_overview._load_agents()
+
+    if getattr(self.config_options.selection_model, 'sessionChanged', None):
+        self.config_options.selection_model.sessionChanged.connect(self.agent_overview._load_agents)
 
     layout.addStretch()
 
@@ -34,7 +47,7 @@ def _setup_ui(self) -> None:
         ConfigLabels.BTN_START_TRACK,
         icon_path="resources/icons/race_config/play.svg",
         icon_color="#1E1F24",
-        width_type=152
+        width="content"
     )
     self.tracking_btn.setObjectName("TrackButton")
     self.tracking_btn.clicked.connect(self.config_options._toggle_track)

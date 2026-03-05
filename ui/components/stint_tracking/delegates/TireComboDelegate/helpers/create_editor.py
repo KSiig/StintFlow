@@ -22,7 +22,7 @@ def create_editor(self, parent, option, index):
     layout.setContentsMargins(0, 0, 0, 0)
     layout.setSpacing(0)
 
-    btn = ConfigButton(parent=editor, width_type="third")
+    btn = ConfigButton(parent=editor, width="content")
     btn.setObjectName("TirePicker")
     btn.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
     self._update_button_text(btn, index)
