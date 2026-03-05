@@ -4,7 +4,7 @@
 
 QFrame#AgentOverview {
   background-color: #1b262c;
-  border: 1px solid #334e68;
+  border: 1px solid #273b4f;
   border-radius: 8px;
 }
 

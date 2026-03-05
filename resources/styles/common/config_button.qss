@@ -23,7 +23,7 @@ QPushButton#TrackButton:disabled {
 /* --- Buttons --- */
 QPushButton {
   background-color: #1D2A2C;
-  border: 1px solid #364153;
+  border: 1px solid #273b4f;
   border-radius: 4px;
   color: #FFFFFF;
   padding: 4px 8px;

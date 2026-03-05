@@ -9,10 +9,10 @@ from ....config import ConfigLabels
 
 def _create_buttons(self) -> None:
     """Instantiate and wire all action buttons."""
-    self.edit_btn = ConfigButton(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg", width_type="half")
-    self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg", width_type="half")
-    self.clone_btn = ConfigButton(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg", width_type="half")
-    self.create_session_btn = ConfigButton(ConfigLabels.BTN_NEW_SESSION, width_type="full")
+    self.edit_btn = ConfigButton(ConfigLabels.BTN_EDIT, icon_path="resources/icons/race_config/square-pen.svg", width="equal")
+    self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg", width="equal")
+    self.clone_btn = ConfigButton(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg", width="equal")
+    self.create_session_btn = ConfigButton(ConfigLabels.BTN_NEW_SESSION, width="fill")
 
     self.practice_cb = QCheckBox(text="Practice")
     self.lbl_info = QLabel()

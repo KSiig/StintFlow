@@ -5,7 +5,7 @@ from __future__ import annotations
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame
 
-from ui.utilities.load_style import load_style
+from ui.utilities import load_style, FONT, get_fonts
 from .AgentCard import AgentCard
 from .AgentOverviewPopup import AgentOverviewPopup
 from .helpers import (
@@ -36,5 +36,6 @@ class AgentOverview(QFrame):
         self._empty_agent_reads = 0
         self._popup = AgentOverviewPopup(self)
 
+        self.font_summary = get_fonts(FONT.text_label)
         load_style('resources/styles/stint_tracking/agent_overview/agent_overview.qss', widget=self)
         self._setup_ui()

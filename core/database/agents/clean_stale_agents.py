@@ -8,7 +8,7 @@ simple and atomic; a single ``delete_many`` query is used so that multiple
 trackers can perform the cleanup concurrently without interfering with one
 another.
 
-The grace period defaults to one minute (60 seconds) as requested by the
+The grace period defaults to one hour (3600 seconds) as requested by the
 UI logic, and callers typically poll at a much higher frequency (every
 5 seconds is sufficient since the stale threshold is large).
 
@@ -29,7 +29,6 @@ def clean_stale_agents(grace_period_seconds: int = 3600) -> bool:
     Args:
         grace_period_seconds: Number of seconds an agent may go without a
             heartbeat before being considered stale.  Must be positive.
-            Defaults to an hour.
 
     Returns:
         True if the operation succeeded (even if zero documents were
