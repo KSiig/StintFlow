@@ -16,5 +16,5 @@ class StatsStrip(QWidget):
         load_style('resources/styles/stint_tracking/config_options/stats_strip.qss', widget=self)
         self.scroll_area = None
         self._content = None
-        self.placeholder_label = None
+        self.sample_stats_card = None
         self._setup_ui()

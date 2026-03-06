@@ -1,11 +1,13 @@
 """Build the StatsStrip layout."""
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QSizePolicy, QWidget
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QScrollArea, QSizePolicy, QWidget
+
+from ..StatsCard import StatsCard
 
 
 def _setup_ui(self) -> None:
-    """Create a horizontally scrollable strip with a placeholder label."""
+    """Create a horizontally scrollable strip with one stats card."""
     self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
     outer = QHBoxLayout(self)
@@ -35,10 +37,12 @@ def _setup_ui(self) -> None:
     content_layout.setContentsMargins(12, 8, 12, 8)
     content_layout.setSpacing(12)
 
-    self.placeholder_label = QLabel("StatsStrip placeholder")
-    self.placeholder_label.setObjectName("StatsStripPlaceholder")
-    self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-    content_layout.addWidget(self.placeholder_label)
+    self.sample_stats_card = StatsCard(
+        title="Placeholder Stat",
+        value_text="Awaiting data",
+        icon_path="resources/icons/table_headers/timer.svg",
+    )
+    content_layout.addWidget(self.sample_stats_card)
     content_layout.addStretch()
 
     self._content.adjustSize()
