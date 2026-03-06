@@ -59,12 +59,17 @@ def _get_longest_stint(context: dict = None) -> str:
         return format_stint_time(timedelta(0))
 
     rows = getattr(table_model, '_data', []) or []
+    meta_rows = getattr(table_model, '_meta', []) or []
     longest = timedelta(0)
 
-    for row in rows:
+    for index, row in enumerate(rows):
         try:
             status = str(row[ColumnIndex.STATUS])
             if 'Completed' not in status:
+                continue
+
+            meta = meta_rows[index] if index < len(meta_rows) else None
+            if isinstance(meta, dict) and bool(meta.get('excluded', False)):
                 continue
 
             current = _parse_stint_time(row[ColumnIndex.STINT_TIME])

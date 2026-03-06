@@ -21,7 +21,6 @@ def _setup_stat_cards(self, content_layout: QHBoxLayout) -> None:
         icon_color="#39FF14",
         value_provider=_get_avg_stint_time,
     )
-    self.avg_stint_time_card.refresh_value({"table_model": table_model})
     content_layout.addWidget(self.avg_stint_time_card)
 
     self.longest_stint_card = StatsCard(
@@ -31,7 +30,9 @@ def _setup_stat_cards(self, content_layout: QHBoxLayout) -> None:
         icon_color="#a387f3",
         value_provider=_get_longest_stint,
     )
-    self.longest_stint_card.refresh_value({"table_model": table_model})
     content_layout.addWidget(self.longest_stint_card)
+
+    self._set_values()
+    table_model.editorsNeedRefresh.connect(self._set_values)
 
     content_layout.addStretch()

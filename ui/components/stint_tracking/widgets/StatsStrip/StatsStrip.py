@@ -3,7 +3,7 @@
 from PyQt6.QtWidgets import QWidget
 
 from ui.models import ModelContainer
-from .helpers import _setup_stat_cards, _setup_ui
+from .helpers import _setup_stat_cards, _setup_ui, _set_values
 from ui.utilities.load_style import load_style
 
 
@@ -12,6 +12,7 @@ class StatsStrip(QWidget):
 
     _setup_ui = _setup_ui
     _setup_stat_cards = _setup_stat_cards
+    _set_values = _set_values
 
     def __init__(self, models: ModelContainer) -> None:
         super().__init__()

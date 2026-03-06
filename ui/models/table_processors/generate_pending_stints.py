@@ -58,8 +58,6 @@ def generate_pending_stints(
 
         prev_time_of_day = time_of_day
         prev_stint_time = duration
-        print("pit_display", pit_display, "time_of_day", time_of_day, "duration", duration)
-        print("cross", cross, "current_pit_time", current_pit_time, "mean_stint_time", mean_stint_time)
 
         if cross:
             break
