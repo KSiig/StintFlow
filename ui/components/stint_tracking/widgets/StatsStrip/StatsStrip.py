@@ -3,7 +3,7 @@
 from PyQt6.QtWidgets import QWidget
 
 from ui.models import ModelContainer
-from .helpers import _setup_ui
+from .helpers import _setup_stat_cards, _setup_ui
 from ui.utilities.load_style import load_style
 
 
@@ -11,10 +11,11 @@ class StatsStrip(QWidget):
     """Scrollable strip for presenting session and stint statistics."""
 
     _setup_ui = _setup_ui
+    _setup_stat_cards = _setup_stat_cards
 
     def __init__(self, models: ModelContainer) -> None:
         super().__init__()
-        load_style('resources/styles/stint_tracking/config_options/stats_strip.qss', widget=self)
+        load_style('resources/styles/stint_tracking/tracker/stats_strip.qss', widget=self)
         self.models = models
         self.scroll_area = None
         self._content = None

@@ -25,7 +25,7 @@ class TableControls(QWidget):
         # config_options is not typed strictly to avoid a circular import
         # (TableControls lives alongside ConfigOptions in the widgets package).
         super().__init__()
-        load_style('resources/styles/stint_tracking/config_options/table_controls.qss', widget=self)
+        load_style('resources/styles/stint_tracking/tracker/table_controls.qss', widget=self)
 
         self.config_options = config_options
         self._on_toggle_left_column = on_toggle_left_column

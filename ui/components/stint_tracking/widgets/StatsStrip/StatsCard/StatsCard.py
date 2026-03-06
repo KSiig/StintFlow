@@ -7,6 +7,8 @@ from collections.abc import Callable
 from PyQt6.QtWidgets import QFrame
 
 from .bounded_functions import _refresh_value, _setup_ui
+from ui.utilities.load_style import load_style
+from ui.utilities import FONT, get_fonts
 
 
 class StatsCard(QFrame):
@@ -24,7 +26,11 @@ class StatsCard(QFrame):
         value_provider: Callable = None,
     ) -> None:
         super().__init__()
+        load_style('resources/styles/stint_tracking/tracker/stats_card.qss', widget=self)
         self.setObjectName("StatsCard")
+
+        self.font_title = get_fonts(FONT.text_label)
+        self.font_value = get_fonts(FONT.text_ui)
 
         self.title = title
         self.value_text = value_text

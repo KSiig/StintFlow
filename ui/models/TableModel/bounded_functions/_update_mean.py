@@ -65,7 +65,27 @@ def update_mean(self, update_pending: bool = True) -> None:
         self._tires = self._tires[:completed_count]
 
         if update_pending:
-            generate_pending_stints(self._data, self._mean_stint_time, tires_left)
+            prev_time_of_day = str(last_completed[ColumnIndex.TIME_OF_DAY])
+            prev_stint_time = timedelta(0)
+            try:
+                h, m, s = map(int, str(last_completed[ColumnIndex.STINT_TIME]).split(":"))
+                prev_stint_time = timedelta(hours=h, minutes=m, seconds=s)
+            except Exception:
+                try:
+                    prev_stint_time = calculate_stint_time(
+                        race_length if completed_count == 1 else str(self._data[completed_count - 2][ColumnIndex.PIT_END_TIME]),
+                        str(last_completed[ColumnIndex.PIT_END_TIME]),
+                    )
+                except Exception:
+                    prev_stint_time = timedelta(0)
+
+            generate_pending_stints(
+                self._data,
+                self._mean_stint_time,
+                tires_left,
+                prev_time_of_day,
+                prev_stint_time,
+            )
             last_tire_change = last_completed[ColumnIndex.TIRES_CHANGED]
             i = 0 if last_tire_change is NO_TIRE_CHANGE else 1
             while len(self._tires) < len(self._data):

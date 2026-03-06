@@ -1,0 +1,14 @@
+QFrame#StatsCard {
+  background-color: transparent;
+  border: none;
+}
+
+QLabel#StatsCardTitle, QLabel#StatsCardIcon {
+  background-color: transparent;
+  color: #9CA3AF;
+}
+
+QLabel#StatsCardValue {
+  background-color: transparent;
+  color: #FFFFFF;
+}

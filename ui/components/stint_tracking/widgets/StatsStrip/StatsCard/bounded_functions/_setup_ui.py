@@ -34,12 +34,13 @@ def _setup_ui(self) -> None:
     self.title_label.setObjectName("StatsCardTitle")
     self.title_label.setFont(get_fonts(FONT.text_caption))
     self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+    self.title_label.setFont(self.font_title)
     top_row.addWidget(self.title_label)
     top_row.addStretch()
 
     self.value_label = QLabel(self.value_text, self)
     self.value_label.setObjectName("StatsCardValue")
-    self.value_label.setFont(get_fonts(FONT.text_label_bold))
+    self.value_label.setFont(self.font_value)
     self.value_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
     layout.addLayout(top_row)

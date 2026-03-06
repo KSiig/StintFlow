@@ -27,7 +27,6 @@ def _get_avg_stint_time(context: dict = None) -> timedelta:
     return timedelta(0)
 
   mean_stint_time = getattr(table_model, '_mean_stint_time', timedelta(0))
-  print("mean_stint_time:", mean_stint_time)  # Debug print
   if mean_stint_time is None:
     return timedelta(0)
 

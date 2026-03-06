@@ -21,14 +21,10 @@ def generate_pending_stints(
 
     current_pit_time = rows[-1][ColumnIndex.PIT_END_TIME]
     tires_left = starting_tires_left
-    iterations = 0
 
     while True:
         time_of_day = calculate_time_of_day(prev_time_of_day, prev_stint_time)
         cross = is_last_stint(current_pit_time, mean_stint_time)
-
-        if iterations == 40:
-            break
 
         next_pit = _subtract_time_from_pit_time(current_pit_time, mean_stint_time)
 
@@ -62,9 +58,10 @@ def generate_pending_stints(
 
         prev_time_of_day = time_of_day
         prev_stint_time = duration
+        print("pit_display", pit_display, "time_of_day", time_of_day, "duration", duration)
+        print("cross", cross, "current_pit_time", current_pit_time, "mean_stint_time", mean_stint_time)
 
         if cross:
             break
 
         current_pit_time = next_pit
-        iterations += 1

@@ -2,9 +2,6 @@
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QScrollArea, QSizePolicy, QWidget
-from ._get_avg_stint_time import _get_avg_stint_time
-
-from ..StatsCard import StatsCard
 
 
 def _setup_ui(self) -> None:
@@ -35,18 +32,10 @@ def _setup_ui(self) -> None:
     self._content.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
     content_layout = QHBoxLayout(self._content)
-    content_layout.setContentsMargins(12, 8, 12, 8)
+    content_layout.setContentsMargins(0, 0, 0, 0)
     content_layout.setSpacing(12)
 
-    self.sample_stats_card = StatsCard(
-        title="Placeholder Stat",
-        value_text="Awaiting data",
-        icon_path="resources/icons/table_headers/timer.svg",
-        value_provider=_get_avg_stint_time,
-    )
-    self.sample_stats_card.refresh_value({"table_model": self.models.table_model})
-    content_layout.addWidget(self.sample_stats_card)
-    content_layout.addStretch()
+    self._setup_stat_cards(content_layout)
 
     self._content.adjustSize()
     self.scroll_area.setWidget(self._content)
