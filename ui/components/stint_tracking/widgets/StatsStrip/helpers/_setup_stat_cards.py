@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QHBoxLayout
 
 from ._get_avg_stint_time import _get_avg_stint_time
 from ._get_longest_stint import _get_longest_stint
+from ._get_stints_done import _get_stints_done
 from ..StatsCard import StatsCard
 
 
@@ -31,6 +32,15 @@ def _setup_stat_cards(self, content_layout: QHBoxLayout) -> None:
         value_provider=_get_longest_stint,
     )
     content_layout.addWidget(self.longest_stint_card)
+
+    self.stints_done_card = StatsCard(
+        title="Stints done",
+        value_text="Awaiting data",
+        icon_path="resources/icons/stats_strip/flag.svg",
+        icon_color="#5490d9",
+        value_provider=_get_stints_done,
+    )
+    content_layout.addWidget(self.stints_done_card)
 
     self._set_values()
     table_model.editorsNeedRefresh.connect(self._set_values)

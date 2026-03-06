@@ -43,5 +43,19 @@ def _setup_ui(self) -> None:
     self.value_label.setFont(self.font_value)
     self.value_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
+    value_row = QHBoxLayout()
+    value_row.setContentsMargins(0, 0, 0, 0)
+    value_row.setSpacing(4)
+    value_row.addWidget(self.value_label)
+
+    self.value_right_label = QLabel(self.value_right_text, self)
+    self.value_right_label.setObjectName("StatsCardValueRight")
+    self.value_right_label.setFont(self.font_title)
+    self.value_right_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom)
+    self.value_right_label.setVisible(bool(self.value_right_text))
+    value_row.addWidget(self.value_right_label)
+
+    value_row.addStretch()
+
     layout.addLayout(top_row)
-    layout.addWidget(self.value_label)
+    layout.addLayout(value_row)

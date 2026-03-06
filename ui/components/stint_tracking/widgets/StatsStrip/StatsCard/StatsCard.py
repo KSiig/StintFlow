@@ -21,6 +21,7 @@ class StatsCard(QFrame):
         self,
         title: str,
         value_text: str = "—",
+        value_right_text: str = "",
         icon_path: str = "resources/icons/table_headers/timer.svg",
         icon_color: str = "#D1D5DC",
         value_provider: Callable = None,
@@ -34,6 +35,7 @@ class StatsCard(QFrame):
 
         self.title = title
         self.value_text = value_text
+        self.value_right_text = value_right_text
         self.icon_path = icon_path
         self.icon_color = icon_color
         self.value_provider = value_provider
@@ -41,5 +43,6 @@ class StatsCard(QFrame):
         self.icon_label = None
         self.title_label = None
         self.value_label = None
+        self.value_right_label = None
 
         self._setup_ui()

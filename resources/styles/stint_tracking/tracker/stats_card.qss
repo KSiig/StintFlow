@@ -12,3 +12,8 @@ QLabel#StatsCardValue {
   background-color: transparent;
   color: #FFFFFF;
 }
+
+QLabel#StatsCardValueRight {
+  background-color: transparent;
+  color: #9CA3AF;
+}

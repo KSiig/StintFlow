@@ -18,11 +18,23 @@ def _refresh_value(self, context: dict = None) -> None:
 
     try:
         try:
-            value = self.value_provider(context_data)
+            value_result = self.value_provider(context_data)
         except TypeError:
-            value = self.value_provider()
+            value_result = self.value_provider()
+
+        value = value_result
+        value_right = None
+        if isinstance(value_result, (tuple, list)) and len(value_result) >= 2:
+            value = value_result[0]
+            value_right = value_result[1]
 
         self.value_label.setText(str(value))
+
+        if value_right is not None:
+            self.value_right_text = str(value_right)
+            if self.value_right_label is not None:
+                self.value_right_label.setText(self.value_right_text)
+                self.value_right_label.setVisible(bool(self.value_right_text))
     except Exception as exc:
         log_exception(
             exc,
