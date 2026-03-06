@@ -57,15 +57,18 @@ def _setup_ui(self, models) -> None:
         self._toggle_left_column()
         right_layout.addWidget(table_controls)
 
-        self.stats_strip = StatsStrip()
-        right_layout.addWidget(self.stats_strip)
-
+        # Ensure the StintTable object is created before the StatsStrip 
+        # so that the stats strip can access the table model for data.
         self.stint_table = StintTable(
             models=models,
             focus=False,
             auto_update=True,
             allow_editors=False,
         )
+
+        self.stats_strip = StatsStrip(self.models)
+        right_layout.addWidget(self.stats_strip)
+
         right_layout.addWidget(self.stint_table)
         right_layout.setStretch(2, 1)
 

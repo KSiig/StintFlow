@@ -1,6 +1,5 @@
 from ._create_labeled_input_rows import _create_labeled_input_rows
 from ._data_changed import _data_changed
-from ._format_stint_time import _format_stint_time
 from ._on_delete_clicked import _on_delete_clicked
 from ._on_save_clicked import _on_save_clicked
 from ._realign_rows import _realign_rows
@@ -11,7 +10,6 @@ from ._toggle_edit import _toggle_edit
 __all__ = [
     '_create_labeled_input_rows',
     '_data_changed',
-    '_format_stint_time',
     '_on_delete_clicked',
     '_on_save_clicked',
     '_realign_rows',

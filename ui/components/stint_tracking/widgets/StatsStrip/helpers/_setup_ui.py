@@ -2,6 +2,7 @@
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QScrollArea, QSizePolicy, QWidget
+from ._get_avg_stint_time import _get_avg_stint_time
 
 from ..StatsCard import StatsCard
 
@@ -41,7 +42,9 @@ def _setup_ui(self) -> None:
         title="Placeholder Stat",
         value_text="Awaiting data",
         icon_path="resources/icons/table_headers/timer.svg",
+        value_provider=_get_avg_stint_time,
     )
+    self.sample_stats_card.refresh_value({"table_model": self.models.table_model})
     content_layout.addWidget(self.sample_stats_card)
     content_layout.addStretch()
 

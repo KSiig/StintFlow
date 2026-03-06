@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import timedelta
 
 
-def _format_stint_time(self, stint_time) -> str:
-    """Return a HH:MM:SS string for the provided stint_time."""
+def format_stint_time(stint_time) -> str:
+    """Return an HH:MM:SS string for the provided stint time value."""
     if isinstance(stint_time, timedelta):
         return str(stint_time).split('.', 1)[0]
 
