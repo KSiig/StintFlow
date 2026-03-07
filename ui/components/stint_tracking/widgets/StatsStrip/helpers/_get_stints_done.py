@@ -25,16 +25,11 @@ def _get_stints_done(context: dict = None) -> tuple[str, int]:
         return "0/0", 0
 
     rows = getattr(table_model, '_data', []) or []
-    meta_rows = getattr(table_model, '_meta', []) or []
 
     completed_included = 0
     total_included = 0
-    for index, row in enumerate(rows):
+    for row in rows:
         try:
-            meta = meta_rows[index] if index < len(meta_rows) else None
-            if isinstance(meta, dict) and bool(meta.get('excluded', False)):
-                continue
-
             total_included += 1
 
             status = str(row[ColumnIndex.STATUS])
