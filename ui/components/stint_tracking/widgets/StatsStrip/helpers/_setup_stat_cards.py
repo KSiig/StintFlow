@@ -54,5 +54,3 @@ def _setup_stat_cards(self, content_layout: QHBoxLayout) -> None:
 
     self._set_values()
     table_model.editorsNeedRefresh.connect(self._set_values)
-
-    content_layout.addStretch()

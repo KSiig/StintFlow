@@ -1,0 +1,38 @@
+QFrame#DriverStatCard {
+  background-color: transparent;
+  border: none;
+}
+
+QFrame#DriverStatCardDetails {
+  background-color: transparent;
+  border: none;
+}
+
+QLabel#DriverStatCardInitials {
+  background-color: #22c55e;
+  color: #052e16;
+  border: none;
+  border-radius: 22px;
+}
+
+QLabel#DriverStatCardName {
+  background-color: transparent;
+  color: #ffffff;
+}
+
+QLabel#DriverStatCardStints,
+QLabel#DriverStatCardTime {
+  background-color: transparent;
+  color: #9ca3af;
+}
+
+QProgressBar#DriverStatCardProgressBar {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 2px;
+}
+
+QProgressBar#DriverStatCardProgressBar::chunk {
+  background-color: #22c55e;
+  border-radius: 2px;
+}

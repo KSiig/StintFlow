@@ -36,6 +36,8 @@ def _setup_ui(self) -> None:
     content_layout.setSpacing(12)
 
     self._setup_stat_cards(content_layout)
+    self._setup_driver_stats(content_layout)
+    content_layout.addStretch()
 
     self._content.adjustSize()
     self.scroll_area.setWidget(self._content)
