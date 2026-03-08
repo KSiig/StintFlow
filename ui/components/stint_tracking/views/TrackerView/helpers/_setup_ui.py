@@ -63,7 +63,7 @@ def _setup_ui(self, models) -> None:
             models=models,
             focus=False,
             auto_update=True,
-            allow_editors=False,
+            allow_editors=True,
         )
 
         self.stats_strip = StatsStrip(self.models)
