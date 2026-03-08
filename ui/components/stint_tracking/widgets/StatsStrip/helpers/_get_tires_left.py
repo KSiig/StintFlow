@@ -26,14 +26,17 @@ def _get_tires_left(context: dict = None) -> int:
 
     rows = getattr(table_model, '_data', []) or []
 
+    tires_left = 0
+
     for row in rows:
         try:
             status = str(row[ColumnIndex.STATUS])
-            if 'Completed' in status:
-                continue
 
+            if 'Completed' not in status:
+                return tires_left
 
-            return int(str(row[ColumnIndex.TIRES_LEFT]))
+            tires_left = int(str(row[ColumnIndex.TIRES_LEFT]))
+
         except Exception:
             continue
 

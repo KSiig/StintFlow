@@ -17,7 +17,7 @@ def _setup_ui(self) -> None:
     self.initials_label.setObjectName('DriverStatCardInitials')
     self.initials_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
     self.initials_label.setFont(self.initials_font)
-    self.initials_label.setFixedSize(44, 44)
+    self.initials_label.setFixedSize(36, 36)
     layout.addWidget(self.initials_label)
 
     details_layout = QVBoxLayout()
@@ -34,13 +34,12 @@ def _setup_ui(self) -> None:
     self.driver_name_label.setFont(self.driver_name_font)
     header_layout.addWidget(self.driver_name_label)
 
-    header_layout.addStretch()
-
     self.stint_count_label = QLabel(self)
     self.stint_count_label.setObjectName('DriverStatCardStints')
     self.stint_count_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
     self.stint_count_label.setFont(self.stint_count_font)
     header_layout.addWidget(self.stint_count_label)
+    header_layout.addStretch()
 
     details_layout.addLayout(header_layout)
 
