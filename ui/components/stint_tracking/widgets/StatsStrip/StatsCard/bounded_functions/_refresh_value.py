@@ -30,11 +30,10 @@ def _refresh_value(self, context: dict = None) -> None:
 
         self.value_label.setText(str(value))
 
-        if value_right is not None:
-            self.value_right_text = str(value_right)
-            if self.value_right_label is not None:
-                self.value_right_label.setText(self.value_right_text)
-                self.value_right_label.setVisible(bool(self.value_right_text))
+        if self.value_right_label is not None:
+            self.value_right_text = "" if value_right is None else str(value_right)
+            self.value_right_label.setText(self.value_right_text)
+            self.value_right_label.setVisible(bool(self.value_right_text))
     except Exception as exc:
         log_exception(
             exc,

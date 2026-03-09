@@ -41,7 +41,11 @@ def _get_driver_stats(table_model) -> list[dict[str, int | str]]:
         if status != 'completed':
             continue
 
-        driver_name = str(row[ColumnIndex.DRIVER]).strip()
+        driver_cell = row[ColumnIndex.DRIVER]
+        if driver_cell is None:
+            continue
+
+        driver_name = str(driver_cell).strip()
         if not driver_name:
             continue
 

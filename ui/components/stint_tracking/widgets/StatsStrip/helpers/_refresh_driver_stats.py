@@ -30,7 +30,7 @@ def _refresh_driver_stats(self) -> None:
             self.driver_stat_cards.append(driver_stat_card)
             driver_stats_layout.addWidget(driver_stat_card)
 
-    for driver_stat_card, driver_stat in zip(self.driver_stat_cards, driver_stats):
+    for driver_stat_card, driver_stat in zip(self.driver_stat_cards, driver_stats, strict=True):
         driver_stat_card.set_driver_stats(
             driver_name=str(driver_stat['driver_name']),
             stint_count=int(driver_stat['stint_count']),

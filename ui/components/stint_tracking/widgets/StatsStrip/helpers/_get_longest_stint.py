@@ -29,18 +29,18 @@ def _parse_stint_time(value) -> timedelta:
                 minutes = int(parts[1])
                 seconds = float(parts[2])
                 return timedelta(hours=hours, minutes=minutes, seconds=seconds)
-            except Exception:
+            except (ValueError, TypeError):
                 return timedelta(0)
 
         try:
             return timedelta(seconds=float(text))
-        except Exception:
+        except (ValueError, TypeError):
             return timedelta(0)
 
     return timedelta(0)
 
 
-def _get_longest_stint(context: dict = None) -> str:
+def _get_longest_stint(context: dict | None = None) -> str:
     """Return the longest completed stint as an HH:MM:SS string.
 
     Expected context shape:
@@ -75,7 +75,13 @@ def _get_longest_stint(context: dict = None) -> str:
             current = _parse_stint_time(row[ColumnIndex.STINT_TIME])
             if current > longest:
                 longest = current
-        except Exception:
+        except (ValueError, TypeError):
+            log(
+                'DEBUG',
+                f'Failed to process row {index} for longest stint calculation',
+                category='stats_strip',
+                action='get_longest_stint',
+            )
             continue
 
     return format_stint_time(longest)

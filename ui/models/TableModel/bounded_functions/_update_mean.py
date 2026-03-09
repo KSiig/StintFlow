@@ -65,7 +65,25 @@ def update_mean(self, update_pending: bool = True) -> None:
         self._tires = self._tires[:completed_count]
 
         if update_pending:
-            prev_time_of_day = str(last_completed[ColumnIndex.TIME_OF_DAY])
+            # sanitize previous time-of-day before handing to the processor
+            raw_tod = last_completed[ColumnIndex.TIME_OF_DAY]
+            prev_time_of_day = ""
+            if raw_tod is not None:
+                try:
+                    tod_str = str(raw_tod).strip()
+                    # lightweight validation via datetime parsing; this mirrors the
+                    # defensive approach used for ``prev_stint_time`` below.
+                    from datetime import datetime
+
+                    datetime.strptime(tod_str, "%H:%M:%S")
+                    prev_time_of_day = tod_str
+                except Exception:
+                    # fallback to a safe default rather than letting
+                    # generate_pending_stints blow up on bad input
+                    prev_time_of_day = "00:00:00"
+            else:
+                prev_time_of_day = "00:00:00"
+
             prev_stint_time = timedelta(0)
             try:
                 h, m, s = map(int, str(last_completed[ColumnIndex.STINT_TIME]).split(":"))

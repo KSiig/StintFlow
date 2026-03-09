@@ -1,4 +1,4 @@
-def _set_values(self):
+def _set_values(self) -> None:
     table_model = self.models.table_model
 
     self.longest_stint_card.refresh_value({"table_model": table_model})

@@ -22,7 +22,7 @@ def _get_stints_done(context: dict = None) -> tuple[str, int]:
             category='stats_strip',
             action='get_stints_done',
         )
-        return "0/0", 0
+        return "0/0", "0%"
 
     rows = getattr(table_model, '_data', []) or []
 
@@ -30,14 +30,17 @@ def _get_stints_done(context: dict = None) -> tuple[str, int]:
     total_included = 0
     for row in rows:
         try:
+            # ensure the expected index exists before counting the row
+            status = str(row[ColumnIndex.STATUS])
             total_included += 1
 
-            status = str(row[ColumnIndex.STATUS])
-            if 'Completed' not in status:
+            # normalize and check for completed status (match other helper)
+            if status.strip().lower() != 'completed':
                 continue
 
             completed_included += 1
         except Exception:
+            # malformed row or missing columns; skip entirely
             continue
 
     percent_done = int((completed_included / total_included) * 100) if total_included > 0 else 0

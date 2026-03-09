@@ -15,6 +15,8 @@ def _setup_stat_cards(self, content_layout: QHBoxLayout) -> None:
     """Add stats cards to the provided content layout."""
 
     table_model = self.models.table_model
+    if table_model is not None:
+        table_model.editorsNeedRefresh.connect(self._set_values)
 
     self.avg_stint_time_card = StatsCard(
         title="Avg. Stint Time",
@@ -53,4 +55,3 @@ def _setup_stat_cards(self, content_layout: QHBoxLayout) -> None:
     content_layout.addWidget(self.tires_left_card)
 
     self._set_values()
-    table_model.editorsNeedRefresh.connect(self._set_values)

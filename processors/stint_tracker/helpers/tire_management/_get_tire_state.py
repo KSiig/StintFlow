@@ -35,7 +35,7 @@ def _get_tire_state(player_vehicle: Any) -> Dict[str, Dict[str, object]]:
     # attempt to compute length first to catch non-sequence types
     try:
         wheel_count = len(wheels)
-    except Exception:
+    except TypeError:
         wheel_count = None
 
     if wheel_count is None or wheel_count < 4:
