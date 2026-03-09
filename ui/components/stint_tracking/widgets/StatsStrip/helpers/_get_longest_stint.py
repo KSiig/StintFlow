@@ -65,7 +65,7 @@ def _get_longest_stint(context: dict | None = None) -> str:
     for index, row in enumerate(rows):
         try:
             status = str(row[ColumnIndex.STATUS]).strip().lower()
-            if 'Completed' not in status:
+            if 'completed' not in status:
                 continue
 
             meta = meta_rows[index] if index < len(meta_rows) else None
