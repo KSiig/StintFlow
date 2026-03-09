@@ -1,3 +1,16 @@
+"""Reusable modal dialog used throughout the UI.
+
+This module defines the ``PopUp`` class, a frameless, centered
+QDialog with an icon, title, message text, and one or more action
+buttons.  It is used for informational messages, warnings, and error
+alerts; buttons simply close the dialog and record which one was
+clicked.
+
+The dialog size adapts to the message content while respecting a
+minimum width/height and a maximum width.  Centering logic is applied on
+show using the custom ``showEvent`` implementation.
+"""
+
 from PyQt6.QtWidgets import (
     QDialog,
     QFrame,
@@ -20,7 +33,17 @@ from .helpers import _center_on_parent, _handle_click, _set_icon
 
 
 class PopUp(QDialog):
-    """Frameless popup dialog with icon, title, message, and buttons."""
+    """Frameless popup dialog with an icon, title, message, and buttons.
+
+    ``PopUp`` is instantiated with a title string, a message string, an
+    optional list of button labels, and an optional ``type`` which
+    determines the displayed icon and accent color.  A parent widget may
+    also be supplied for center-on-parent positioning.
+
+    The dialog is modal and blocking; calling ``exec()`` on an instance
+    will not return until a button is clicked.  The clicked button label
+    is stored in the ``clicked_button`` attribute.
+    """
 
     showEvent = showEvent
     _set_icon = _set_icon
@@ -122,4 +145,3 @@ class PopUp(QDialog):
         self.shadow.setColor(QColor(0, 0, 0, 180))
         self.container.setGraphicsEffect(self.shadow)
 
-        self.setMinimumWidth(390)

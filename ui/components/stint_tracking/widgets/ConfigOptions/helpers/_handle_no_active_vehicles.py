@@ -1,3 +1,11 @@
+"""Notify the user when no active vehicles are detected.
+
+The stint tracker emits a warning if it cannot locate any active
+vehicles in the selected session.  This helper is invoked via the
+``on_no_active_vehicles`` callback from the output parser and takes care
+of stopping the tracker and presenting an error dialog to the user.
+"""
+
 from __future__ import annotations
 
 
