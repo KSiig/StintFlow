@@ -11,7 +11,12 @@ from __future__ import annotations
 
 def _handle_no_active_vehicles(self) -> None:
     """Show a no-active-session warning and stop tracking."""
-    self._toggle_track()
+    # ``_toggle_track`` flips the state, starting the tracker if it was
+    # inactive.  Only invoke when we are actually tracking so we don't
+    # accidentally restart it during the error handling path.
+    if self._tracking_active:
+        self._toggle_track()
+
     self._open_popup(
         title="No active session found",
         message=(
