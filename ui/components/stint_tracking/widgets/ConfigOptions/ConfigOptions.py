@@ -76,7 +76,7 @@ class ConfigOptions(QWidget):
         self._tracking_active = False
         self.agent_name = None
 
-        load_style('resources/styles/stint_tracking/config_options/config_options.qss', widget=self)
+        load_style('resources/styles/stint_tracking/tracker/config_options.qss', widget=self)
 
         self.selection_model.eventChanged.connect(self._refresh_labels)
         self.selection_model.sessionChanged.connect(self._refresh_labels)

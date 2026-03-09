@@ -2,6 +2,7 @@
 
 from .AgentOverview import AgentOverview
 from .ConfigOptions import ConfigOptions
+from .StatsStrip import StatsStrip
 from .StintTable import StintTable
 from .TableControls import TableControls
 from .TeamSection import TeamSection
@@ -9,6 +10,7 @@ from .TeamSection import TeamSection
 __all__ = [
     'AgentOverview',
     'ConfigOptions',
+    'StatsStrip',
     'StintTable',
     'TableControls',
     'TeamSection',

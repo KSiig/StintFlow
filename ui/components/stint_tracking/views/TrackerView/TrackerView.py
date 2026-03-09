@@ -40,11 +40,13 @@ class TrackerView(QWidget):
 
     def __init__(self, models: ModelContainer) -> None:
         super().__init__()
+        self.models = models
         self.selection_model = models.selection_model
         self.table_model = models.table_model
         self.config_options = None
         self.agent_overview = None
         self.stint_table = None
+        self.stats_strip = None
         self.table_controls = None
         self.right_column_container = None
         self._viewport_filter = None

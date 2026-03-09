@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from core.utilities import format_stint_time
+
 
 def _set_inputs(self) -> None:
     """Populate input widgets from current model and strategy state."""
     mean_stint_time = self.table_model._mean_stint_time if self.table_model else None
     if mean_stint_time is not None:
-        mean_stint_time_str = self._format_stint_time(mean_stint_time)
+        mean_stint_time_str = format_stint_time(mean_stint_time)
         widget = self.inputs.get("mean_stint_time")
         if widget is not None:
             widget.setText(mean_stint_time_str)

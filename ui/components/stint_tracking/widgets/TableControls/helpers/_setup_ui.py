@@ -43,6 +43,10 @@ def _setup_ui(self) -> None:
 
     layout.addStretch()
 
+    tracking_controls_layout = QVBoxLayout()
+    tracking_controls_layout.setSpacing(4)
+    tracking_controls_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+
     self.tracking_btn = ConfigButton(
         ConfigLabels.BTN_START_TRACK,
         icon_path="resources/icons/race_config/play.svg",
@@ -51,7 +55,9 @@ def _setup_ui(self) -> None:
     )
     self.tracking_btn.setObjectName("TrackButton")
     self.tracking_btn.clicked.connect(self.config_options._toggle_track)
-    layout.addWidget(self.tracking_btn)
+    tracking_controls_layout.addWidget(self.tracking_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    tracking_controls_layout.addWidget(self.config_options.practice_cb, alignment=Qt.AlignmentFlag.AlignHCenter)
+    layout.addLayout(tracking_controls_layout)
 
     self.config_options.tracker_started.connect(lambda: self._apply_tracking_state(True))
     self.config_options.tracker_stopped.connect(lambda: self._apply_tracking_state(False))

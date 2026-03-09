@@ -29,10 +29,17 @@ def _get_tire_state(player_vehicle: Any) -> Dict[str, Dict[str, object]]:
         log('ERROR', 'Player vehicle missing mWheels attribute',
             category='stint_tracker', action='get_tire_state')
         return _get_empty_tire_state()
+    # convert to a sequence of wheels; ctypes arrays behave like sequences
+    wheels = player_vehicle.mWheels
 
-    wheels = getattr(player_vehicle, 'mWheels')
-    if not isinstance(wheels, (list, tuple)) or len(wheels) < 4:
-        log('ERROR', f'mWheels has insufficient elements: {len(wheels) if hasattr(wheels, "__len__") else "?"}',
+    # attempt to compute length first to catch non-sequence types
+    try:
+        wheel_count = len(wheels)
+    except TypeError:
+        wheel_count = None
+
+    if wheel_count is None or wheel_count < 4:
+        log('ERROR', f'mWheels has insufficient elements: {wheel_count if wheel_count is not None else "?"}',
             category='stint_tracker', action='get_tire_state')
         return _get_empty_tire_state()
 
