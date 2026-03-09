@@ -22,7 +22,6 @@ def _create_button_layout(self) -> QHBoxLayout:
     btn_tracking_layout.addWidget(self.lbl_info, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
     btn_tracking_layout.addStretch()
 
-    btn_layout.addWidget(self.practice_cb)
     btn_layout.addLayout(btn_layout_save_clone)
     btn_layout.addLayout(btn_tracking_layout)
 
