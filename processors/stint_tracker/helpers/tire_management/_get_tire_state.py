@@ -30,7 +30,7 @@ def _get_tire_state(player_vehicle: Any) -> Dict[str, Dict[str, object]]:
             category='stint_tracker', action='get_tire_state')
         return _get_empty_tire_state()
     # convert to a sequence of wheels; ctypes arrays behave like sequences
-    wheels = getattr(player_vehicle, 'mWheels')
+    wheels = player_vehicle.mWheels
 
     # attempt to compute length first to catch non-sequence types
     try:
