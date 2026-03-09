@@ -38,7 +38,8 @@ class PopUp(QDialog):
             "critical": ("resources/icons/popup/circle-alert.svg", "#dc2626"),
         }
         icon_path, self._icon_color = self._icon_map.get(type, ("resources/icons/popup/info.svg", "#3b82f6"))
-        self.setFixedSize(510, 248)
+        self.setMinimumSize(390, 248)
+        self.setMaximumWidth(510)
 
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
