@@ -8,7 +8,7 @@ from core.errors import log
 from core.utilities import format_stint_time
 
 
-def _get_avg_stint_time(context: dict = None) -> timedelta:
+def _get_avg_stint_time(context: dict = None) -> str:
   """Return the current mean stint time from TableModel.
 
   Expected context shape:
@@ -24,11 +24,11 @@ def _get_avg_stint_time(context: dict = None) -> timedelta:
       category='stats_strip',
       action='get_avg_stint_time',
     )
-    return timedelta(0)
+    return format_stint_time(timedelta(0))
 
   mean_stint_time = getattr(table_model, '_mean_stint_time', timedelta(0))
   if mean_stint_time is None:
-    return timedelta(0)
+    return format_stint_time(timedelta(0))
 
   return format_stint_time(mean_stint_time)
 

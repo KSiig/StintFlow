@@ -7,7 +7,7 @@ from ui.models.table_constants import ColumnIndex
 
 
 def _get_tires_left(context: dict = None) -> int:
-    """Return tires left from the first included completed row.
+    """Return tires left from the last included completed row.
 
     Expected context shape:
         {"table_model": <TableModel instance>}
@@ -40,4 +40,4 @@ def _get_tires_left(context: dict = None) -> int:
         except Exception:
             continue
 
-    return 0
+    return tires_left
