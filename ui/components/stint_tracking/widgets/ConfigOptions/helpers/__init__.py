@@ -5,6 +5,7 @@ from ._create_buttons import _create_buttons
 from ._create_session import _create_session
 from ._flash_taskbar import _flash_taskbar
 from ._handle_agent_registration_conflict import _handle_agent_registration_conflict
+from ._handle_no_active_vehicles import _handle_no_active_vehicles
 from ._handle_output import _handle_output
 from ._handle_process_error import _handle_process_error
 from ._handle_process_finished import _handle_process_finished
@@ -28,6 +29,7 @@ __all__ = [
     '_create_session',
     '_flash_taskbar',
     '_handle_agent_registration_conflict',
+    '_handle_no_active_vehicles',
     '_handle_output',
     '_handle_process_error',
     '_handle_process_finished',

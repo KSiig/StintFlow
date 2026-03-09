@@ -15,6 +15,7 @@ from .helpers import (
     _create_session,
     _flash_taskbar,
     _handle_agent_registration_conflict,
+    _handle_no_active_vehicles,
     _handle_output,
     _handle_process_error,
     _handle_process_finished,
@@ -56,6 +57,7 @@ class ConfigOptions(QWidget):
     _show_info_lbl = _show_info_lbl
     _reset_info_lbl = _reset_info_lbl
     _handle_agent_registration_conflict = _handle_agent_registration_conflict
+    _handle_no_active_vehicles = _handle_no_active_vehicles
     _flash_taskbar = _flash_taskbar
     _handle_process_error = _handle_process_error
     _handle_process_finished = _handle_process_finished
