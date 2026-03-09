@@ -5,7 +5,7 @@ from __future__ import annotations
 from core.errors import log_exception
 
 
-def _refresh_value(self, context: dict = None) -> None:
+def _refresh_value(self, context: dict | None = None) -> None:
     """Evaluate and display the latest value from value_provider.
 
     The provider can accept a single `context` argument, or no arguments.

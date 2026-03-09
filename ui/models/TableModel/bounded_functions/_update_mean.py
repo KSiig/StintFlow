@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from core.database import get_event
 from core.errors import log
@@ -73,7 +73,6 @@ def update_mean(self, update_pending: bool = True) -> None:
                     tod_str = str(raw_tod).strip()
                     # lightweight validation via datetime parsing; this mirrors the
                     # defensive approach used for ``prev_stint_time`` below.
-                    from datetime import datetime
 
                     datetime.strptime(tod_str, "%H:%M:%S")
                     prev_time_of_day = tod_str

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import re
 
 
 def format_stint_time(stint_time) -> str:
@@ -21,10 +22,23 @@ def format_stint_time(stint_time) -> str:
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
     if isinstance(stint_time, str):
-        return stint_time.split('.', 1)[0]
+        # split off any fractional part first
+        base = stint_time.split('.', 1)[0]
+        # valid time patterns are H:MM or H:MM:SS (hours can be multiple digits)
+        if re.match(r"^\d+:[0-5]\d(?::[0-5]\d)?$", base):
+            return base
+        # otherwise try treating the string as a numeric seconds value
+        try:
+            total_seconds = max(int(float(stint_time)), 0)
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        except Exception:
+            raise ValueError(f"Unrecognized stint_time string: {stint_time}")
 
     try:
-        total_seconds = int(float(stint_time))
+        total_seconds = max(int(float(stint_time)), 0)
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
         seconds = total_seconds % 60

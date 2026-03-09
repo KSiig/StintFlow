@@ -64,7 +64,7 @@ def _get_longest_stint(context: dict | None = None) -> str:
 
     for index, row in enumerate(rows):
         try:
-            status = str(row[ColumnIndex.STATUS])
+            status = str(row[ColumnIndex.STATUS]).strip().lower()
             if 'Completed' not in status:
                 continue
 
@@ -75,7 +75,7 @@ def _get_longest_stint(context: dict | None = None) -> str:
             current = _parse_stint_time(row[ColumnIndex.STINT_TIME])
             if current > longest:
                 longest = current
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, IndexError):
             log(
                 'DEBUG',
                 f'Failed to process row {index} for longest stint calculation',

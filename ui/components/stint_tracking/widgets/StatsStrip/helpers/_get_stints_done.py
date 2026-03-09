@@ -6,7 +6,7 @@ from core.errors import log
 from ui.models.table_constants import ColumnIndex
 
 
-def _get_stints_done(context: dict = None) -> tuple[str, int]:
+def _get_stints_done(context: dict = None) -> tuple[str, str]:
     """Return included completed stints as ratio and completion percentage.
 
     Expected context shape:
