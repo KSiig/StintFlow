@@ -38,5 +38,9 @@ QLabel#SyncIcon {
 
 QLabel#SyncText {
   color: #ffffff;
-  font-weight: 600;
+}
+
+
+QLabel#LastSyncLabel {
+  color: #90a1b9;
 }

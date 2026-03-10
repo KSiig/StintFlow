@@ -23,3 +23,6 @@ def _sync_current_strategy(self) -> None:
         return
 
     current_tab._sync_from_tracker()
+
+    if self.sync_widget is not None:
+        self.sync_widget._set_strategy(current_tab.strategy)

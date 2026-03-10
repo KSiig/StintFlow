@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import copy
 
+from datetime import datetime, timezone
+
 from core.database import update_strategy
 from core.errors import log, log_exception
 from ui.models.stint_helpers import sanitize_stints
@@ -79,6 +81,7 @@ def _sync_from_tracker(self) -> None:
         model_data["tires"] = sanitized.get("tires", [])
         self.strategy["model_data"] = model_data
         self.strategy["mean_stint_time_seconds"] = int(self.table_model._mean_stint_time.total_seconds())
+        self.strategy["last_sync"] = datetime.now(timezone.utc).isoformat()
 
         update_strategy(strategy=self.strategy)
 
