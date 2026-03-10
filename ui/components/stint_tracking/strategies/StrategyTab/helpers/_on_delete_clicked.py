@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from core.database import update_strategy
-from core.errors import log_exception
+from core.errors import log, log_exception
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
 from ui.models.stint_helpers import sanitize_stints
 
@@ -60,6 +60,16 @@ def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
         self.table_model.update_mean(update_pending=False)
 
         self.stint_table.refresh_table(skip_model_update=True)
+        try:
+            self._setup_strategy_delegates()
+            self._open_persistent_editors()
+        except Exception:
+            log(
+                'WARNING',
+                'Failed to restore strategy editors after delete',
+                category='strategy_tab',
+                action='delete_stint',
+            )
     except Exception as e:
         log_exception(
             e,
