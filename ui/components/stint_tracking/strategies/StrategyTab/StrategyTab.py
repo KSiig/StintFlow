@@ -6,7 +6,11 @@ from PyQt6.QtWidgets import QWidget
 from ui.models import SelectionModel, TableModel
 from ui.utilities.load_style import load_style
 
+from .StrategySyncWorker import StrategySyncWorker
 from .helpers import (
+    _apply_sync_from_tracker_result,
+    _clear_sync_worker,
+    _handle_sync_from_tracker_failed,
     _load_strategy_data,
     _on_delete_clicked,
     _on_exclude_clicked,
@@ -24,7 +28,11 @@ class StrategyTab(QWidget):
 
     name_changed = pyqtSignal(str)
     deleted = pyqtSignal(str)
+    sync_completed = pyqtSignal(dict)
 
+    _apply_sync_from_tracker_result = _apply_sync_from_tracker_result
+    _clear_sync_worker = _clear_sync_worker
+    _handle_sync_from_tracker_failed = _handle_sync_from_tracker_failed
     _setup_ui = _setup_ui
     _load_strategy_data = _load_strategy_data
     _setup_strategy_delegates = _setup_strategy_delegates
@@ -44,6 +52,7 @@ class StrategyTab(QWidget):
         self.strategy_name = strategy.get('name', 'Unnamed Strategy')
         self.selection_model = selection_model
         self.tracker_table_model = table_model
+        self._sync_worker: StrategySyncWorker | None = None
 
         self.table_model = table_model.clone()
         self.table_model._is_strategy = True
