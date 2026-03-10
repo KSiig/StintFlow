@@ -26,6 +26,7 @@ class StrategiesView(QWidget):
     """Main view for race strategy management."""
 
     strategy_created = pyqtSignal(dict)
+    sync_requested = pyqtSignal()
 
     _setup_ui = _setup_ui
     _on_tab_changed = _on_tab_changed
@@ -50,6 +51,7 @@ class StrategiesView(QWidget):
         self.main_layout = None
         self.tab_bar = None
         self.stacked_widget = None
+        self.sync_widget = None
 
         self.selection_model.sessionChanged.connect(self._on_session_changed)
 
