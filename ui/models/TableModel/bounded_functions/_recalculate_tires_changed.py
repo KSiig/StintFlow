@@ -1,3 +1,5 @@
+"""Delegate tires‑changed recalculation to table processor."""
+
 from ui.models.table_processors import recalculate_tires_changed
 
 

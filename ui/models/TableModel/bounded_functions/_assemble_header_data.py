@@ -1,3 +1,5 @@
+"""Utilities for TableModel header data (labels, icons, alignment)."""
+
 from PyQt6.QtCore import Qt
 
 from ui.components.stint_tracking import get_header_icon

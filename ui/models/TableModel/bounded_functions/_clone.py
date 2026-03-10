@@ -1,3 +1,5 @@
+"""Deep-copy helper for TableModel."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

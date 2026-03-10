@@ -1,3 +1,5 @@
+"""Delegate remaining‑tires calculation to shared processor."""
+
 from ui.models.table_processors import recalculate_tires_left
 
 

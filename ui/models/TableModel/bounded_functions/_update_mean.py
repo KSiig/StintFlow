@@ -1,3 +1,5 @@
+"""Compute mean stint times and fill pending rows if needed."""
+
 from datetime import timedelta, datetime
 
 from core.database import get_event

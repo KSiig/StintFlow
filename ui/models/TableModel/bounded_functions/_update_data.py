@@ -1,3 +1,5 @@
+"""Update model data and trigger view refresh."""
+
 from datetime import timedelta
 
 

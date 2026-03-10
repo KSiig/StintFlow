@@ -1,3 +1,5 @@
+"""Load table data from the database and initialize model state."""
+
 from core.database import get_event, get_stints
 from core.errors import log
 from ui.models.table_constants import NO_TIRE_CHANGE

@@ -1,3 +1,6 @@
+"""Emit dataChanged signal for entire table when dimensions unchanged."""
+
+
 def _repaint_table(self) -> None:
     """Emit dataChanged signal for entire table when dimensions unchanged."""
     if self.rowCount() > 0 and self.columnCount() > 0:

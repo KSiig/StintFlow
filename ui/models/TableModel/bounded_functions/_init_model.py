@@ -1,3 +1,5 @@
+"""Initializer for the TableModel class."""
+
 from __future__ import annotations
 
 from datetime import timedelta

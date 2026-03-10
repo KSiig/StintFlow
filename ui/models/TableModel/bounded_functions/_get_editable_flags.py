@@ -1,3 +1,5 @@
+"""Provide standard editable flags for TableModel cells."""
+
 from PyQt6.QtCore import Qt
 
 

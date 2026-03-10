@@ -1,3 +1,5 @@
+"""Utility to parse pit stop times into sortable datetime objects."""
+
 from datetime import datetime
 
 

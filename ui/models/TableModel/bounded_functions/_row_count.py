@@ -1,3 +1,5 @@
+"""Row count implementation for TableModel."""
+
 from PyQt6.QtCore import QModelIndex
 
 

@@ -1,3 +1,5 @@
+"""Row deletion logic for TableModel, including optional DB cleanup."""
+
 from core.database import delete_stint as delete_stint_from_db
 from core.errors import log
 
