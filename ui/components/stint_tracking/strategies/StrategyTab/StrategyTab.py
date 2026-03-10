@@ -14,6 +14,7 @@ from .helpers import (
     _open_persistent_editors,
     _setup_strategy_delegates,
     _setup_ui,
+    _sync_from_tracker,
     _strategy_updated,
 )
 
@@ -32,14 +33,17 @@ class StrategyTab(QWidget):
     _on_settings_deleted = _on_settings_deleted
     _on_delete_clicked = _on_delete_clicked
     _on_exclude_clicked = _on_exclude_clicked
+    _sync_from_tracker = _sync_from_tracker
 
     def __init__(self, strategy: dict, table_model: TableModel, selection_model: SelectionModel):
+        """Initialize a strategy tab with a cloned strategy model and tracker source model."""
         super().__init__()
 
         self.strategy = strategy
         self.strategy_id = strategy.get('_id')
         self.strategy_name = strategy.get('name', 'Unnamed Strategy')
         self.selection_model = selection_model
+        self.tracker_table_model = table_model
 
         self.table_model = table_model.clone()
         self.table_model._is_strategy = True

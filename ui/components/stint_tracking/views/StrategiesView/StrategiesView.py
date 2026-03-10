@@ -15,6 +15,7 @@ from .helpers import (
     _on_create_strategy,
     _on_session_changed,
     _on_strategy_created,
+    _sync_current_strategy,
     _on_tab_changed,
     _remove_tab,
     _setup_ui,
@@ -26,7 +27,6 @@ class StrategiesView(QWidget):
     """Main view for race strategy management."""
 
     strategy_created = pyqtSignal(dict)
-    sync_requested = pyqtSignal()
 
     _setup_ui = _setup_ui
     _on_tab_changed = _on_tab_changed
@@ -36,6 +36,7 @@ class StrategiesView(QWidget):
     _on_create_strategy = _on_create_strategy
     _on_clone_strategy = _on_clone_strategy
     _on_session_changed = _on_session_changed
+    _sync_current_strategy = _sync_current_strategy
     _clear_tabs = _clear_tabs
     _remove_tab = _remove_tab
     _update_tab_label = _update_tab_label

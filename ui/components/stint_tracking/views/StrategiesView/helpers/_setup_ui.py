@@ -50,7 +50,7 @@ def _setup_ui(self) -> None:
     left_controls_layout.addWidget(clone_btn)
 
     self.sync_widget = SyncWidget()
-    self.sync_widget.sync_requested.connect(self.sync_requested.emit)
+    self.sync_widget.sync_requested.connect(self._sync_current_strategy)
 
     tab_bar_layout.addWidget(left_controls)
 
