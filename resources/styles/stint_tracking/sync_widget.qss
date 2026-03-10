@@ -1,3 +1,43 @@
+QFrame#AutoSyncFrame {
+  background-color: #16202c;
+  border: 1px solid #27364a;
+  border-radius: 8px;
+  padding: 0;
+}
+
+QFrame#AutoSyncFrame > * {
+  background-color: transparent;
+}
+
+QLabel#AutoSyncText {
+  color: #d7dfeb;
+  font-weight: 600;
+}
+
+QCheckBox#AutoSyncToggle {
+  spacing: 0;
+}
+
+QCheckBox#AutoSyncToggle::indicator {
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background-color: #445066;
+  border: 1px solid #56667f;
+}
+
+QCheckBox#AutoSyncToggle::indicator:unchecked {
+  background-color: #445066;
+  border: 1px solid #56667f;
+  image: none;
+}
+
+QCheckBox#AutoSyncToggle::indicator:checked {
+  background-color: #07a14b;
+  border: 1px solid #0cbb58;
+  image: none;
+}
+
 QFrame#SyncFrame {
   background-color: #f54900;
   border-radius: 8px;

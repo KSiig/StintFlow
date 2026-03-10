@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QFrame
+from PyQt6.QtWidgets import QHBoxLayout, QSizePolicy
 
-from ui.utilities.load_icon import load_icon
+from ._create_auto_sync_frame import _create_auto_sync_frame
+from ._create_manual_sync_frame import _create_manual_sync_frame
 
 
 def _setup_ui(self) -> None:
@@ -14,33 +13,12 @@ def _setup_ui(self) -> None:
     self.setObjectName("SyncWidget")
     self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 
-    # outer layout just holds the styled frame
     outer_layout = QHBoxLayout(self)
     outer_layout.setContentsMargins(0, 0, 0, 0)
-    outer_layout.setSpacing(0)
+    outer_layout.setSpacing(8)
 
-    frame = QFrame(self)
-    frame.setObjectName("SyncFrame")
-    frame.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+    self.auto_sync_frame = _create_auto_sync_frame(self)
+    self.manual_sync_frame = _create_manual_sync_frame(self)
 
-    layout = QHBoxLayout(frame)
-    layout.setContentsMargins(12, 8, 12, 8)
-    layout.setSpacing(0)
-
-    outer_layout.addWidget(frame)
-
-    # icon label
-    self.icon_label = QLabel()
-    self.icon_label.setObjectName("SyncIcon")
-    self.icon_label.setPixmap(
-        QIcon(load_icon("resources/icons/strategies/refresh-ccw.svg", 14, color="#FFFFFF")).pixmap(14, 14)
-    )
-    self.icon_label.setFixedSize(QSize(14, 14))
-
-    # text label
-    self.text_label = QLabel("Sync now")
-    self.text_label.setObjectName("SyncText")
-
-    layout.addWidget(self.icon_label)
-    layout.addSpacing(8)
-    layout.addWidget(self.text_label)
+    outer_layout.addWidget(self.auto_sync_frame)
+    outer_layout.addWidget(self.manual_sync_frame)
