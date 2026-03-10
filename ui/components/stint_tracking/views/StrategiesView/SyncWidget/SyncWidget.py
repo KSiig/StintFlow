@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import QTimer, pyqtSignal
-from PyQt6.QtWidgets import QWidget, QLabel, QCheckBox, QFrame
+from PyQt6.QtWidgets import QWidget, QLabel, QFrame
 
+from ui.components.common import ToggleSwitch
 from ui.utilities.load_style import load_style
 
 from .helpers import (
@@ -36,7 +37,7 @@ class SyncWidget(QWidget):
         self.auto_sync_frame: QFrame | None = None
         self.auto_sync_icon_label: QLabel | None = None
         self.auto_sync_text_label: QLabel | None = None
-        self.auto_sync_toggle: QCheckBox | None = None
+        self.auto_sync_toggle: ToggleSwitch | None = None
         self.manual_sync_frame: QFrame | None = None
         self.icon_label: QLabel | None = None
         self.text_label: QLabel | None = None
