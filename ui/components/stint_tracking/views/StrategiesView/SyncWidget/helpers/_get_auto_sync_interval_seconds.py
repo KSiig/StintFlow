@@ -10,13 +10,13 @@ def _get_auto_sync_interval_seconds(self) -> int:
     settings = load_user_settings()
     if isinstance(settings, dict):
         strat = settings.get("strategy", {})
-        interval = strat.get("auto_sync_interval_seconds", 5) if isinstance(strat, dict) else 5
+        interval = strat.get("auto_sync_interval_seconds", 10) if isinstance(strat, dict) else 10
     else:
-        interval = 5
+        interval = 10
 
     try:
         interval = int(interval)
     except Exception:
-        interval = 5
+        interval = 10
 
     return max(1, interval)

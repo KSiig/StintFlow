@@ -36,6 +36,11 @@ def _load_data_from_database(self) -> None:
             action="load_data",
         )
 
+    try:
+        self._event_tire_count = int(total_tires)
+    except Exception:
+        self._event_tire_count = int(DEFAULT_TIRE_COUNT)
+
     stints = get_stints(self.selection_model.session_id)
     stints = sorted(stints, key=self._parse_pit_time, reverse=True)
 

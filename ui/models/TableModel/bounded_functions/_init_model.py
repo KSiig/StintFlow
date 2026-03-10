@@ -23,6 +23,7 @@ def __init__(
     self.headers = headers
     self.editable = False
     self.partial = False
+    self._event_tire_count = None
 
     if data is not None:
         self._data = data

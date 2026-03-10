@@ -6,6 +6,6 @@ def _recalculate_tires_left(self) -> None:
     recalculate_tires_left(
         self._data,
         self._tires,
-        self.selection_model.event_id,
+        self._event_tire_count,
         self._recalculate_stint_types,
     )

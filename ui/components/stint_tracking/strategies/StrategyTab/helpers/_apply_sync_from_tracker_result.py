@@ -23,7 +23,8 @@ def _apply_sync_from_tracker_result(self, result: dict) -> None:
     self.strategy["last_sync"] = result.get("last_sync")
 
     self.stint_table.refresh_table(skip_model_update=True)
-    self._setup_strategy_delegates()
+    if not hasattr(self, "actions_delegate") or self.actions_delegate is None:
+        self._setup_strategy_delegates()
     self._open_persistent_editors()
 
     log(

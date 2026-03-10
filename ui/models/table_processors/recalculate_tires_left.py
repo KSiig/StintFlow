@@ -1,6 +1,5 @@
 """Recalculate remaining tires for each row."""
 
-from core.database import get_event
 from core.errors import log
 
 from ..table_constants import ColumnIndex
@@ -10,21 +9,20 @@ from .count_tire_changes import count_tire_changes
 def recalculate_tires_left(
     data: list[list],
     tires: list[dict],
-    event_id: str,
+    total_tires: int,
     recalc_stint_types_fn,
 ) -> None:
     """Update remaining tires per row and trigger stint-type recalculation."""
-    event = get_event(event_id)
-    if not event:
+    if total_tires is None:
         log(
             "WARNING",
-            "Cannot recalculate tires - event not found",
+            "Cannot recalculate tires - total tire count unavailable",
             category="table_model",
             action="recalc_tires",
         )
         return
 
-    tires_left = int(event.get("tires", 0))
+    tires_left = int(total_tires)
 
     for i, row in enumerate(data):
         if i < len(tires):
