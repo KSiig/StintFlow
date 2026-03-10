@@ -11,10 +11,13 @@ def _set_strategy(self, strategy: dict = None) -> None:
     last_sync = strategy.get("last_sync") if strategy else None
     label_text = self._format_last_sync_text(last_sync)
 
+    # adjust opacity rather than toggling visibility
+    effect = self.last_sync_label.graphicsEffect()
     if label_text is None:
-        self.last_sync_label.clear()
-        self.last_sync_label.hide()
-        return
-
-    self.last_sync_label.setText(label_text)
-    self.last_sync_label.show()
+        self.last_sync_label.setText("")
+        if effect is not None:
+            effect.setOpacity(0.0)
+    else:
+        self.last_sync_label.setText(label_text)
+        if effect is not None:
+            effect.setOpacity(1.0)

@@ -18,16 +18,16 @@ def _setup_ui(self) -> None:
     outer_layout.setContentsMargins(0, 0, 0, 0)
     outer_layout.setSpacing(8)
 
-    top_row_layout = QHBoxLayout()
-    top_row_layout.setContentsMargins(0, 0, 0, 0)
-    top_row_layout.setSpacing(8)
+    bottom_row_layout = QHBoxLayout()
+    bottom_row_layout.setContentsMargins(0, 0, 0, 0)
+    bottom_row_layout.setSpacing(8)
 
     self.auto_sync_frame = _create_auto_sync_frame(self)
     self.manual_sync_frame = _create_manual_sync_frame(self)
     self.last_sync_label = _create_last_sync_label(self)
 
-    top_row_layout.addWidget(self.auto_sync_frame)
-    top_row_layout.addWidget(self.manual_sync_frame)
+    bottom_row_layout.addWidget(self.auto_sync_frame)
+    bottom_row_layout.addWidget(self.manual_sync_frame)
 
-    outer_layout.addLayout(top_row_layout)
     outer_layout.addWidget(self.last_sync_label)
+    outer_layout.addLayout(bottom_row_layout)

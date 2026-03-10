@@ -31,7 +31,7 @@ def _open_persistent_editors(self) -> None:
             else:
                 self.stint_table.table.openPersistentEditor(tires_index)
 
-        self.stint_table.table.resizeColumnsToContents()
+        self.stint_table._set_column_widths()
 
         log(
             'DEBUG',
