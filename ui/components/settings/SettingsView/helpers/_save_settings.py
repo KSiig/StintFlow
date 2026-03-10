@@ -13,6 +13,7 @@ def _save_settings(self) -> None:
 
         mongo_settings: dict[str, str | None] = {}
         agent_settings: dict[str, str | None] = {}
+        strategy_settings: dict[str, int | None] = {}
 
         agent_field = self.inputs.get("agent_name")
         if agent_field is not None:
@@ -32,7 +33,13 @@ def _save_settings(self) -> None:
             text = retention_field.text().strip()
             logging_settings["retention_days"] = int(text) if text else None
 
+        interval_field = self.inputs.get("strategy_auto_sync_interval_seconds")
+        if interval_field is not None:
+            text = interval_field.text().strip()
+            strategy_settings["auto_sync_interval_seconds"] = int(text) if text else None
+
         current_settings["agent"] = agent_settings
+        current_settings["strategy"] = strategy_settings
         current_settings["mongodb"] = mongo_settings
         current_settings["logging"] = logging_settings
         save_user_settings(current_settings)

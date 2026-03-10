@@ -20,6 +20,7 @@ def _setup_ui(self) -> None:
     self._build_agent_section(layout)
     self._build_mongo_section(layout)
     self._build_logging_section(layout)
+    self._build_strategy_section(layout)
     self._build_status_section(layout)
     self._build_button_section(layout)
     layout.addStretch()

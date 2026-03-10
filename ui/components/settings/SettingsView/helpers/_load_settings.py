@@ -11,10 +11,11 @@ def _load_settings(self) -> None:
         mongo_settings = settings.get("mongodb", {}) if isinstance(settings, dict) else {}
         logging_settings = settings.get("logging", {}) if isinstance(settings, dict) else {}
         agent_settings = settings.get("agent", {}) if isinstance(settings, dict) else {}
+        strategy_settings = settings.get("strategy", {}) if isinstance(settings, dict) else {}
         mongo_defaults = self._get_default_mongo_settings()
         log_defaults = self._get_default_logging_settings()
         agent_defaults = self._get_default_agent_settings()
-
+        strategy_defaults = self._get_default_strategy_settings()
         agent_field = self.inputs.get("agent_name")
         if agent_field is not None:
             value = agent_settings.get("name")
@@ -41,6 +42,14 @@ def _load_settings(self) -> None:
             if value is None:
                 value = log_defaults.get("retention_days", "")
             retention_field.setText(str(value) if value is not None else "")
+
+        # strategy-specific inputs
+        interval_field = self.inputs.get("strategy_auto_sync_interval_seconds")
+        if interval_field is not None:
+            value = strategy_settings.get("auto_sync_interval_seconds")
+            if value is None:
+                value = strategy_defaults.get("auto_sync_interval_seconds", "")
+            interval_field.setText(str(value) if value is not None else "")
 
         if self.status_label:
             self.status_label.setText("")

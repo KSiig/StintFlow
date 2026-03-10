@@ -8,7 +8,11 @@ from core.utilities import load_user_settings
 def _get_auto_sync_interval_seconds(self) -> int:
     """Return the configured auto-sync interval in seconds with a safe fallback."""
     settings = load_user_settings()
-    interval = settings.get("strategy_auto_sync_interval_seconds", 5) if isinstance(settings, dict) else 5
+    if isinstance(settings, dict):
+        strat = settings.get("strategy", {})
+        interval = strat.get("auto_sync_interval_seconds", 5) if isinstance(strat, dict) else 5
+    else:
+        interval = 5
 
     try:
         interval = int(interval)
