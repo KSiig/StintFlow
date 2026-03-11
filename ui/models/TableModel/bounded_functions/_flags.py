@@ -1,3 +1,5 @@
+"""Item flag handling for TableModel."""
+
 from PyQt6.QtCore import Qt
 
 from ui.models.table_constants import ColumnIndex

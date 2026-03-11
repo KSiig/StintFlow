@@ -1,3 +1,5 @@
+"""Delegate stint-type recalculation to shared table processor."""
+
 from ui.models.table_processors import recalculate_stint_types
 
 

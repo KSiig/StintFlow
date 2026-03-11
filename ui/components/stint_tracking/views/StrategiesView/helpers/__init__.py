@@ -8,6 +8,7 @@ from ._on_clone_strategy import _on_clone_strategy
 from ._on_session_changed import _on_session_changed
 from ._clear_tabs import _clear_tabs
 from ._remove_tab import _remove_tab
+from ._sync_current_strategy import _sync_current_strategy
 from ._update_tab_label import _update_tab_label
 from ._add_tab import _add_tab
 
@@ -22,6 +23,7 @@ __all__ = [
     "_on_session_changed",
     "_clear_tabs",
     "_remove_tab",
+    "_sync_current_strategy",
     "_update_tab_label",
     "_add_tab",
 ]

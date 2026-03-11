@@ -25,7 +25,8 @@ def update_strategy(strategy_id: str | ObjectId=None, model_data: dict=None, str
                 "name": strategy.get('name', ''),
                 "model_data": strategy.get('model_data', {}),
                 "mean_stint_time_seconds": strategy.get('mean_stint_time_seconds', None),
-                "lock_completed_stints": strategy.get('lock_completed_stints', False)
+                "lock_completed_stints": strategy.get('lock_completed_stints', False),
+                "last_sync": strategy.get('last_sync', None)
                 }}
             )
         return

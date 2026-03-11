@@ -1,3 +1,5 @@
+"""Handle editing and custom roles in TableModel.setData."""
+
 from PyQt6.QtCore import Qt
 
 from ui.models.TableRoles import TableRoles

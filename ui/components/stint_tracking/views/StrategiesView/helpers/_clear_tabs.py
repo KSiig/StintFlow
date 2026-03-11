@@ -13,4 +13,7 @@ def _clear_tabs(self) -> None:
         self.stacked_widget.removeWidget(widget)
         widget.deleteLater()
 
+    if self.sync_widget is not None:
+        self.sync_widget._set_strategy()
+
     log("DEBUG", "Cleared strategy tabs", category="strategies_view", action="clear_tabs")

@@ -54,6 +54,12 @@ QPushButton#AddStrategyButton, QPushButton#CloneStrategyButton {
   padding: 4px;
 }
 
+QFrame#StrategyHeaderControls {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+
 QPushButton#AddStrategyButton:hover, QPushButton#CloneStrategyButton:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }

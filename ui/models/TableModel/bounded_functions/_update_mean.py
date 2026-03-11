@@ -1,7 +1,9 @@
+"""Compute mean stint times and fill pending rows if needed."""
+
 from datetime import timedelta, datetime
 
 from core.database import get_event
-from core.errors import log
+from core.errors import log_exception, log
 from ui.models.table_constants import ColumnIndex, NO_TIRE_CHANGE
 from ui.models.table_processors import generate_pending_stints
 from ui.models.stint_helpers import calc_mean_stint_time, calculate_stint_time, get_default_tire_dict
@@ -37,12 +39,14 @@ def update_mean(self, update_pending: bool = True) -> None:
             try:
                 h, m, s = map(int, stint_time_str.split(":"))
                 stint_duration = timedelta(hours=h, minutes=m, seconds=s)
-            except Exception:
+            except Exception as e:
+                log("WARNING", f"Failed to parse stint time '{stint_time_str}': {e}", category="table_model", action="update_mean")
                 try:
                     prev_pit = race_length if i == 0 else str(self._data[i - 1][ColumnIndex.PIT_END_TIME])
                     pit_time = str(self._data[i][ColumnIndex.PIT_END_TIME])
                     stint_duration = calculate_stint_time(prev_pit, pit_time)
-                except Exception:
+                except Exception as e2:
+                    log("WARNING", f"Failed to calculate stint time from pit times: {e2}", category="table_model", action="update_mean")
                     stint_duration = timedelta(0)
 
             meta = self._meta[i] if i < len(self._meta) else None
@@ -58,7 +62,8 @@ def update_mean(self, update_pending: bool = True) -> None:
         last_completed = self._data[completed_count - 1]
         try:
             tires_left = int(last_completed[ColumnIndex.TIRES_LEFT])
-        except Exception:
+        except Exception as e:
+            log("WARNING", f"Failed to parse tires_left '{last_completed[ColumnIndex.TIRES_LEFT]}', using default: {e}", category="table_model", action="update_mean")
             tires_left = 0
 
         self._data = self._data[:completed_count]
@@ -76,7 +81,8 @@ def update_mean(self, update_pending: bool = True) -> None:
 
                     datetime.strptime(tod_str, "%H:%M:%S")
                     prev_time_of_day = tod_str
-                except Exception:
+                except Exception as e:
+                    log("WARNING", f"Failed to parse time_of_day '{raw_tod}', using default: {e}", category="table_model", action="update_mean")
                     # fallback to a safe default rather than letting
                     # generate_pending_stints blow up on bad input
                     prev_time_of_day = "00:00:00"
@@ -87,13 +93,15 @@ def update_mean(self, update_pending: bool = True) -> None:
             try:
                 h, m, s = map(int, str(last_completed[ColumnIndex.STINT_TIME]).split(":"))
                 prev_stint_time = timedelta(hours=h, minutes=m, seconds=s)
-            except Exception:
+            except Exception as e:
+                log("WARNING", f"Failed to parse stint time '{last_completed[ColumnIndex.STINT_TIME]}', using default: {e}", category="table_model", action="update_mean")
                 try:
                     prev_stint_time = calculate_stint_time(
                         race_length if completed_count == 1 else str(self._data[completed_count - 2][ColumnIndex.PIT_END_TIME]),
                         str(last_completed[ColumnIndex.PIT_END_TIME]),
                     )
-                except Exception:
+                except Exception as e2:
+                    log("WARNING", f"Failed to calculate stint time from pit times: {e2}", category="table_model", action="update_mean")
                     prev_stint_time = timedelta(0)
 
             generate_pending_stints(
@@ -114,6 +122,6 @@ def update_mean(self, update_pending: bool = True) -> None:
         self._repaint_table()
 
     except Exception as exc:  # pragma: no cover - defensive logging
-        log("ERROR", f"Failed to update mean/pending rows: {exc}", category="table_model", action="update_mean")
+        log_exception(exc, "Failed to update mean/pending rows", category="table_model", action="update_mean")
     finally:
         self.endResetModel()

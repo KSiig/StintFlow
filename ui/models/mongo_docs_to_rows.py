@@ -2,10 +2,13 @@
 Helper function for converting MongoDB strategy documents to table rows.
 
 Converts strategy stint documents from MongoDB format to table row format
-with proper data types (timedelta, integers, status strings).
+with properly formatted string values (zero-padded HH:MM:SS) for time
+fields, plus integers and status strings.
 """
 
 from datetime import timedelta
+
+from ui.models.stint_helpers import format_timedelta
 
 
 def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
@@ -33,13 +36,16 @@ def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
         ... ]
         >>> rows = mongo_docs_to_rows(docs)
         >>> rows[0][6]  # stint time
-        timedelta(seconds=3600)
+        '01:00:00'
         >>> rows[0][7]  # time of day
-        timedelta(seconds=0)
+        '00:00:00'
     """
     rows = []
 
     for doc in docs:
+        # convert stored seconds to formatted strings for display
+        stint_td = timedelta(seconds=int(doc.get("stint_time_seconds", 0)))
+        tod_td = timedelta(seconds=int(doc.get("time_of_day_seconds", 0)))
         row = [
             doc.get("stint_type"),
             doc.get("name"),
@@ -47,8 +53,8 @@ def mongo_docs_to_rows(docs: list[dict]) -> list[list]:
             doc.get("pit_end_time"),
             int(doc.get("tires_changed", 0)),
             int(doc.get("tires_left", 0)),
-            timedelta(seconds=int(doc.get("stint_time_seconds", 0))),
-            timedelta(seconds=int(doc.get("time_of_day_seconds", 0))),
+            format_timedelta(stint_td),
+            format_timedelta(tod_td),
             "" # Placeholder for actions column
         ]
         rows.append(row)

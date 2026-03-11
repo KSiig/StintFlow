@@ -13,9 +13,11 @@ from .helpers import (
     _build_logging_section,
     _build_mongo_section,
     _build_status_section,
+    _build_strategy_section,
     _get_default_agent_settings,
     _get_default_logging_settings,
     _get_default_mongo_settings,
+    _get_default_strategy_settings,
     _load_settings,
     _restart_app,
     _save_settings,
@@ -31,12 +33,14 @@ class SettingsView(QWidget):
     _build_agent_section = _build_agent_section
     _build_mongo_section = _build_mongo_section
     _build_logging_section = _build_logging_section
+    _build_strategy_section = _build_strategy_section
     _build_status_section = _build_status_section
     _build_button_section = _build_button_section
     _load_settings = _load_settings
     _get_default_agent_settings = _get_default_agent_settings
     _get_default_logging_settings = _get_default_logging_settings
     _get_default_mongo_settings = _get_default_mongo_settings
+    _get_default_strategy_settings = _get_default_strategy_settings
     _save_settings = _save_settings
     _restart_app = _restart_app
     alert_db_connection_failure = alert_db_connection_failure

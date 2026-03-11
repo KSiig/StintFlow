@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from core.database import update_strategy
-from core.errors import log_exception
+from core.errors import log, log_exception
 from ui.models.mongo_docs_to_rows import mongo_docs_to_rows
 from ui.models.stint_helpers import sanitize_stints
 
@@ -28,9 +28,23 @@ def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
         self.table_model.update_data(data=table_rows, tires=model_data['tires'])
         try:
             self.table_model._recalculate_tires_left()
+        except Exception as e:
+            log_exception(
+                e,
+                "Failed to recalculate tires left during delete operation.",
+                category="strategy_tab",
+                action="recalculate_tires_left",
+            )
+
+        try:
             self.table_model.update_mean(update_pending=False)
-        except Exception:
-            pass
+        except Exception as e:
+            log_exception(
+                e,
+                "Failed to update mean stint time during delete operation.",
+                category="strategy_tab",
+                action="update_mean",
+            )
 
         mean_sec = int(self.table_model._mean_stint_time.total_seconds())
         self.strategy['mean_stint_time_seconds'] = mean_sec
@@ -40,8 +54,6 @@ def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
             try:
                 self.strategy_settings._realign_rows(mean_sec)
             except Exception:
-                from core.errors import log
-
                 log(
                     'WARNING',
                     'Failed to realign rows after delete',
@@ -60,6 +72,16 @@ def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
         self.table_model.update_mean(update_pending=False)
 
         self.stint_table.refresh_table(skip_model_update=True)
+        try:
+            self._setup_strategy_delegates()
+            self._open_persistent_editors()
+        except Exception:
+            log(
+                'WARNING',
+                'Failed to restore strategy editors after delete',
+                category='strategy_tab',
+                action='delete_stint',
+            )
     except Exception as e:
         log_exception(
             e,

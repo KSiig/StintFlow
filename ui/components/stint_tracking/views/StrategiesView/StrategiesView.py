@@ -15,6 +15,7 @@ from .helpers import (
     _on_create_strategy,
     _on_session_changed,
     _on_strategy_created,
+    _sync_current_strategy,
     _on_tab_changed,
     _remove_tab,
     _setup_ui,
@@ -35,6 +36,7 @@ class StrategiesView(QWidget):
     _on_create_strategy = _on_create_strategy
     _on_clone_strategy = _on_clone_strategy
     _on_session_changed = _on_session_changed
+    _sync_current_strategy = _sync_current_strategy
     _clear_tabs = _clear_tabs
     _remove_tab = _remove_tab
     _update_tab_label = _update_tab_label
@@ -50,6 +52,7 @@ class StrategiesView(QWidget):
         self.main_layout = None
         self.tab_bar = None
         self.stacked_widget = None
+        self.sync_widget = None
 
         self.selection_model.sessionChanged.connect(self._on_session_changed)
 

@@ -5,6 +5,7 @@ Reusable base components used across the application.
 """
 
 from .ClickableWidget import ClickableWidget
+from .ToggleSwitch import ToggleSwitch
 from .UpwardComboBox import UpwardComboBox
 from .DraggableArea import DraggableArea
 from .DropdownButton import DropdownButton
@@ -16,6 +17,7 @@ from .PopUp import PopUp
 
 __all__ = [
     'ClickableWidget',
+    'ToggleSwitch',
     'UpwardComboBox',
     'DraggableArea',
     'DropdownButton',

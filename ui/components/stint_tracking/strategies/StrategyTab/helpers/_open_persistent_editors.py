@@ -15,23 +15,34 @@ def _open_persistent_editors(self) -> None:
             status_val = status_idx.data()
             is_completed = status_val is not None and "Completed" in str(status_val)
 
+            # only operate on editors when their desired state differs from current
             stint_type_index = self.table_model.index(row, ColumnIndex.STINT_TYPE)
-            cell_text = str(stint_type_index.data())
-            if lock_enabled and is_completed:
-                self.stint_table.table.closePersistentEditor(stint_type_index)
+            # avoid str(None) producing "None" which is truthy when stripped
+            val = stint_type_index.data()
+            if val is None:
+                has_text = False
             else:
-                if cell_text:
+                has_text = bool(str(val).strip())
+            is_open = self.stint_table.table.isPersistentEditorOpen(stint_type_index)
+            if lock_enabled and is_completed:
+                if is_open:
+                    self.stint_table.table.closePersistentEditor(stint_type_index)
+            else:
+                if has_text and not is_open:
                     self.stint_table.table.openPersistentEditor(stint_type_index)
-                else:
+                elif not has_text and is_open:
                     self.stint_table.table.closePersistentEditor(stint_type_index)
 
             tires_index = self.table_model.index(row, ColumnIndex.TIRES_CHANGED)
+            is_open = self.stint_table.table.isPersistentEditorOpen(tires_index)
             if lock_enabled and is_completed:
-                self.stint_table.table.closePersistentEditor(tires_index)
+                if is_open:
+                    self.stint_table.table.closePersistentEditor(tires_index)
             else:
-                self.stint_table.table.openPersistentEditor(tires_index)
+                if not is_open:
+                    self.stint_table.table.openPersistentEditor(tires_index)
 
-        self.stint_table.table.resizeColumnsToContents()
+        self.stint_table._set_column_widths()
 
         log(
             'DEBUG',

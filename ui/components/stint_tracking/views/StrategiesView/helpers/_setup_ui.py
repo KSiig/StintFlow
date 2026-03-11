@@ -5,6 +5,7 @@ from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 
 from ui.utilities.load_icon import load_icon
+from ..SyncWidget import SyncWidget
 
 
 def _setup_ui(self) -> None:
@@ -14,15 +15,22 @@ def _setup_ui(self) -> None:
 
     tab_bar_frame = QFrame()
     tab_bar_frame.setObjectName("TabBarFrame")
-    tab_bar_frame.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+    tab_bar_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
     tab_bar_layout = QHBoxLayout(tab_bar_frame)
     tab_bar_layout.setContentsMargins(0, 0, 0, 0)
     tab_bar_layout.setSpacing(0)
 
+    left_controls = QFrame()
+    left_controls.setObjectName("StrategyHeaderControls")
+    left_controls.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+    left_controls_layout = QHBoxLayout(left_controls)
+    left_controls_layout.setContentsMargins(0, 0, 0, 0)
+    left_controls_layout.setSpacing(0)
+
     self.tab_bar = QTabBar()
     self.tab_bar.setObjectName("StrategyTabBar")
     self.tab_bar.currentChanged.connect(self._on_tab_changed)
-    tab_bar_layout.addWidget(self.tab_bar)
+    left_controls_layout.addWidget(self.tab_bar)
 
     add_btn = QPushButton()
     add_btn.setObjectName("AddStrategyButton")
@@ -38,8 +46,24 @@ def _setup_ui(self) -> None:
     clone_btn.setToolTip("Clone selected strategy")
     clone_btn.clicked.connect(self._on_clone_strategy)
 
-    tab_bar_layout.addWidget(add_btn)
-    tab_bar_layout.addWidget(clone_btn)
+    left_controls_layout.addWidget(add_btn)
+    left_controls_layout.addWidget(clone_btn)
+
+    self.sync_widget = SyncWidget()
+    self.sync_widget.sync_requested.connect(self._sync_current_strategy)
+
+    tab_bar_layout.addWidget(left_controls)
+
+    # move sync_widget out of the tab_bar_frame; place both controls in a
+    # separate header_frame so the two areas are logically distinct.
+    header_frame = QFrame()
+    header_frame.setObjectName("HeaderFrame")
+    header_layout = QHBoxLayout(header_frame)
+    header_layout.setContentsMargins(0, 0, 0, 0)
+    header_layout.setSpacing(0)
+    header_layout.addWidget(tab_bar_frame)
+    header_layout.addStretch(1)
+    header_layout.addWidget(self.sync_widget)
 
     content_frame = QFrame()
     content_frame.setObjectName("ContentFrame")
@@ -50,5 +74,5 @@ def _setup_ui(self) -> None:
     self.stacked_widget.setObjectName("StrategyContent")
     content_layout.addWidget(self.stacked_widget)
 
-    self.main_layout.addWidget(tab_bar_frame)
+    self.main_layout.addWidget(header_frame)
     self.main_layout.addWidget(content_frame)

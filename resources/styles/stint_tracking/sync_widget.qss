@@ -1,0 +1,42 @@
+QFrame#AutoSyncFrame {
+  background-color: #16202c;
+  border: 1px solid #27364a;
+  border-radius: 8px;
+  padding: 0;
+}
+
+QFrame#AutoSyncFrame > * {
+  background-color: transparent;
+}
+
+QLabel#AutoSyncText {
+  color: #d7dfeb;
+  font-weight: 600;
+}
+
+QFrame#SyncFrame {
+  background-color: #f54900;
+  border-radius: 8px;
+  padding: 0; /* padding handled by inner layout margins */
+}
+
+QFrame#SyncFrame > * {
+  background-color: transparent; /* ensure child widgets don't override frame bg */
+}
+
+QFrame#SyncFrame:hover {
+  background-color: #ca3500;
+}
+
+QFrame#SyncFrame:disabled {
+  background-color: #7a7a7a;
+}
+
+QLabel#SyncText {
+  color: #ffffff;
+}
+
+
+QLabel#LastSyncLabel {
+  color: #90a1b9;
+}

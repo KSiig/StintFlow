@@ -1,3 +1,5 @@
+"""Initializer for the TableModel class."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -23,6 +25,7 @@ def __init__(
     self.headers = headers
     self.editable = False
     self.partial = False
+    self._event_tire_count = None
 
     if data is not None:
         self._data = data
