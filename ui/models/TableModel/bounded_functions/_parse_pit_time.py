@@ -20,9 +20,13 @@ def _parse_pit_time(self, stint: dict) -> datetime:
     try:
         pit_time = datetime.strptime(pit_time_str, "%H:%M:%S").time()
     except (ValueError, TypeError) as e:
+        # avoid dumping full stint payload in logs; include only stable identifier
+        sid = None
+        if isinstance(stint, dict):
+            sid = stint.get("id") or stint.get("stint_id")
         log_exception(
             e,
-            f"Failed to parse pit_end_time: {pit_time_str} for stint: {stint}",
+            f"Failed to parse pit_end_time '{pit_time_str}' for stint id={sid}",
             category="ui",
             action="parse_pit_time",
         )

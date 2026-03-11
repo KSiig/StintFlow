@@ -40,20 +40,40 @@ def delete_stint(self, row: int, strategy_id: str = None) -> None:
 
     self.beginResetModel()
     try:
-        del self._data[row]
-    except Exception as exc:
-        log_exception(exc, f"Failed to delete row {row} from _data: {exc}", category="table_model", action="delete_stint")
-    try:
-        if row < len(self._tires):
-            del self._tires[row]
-    except Exception as exc:
-        log_exception(exc, f"Failed to delete row {row} from _tires: {exc}", category="table_model", action="delete_stint")
-    try:
-        if row < len(self._meta):
-            del self._meta[row]
-    except Exception as exc:
-        log_exception(exc, f"Failed to delete row {row} from _meta: {exc}", category="table_model", action="delete_stint")
-    self.endResetModel()
+        # perform deletions under reset; guarantee endResetModel() below
+        try:
+            del self._data[row]
+        except Exception as exc:
+            # can't safely continue if _data deletion fails; keep lists aligned
+            log_exception(
+                exc,
+                f"Failed to delete row {row} from _data: {exc}",
+                category="table_model",
+                action="delete_stint",
+            )
+            return
+        try:
+            if row < len(self._tires):
+                del self._tires[row]
+        except Exception as exc:
+            log_exception(
+                exc,
+                f"Failed to delete row {row} from _tires: {exc}",
+                category="table_model",
+                action="delete_stint",
+            )
+        try:
+            if row < len(self._meta):
+                del self._meta[row]
+        except Exception as exc:
+            log_exception(
+                exc,
+                f"Failed to delete row {row} from _meta: {exc}",
+                category="table_model",
+                action="delete_stint",
+            )
+    finally:
+        self.endResetModel()
 
     try:
         self.update_mean()

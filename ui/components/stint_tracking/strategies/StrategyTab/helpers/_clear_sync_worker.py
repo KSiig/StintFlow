@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-
-from __future__ import annotations
-
-
 def _clear_sync_worker(self, worker: object | None = None) -> None:
     """Forget the current sync worker after it finishes.
 

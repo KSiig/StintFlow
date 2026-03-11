@@ -11,7 +11,7 @@ def _setup_editors(self) -> None:
         log('WARNING', 'Cannot setup editors - no model available', category='stint_table', action='setup_editors')
         return
 
-    self.table.model().set_editable(True, True)
+    self.table.model().set_editable(editable=True, partial=True)
 
     self.table.setItemDelegateForColumn(
         ColumnIndex.TIRES_CHANGED,

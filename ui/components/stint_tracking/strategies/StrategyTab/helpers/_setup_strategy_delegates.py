@@ -8,7 +8,7 @@ from ....delegates import ActionsDelegate, StintTypeCombo, TireComboDelegate
 def _setup_strategy_delegates(self) -> None:
     """Configure delegates for strategy editing with locking support."""
     try:
-        self.table_model.set_editable(True, True)
+        self.table_model.set_editable(editable=True, partial=True)
 
         lock_enabled = bool(self.strategy.get('lock_completed_stints', False))
         self._lock_completed = lock_enabled

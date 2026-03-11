@@ -3,13 +3,9 @@
 from PyQt6.QtCore import Qt
 
 from ui.components.stint_tracking import get_header_icon
-from ui.utilities import FONT
 from ui.utilities.load_icon import load_icon
 from core.utilities import resource_path
 import os
-import logging
-
-logger = logging.getLogger(__name__)
 
 from ..constants import HEADER_ICON_COLOR, VERTICAL_HEADER_START_INDEX
 from core.errors.log_error.log import log
@@ -44,13 +40,16 @@ def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.I
             return self.headers[section]
         if role == Qt.ItemDataRole.DecorationRole:
             icon_file = get_header_icon(section)
-            icon_path = resource_path(f"resources/icons/table_headers/{icon_file}")
-            if os.path.exists(icon_path):
-                return load_icon(icon_path, color=HEADER_ICON_COLOR)
+            rel_path = f"resources/icons/table_headers/{icon_file}"
+            abs_path = resource_path(rel_path)
+            if os.path.exists(abs_path):
+                # load_icon will resolve via resource_path itself, so give it
+                # the relative path to avoid double resolution
+                return load_icon(rel_path, color=HEADER_ICON_COLOR)
             else:
                 log(
                     "WARNING",
-                    f"Icon file not found: {icon_path}",
+                    f"Icon file not found: {abs_path}",
                     category="ui",
                     action="load_icon",
                 )

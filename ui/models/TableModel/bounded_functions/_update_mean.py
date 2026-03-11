@@ -122,6 +122,6 @@ def update_mean(self, update_pending: bool = True) -> None:
         self._repaint_table()
 
     except Exception as exc:  # pragma: no cover - defensive logging
-        log_exception(exc, f"Failed to update mean/pending rows: {exc}", category="table_model", action="update_mean")
+        log_exception(exc, "Failed to update mean/pending rows", category="table_model", action="update_mean")
     finally:
         self.endResetModel()
