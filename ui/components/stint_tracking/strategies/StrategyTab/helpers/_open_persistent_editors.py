@@ -17,7 +17,12 @@ def _open_persistent_editors(self) -> None:
 
             # only operate on editors when their desired state differs from current
             stint_type_index = self.table_model.index(row, ColumnIndex.STINT_TYPE)
-            has_text = bool(str(stint_type_index.data()).strip())
+            # avoid str(None) producing "None" which is truthy when stripped
+            val = stint_type_index.data()
+            if val is None:
+                has_text = False
+            else:
+                has_text = bool(str(val).strip())
             is_open = self.stint_table.table.isPersistentEditorOpen(stint_type_index)
             if lock_enabled and is_completed:
                 if is_open:

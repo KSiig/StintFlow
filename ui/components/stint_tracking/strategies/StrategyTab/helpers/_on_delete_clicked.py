@@ -28,9 +28,23 @@ def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
         self.table_model.update_data(data=table_rows, tires=model_data['tires'])
         try:
             self.table_model._recalculate_tires_left()
+        except Exception as e:
+            log_exception(
+                e,
+                "Failed to recalculate tires left during delete operation.",
+                category="strategy_tab",
+                action="recalculate_tires_left",
+            )
+
+        try:
             self.table_model.update_mean(update_pending=False)
-        except Exception:
-            pass
+        except Exception as e:
+            log_exception(
+                e,
+                "Failed to update mean stint time during delete operation.",
+                category="strategy_tab",
+                action="update_mean",
+            )
 
         mean_sec = int(self.table_model._mean_stint_time.total_seconds())
         self.strategy['mean_stint_time_seconds'] = mean_sec
@@ -40,8 +54,6 @@ def _on_delete_clicked(self, row: int, strategy_id: str | None = None) -> None:
             try:
                 self.strategy_settings._realign_rows(mean_sec)
             except Exception:
-                from core.errors import log
-
                 log(
                     'WARNING',
                     'Failed to realign rows after delete',

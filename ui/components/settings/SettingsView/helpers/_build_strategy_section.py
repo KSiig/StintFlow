@@ -28,7 +28,9 @@ def _build_strategy_section(self, parent_layout: QVBoxLayout) -> None:
     label.setFont(get_fonts(FONT.input_lbl))
     interval_input = QLineEdit()
     interval_input.setFont(get_fonts(FONT.input_field))
-    interval_input.setPlaceholderText("5")
+    # placeholder text should match the real default used by _load_settings
+    default_interval = self._get_default_strategy_settings().get("auto_sync_interval_seconds", "")
+    interval_input.setPlaceholderText(str(default_interval))
     interval_input.setValidator(QIntValidator(1, 86400, self))
     form_layout.addRow(label, interval_input)
     self.inputs["strategy_auto_sync_interval_seconds"] = interval_input

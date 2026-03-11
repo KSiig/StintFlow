@@ -42,6 +42,9 @@ def _sync_from_tracker(self) -> None:
     )
     self._sync_worker.sync_ready.connect(self._apply_sync_from_tracker_result)
     self._sync_worker.sync_failed.connect(self._handle_sync_from_tracker_failed)
-    self._sync_worker.finished.connect(self._clear_sync_worker)
+    # ensure we only clear the reference if this specific worker finished
+    self._sync_worker.finished.connect(
+        lambda w=self._sync_worker: self._clear_sync_worker(w)
+    )
     self._sync_worker.finished.connect(self._sync_worker.deleteLater)
     self._sync_worker.start()

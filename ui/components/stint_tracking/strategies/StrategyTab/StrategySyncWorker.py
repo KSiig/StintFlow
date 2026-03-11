@@ -28,7 +28,7 @@ class StrategySyncWorker(QThread):
         tracker_tires: list[dict],
         strategy_rows: list[list],
         strategy_tires: list[dict],
-        mean_stint_time_seconds: int,
+        mean_stint_time_seconds: int = None,
     ) -> None:
         super().__init__()
         self.strategy = copy.deepcopy(strategy)

@@ -58,6 +58,7 @@ UI signal → Launch process via QProcess → Process runs independently → Pro
 (Example: User clicks "Start tracking" → QProcess launches `stint_tracker/run.py` → process calculates stints → outputs `__event__:stint_tracker:stint_created` → UI receives signal → TableModel updates)
 
 ## Agent Collaboration Expectations
+
 - Agents must actively push back whenever they disagree with your choices, have concerns about implementation decisions, or need clarity on direction; this active consideration must inform every response.
 
 ## Key Conventions

@@ -32,10 +32,6 @@ QFrame#SyncFrame:disabled {
   background-color: #7a7a7a;
 }
 
-QLabel#SyncIcon {
-  /* icon color is handled by load_icon color parameter */
-}
-
 QLabel#SyncText {
   color: #ffffff;
 }
