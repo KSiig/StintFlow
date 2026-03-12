@@ -47,6 +47,12 @@ def _setup_ui(self, models) -> None:
         right_layout.setContentsMargins(0, 0, 8, 0)
         right_layout.setSpacing(12)
 
+        top_row = QFrame(right_container)
+        top_row.setFrameShape(QFrame.Shape.NoFrame)
+        top_row_layout = QHBoxLayout(top_row)
+        top_row_layout.setContentsMargins(0, 0, 0, 0)
+        top_row_layout.setSpacing(12)
+
         table_controls = TableControls(
             config_options=self.config_options,
             on_toggle_left_column=self._toggle_left_column,
@@ -55,7 +61,7 @@ def _setup_ui(self, models) -> None:
         self.table_controls = table_controls
         self.agent_overview = table_controls.agent_overview
         self._toggle_left_column()
-        right_layout.addWidget(table_controls)
+        top_row_layout.addWidget(table_controls)
 
         # Ensure the StintTable object is created before the StatsStrip 
         # so that the stats strip can access the table model for data.
@@ -67,10 +73,12 @@ def _setup_ui(self, models) -> None:
         )
 
         self.stats_strip = StatsStrip(self.models)
-        right_layout.addWidget(self.stats_strip)
+        top_row_layout.addWidget(self.stats_strip, 1)
+
+        right_layout.addWidget(top_row)
 
         right_layout.addWidget(self.stint_table)
-        right_layout.setStretch(2, 1)
+        right_layout.setStretch(1, 1)
 
         layout.addWidget(right_container)
         layout.setStretchFactor(right_container, 1)

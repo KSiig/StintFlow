@@ -6,12 +6,13 @@ from PyQt6.QtWidgets import QFrame, QHBoxLayout, QScrollArea, QSizePolicy, QWidg
 
 def _setup_ui(self) -> None:
     """Create a horizontally scrollable strip with one stats card."""
-    self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     outer = QHBoxLayout(self)
     outer.setContentsMargins(0, 0, 0, 0)
 
     frame = QFrame(self)
+    self._frame = frame
     frame.setObjectName("StatsStripFrame")
     frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
     outer.addWidget(frame)
@@ -42,3 +43,6 @@ def _setup_ui(self) -> None:
     self._content.adjustSize()
     self.scroll_area.setWidget(self._content)
     frame_layout.addWidget(self.scroll_area)
+
+    self._set_scrollbar_visibility(False)
+    self._install_hover_listener()

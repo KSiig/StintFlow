@@ -1,3 +1,4 @@
+from ._animate_left_column import _animate_left_column
 from ._install_viewport_listener import _install_viewport_listener
 from ._on_resize import _on_resize
 from ._on_show import _on_show
@@ -10,6 +11,7 @@ from ._on_tracker_stopped import _on_tracker_stopped
 from ._toggle_left_column import _toggle_left_column
 
 __all__ = [
+    "_animate_left_column",
     "_install_viewport_listener",
     "_on_resize",
     "_on_show",

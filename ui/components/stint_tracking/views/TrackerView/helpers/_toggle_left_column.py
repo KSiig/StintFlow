@@ -12,9 +12,24 @@ def _toggle_left_column(self) -> None:
     if container is None or button is None:
         return
 
-    currently_hidden = container.isHidden()
-    container.setHidden(not currently_hidden)
+    target_visible = container.isHidden()
     button.setText(
-        ConfigLabels.BTN_HIDE_OPTIONS if currently_hidden else ConfigLabels.BTN_SHOW_OPTIONS
+        ConfigLabels.BTN_HIDE_OPTIONS if target_visible else ConfigLabels.BTN_SHOW_OPTIONS
     )
-    self._update_controls_width()
+
+    if not self.isVisible():
+        target_width = 0
+        if target_visible:
+            target_width = max(
+                getattr(self, '_left_column_expanded_width', 0),
+                container.sizeHint().width(),
+            )
+            self._left_column_expanded_width = target_width
+
+        container.setMinimumWidth(target_width)
+        container.setMaximumWidth(target_width)
+        container.setHidden(not target_visible)
+        self._update_controls_width()
+        return
+
+    self._animate_left_column(target_visible)

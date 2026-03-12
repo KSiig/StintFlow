@@ -6,6 +6,7 @@ from ui.models import ModelContainer
 
 from .bounded_functions import closeEvent
 from .helpers import (
+    _animate_left_column,
     _install_viewport_listener,
     _on_resize,
     _on_show,
@@ -24,6 +25,7 @@ class TrackerView(QWidget):
 
     SPACING = 16
 
+    _animate_left_column = _animate_left_column
     _setup_ui = _setup_ui
     _on_resize = _on_resize
     _update_controls_width = _update_controls_width
@@ -48,7 +50,10 @@ class TrackerView(QWidget):
         self.stint_table = None
         self.stats_strip = None
         self.table_controls = None
+        self.left_column_container = None
         self.right_column_container = None
+        self._left_column_animation = None
+        self._left_column_expanded_width = 0
         self._viewport_filter = None
         self._startup_timer = None
         self._startup_count = 0

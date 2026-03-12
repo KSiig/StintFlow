@@ -11,6 +11,28 @@ QScrollArea#StatsStripScrollArea {
   border: none;
 }
 
+QScrollBar:horizontal {
+  background: transparent;
+  border: none;
+  height: 4px;
+  margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+  background-color: #3d5563;
+  border-radius: 2px;
+  min-width: 24px;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal,
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+  background: transparent;
+  border: none;
+  width: 0px;
+}
+
 QWidget#StatsStripContent {
   background: transparent;
 }
