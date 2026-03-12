@@ -5,7 +5,7 @@ from __future__ import annotations
 from PyQt6.QtCore import QEasingCurve, QVariantAnimation
 
 
-def _animate_left_column(self, is_visible: bool, duration: int = 200) -> None:
+def _animate_left_column(self, is_visible: bool, duration: int = 100) -> None:
     """Slide the left column open or closed over *duration* milliseconds."""
     container = getattr(self, 'left_column_container', None)
     if container is None:

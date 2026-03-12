@@ -3,6 +3,7 @@ from ._install_viewport_listener import _install_viewport_listener
 from ._on_resize import _on_resize
 from ._on_show import _on_show
 from ._setup_ui import _setup_ui
+from ._sync_top_row_heights import _sync_top_row_heights
 from ._update_controls_width import _update_controls_width
 from ._on_tracker_started import _on_tracker_started
 from ._startup_tick import _startup_tick
@@ -16,6 +17,7 @@ __all__ = [
     "_on_resize",
     "_on_show",
     "_setup_ui",
+    "_sync_top_row_heights",
     "_update_controls_width",
     "_on_tracker_started",
     "_startup_tick",

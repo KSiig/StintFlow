@@ -14,7 +14,7 @@ def _setup_ui(self) -> None:
     frame = QFrame(self)
     self._frame = frame
     frame.setObjectName("StatsStripFrame")
-    frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     outer.addWidget(frame)
 
     frame_layout = QHBoxLayout(frame)
@@ -26,7 +26,7 @@ def _setup_ui(self) -> None:
     self.scroll_area.setFrameShape(QFrame.Shape.NoFrame)
     self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
     self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    self.scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    self.scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     self._content = QWidget(self.scroll_area)
     self._content.setObjectName("StatsStripContent")

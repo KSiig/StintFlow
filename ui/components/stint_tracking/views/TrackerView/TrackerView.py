@@ -13,6 +13,7 @@ from .helpers import (
     _on_tracker_started,
     _on_tracker_stopped,
     _setup_ui,
+    _sync_top_row_heights,
     _start_polling_timer,
     _startup_tick,
     _toggle_left_column,
@@ -29,6 +30,7 @@ class TrackerView(QWidget):
     _setup_ui = _setup_ui
     _on_resize = _on_resize
     _update_controls_width = _update_controls_width
+    _sync_top_row_heights = _sync_top_row_heights
     _install_viewport_listener = _install_viewport_listener
     _on_show = _on_show
     resizeEvent = _on_resize

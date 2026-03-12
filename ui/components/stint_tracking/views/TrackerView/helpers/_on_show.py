@@ -10,4 +10,5 @@ def _on_show(self, event: QShowEvent) -> None:
     """Hook first show to install the viewport resize listener."""
     QWidget.showEvent(self, event)
     self._install_viewport_listener()
+    self._sync_top_row_heights()
     self._update_controls_width()

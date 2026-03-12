@@ -74,6 +74,7 @@ def _setup_ui(self, models) -> None:
 
         self.stats_strip = StatsStrip(self.models)
         top_row_layout.addWidget(self.stats_strip, 1)
+        self._sync_top_row_heights()
 
         right_layout.addWidget(top_row)
 
