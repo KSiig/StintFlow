@@ -89,6 +89,28 @@ def _get_game_session() -> GAME_SESSION:
             return GAME_SESSION.QUALIFYING
 
         if "race" in normalized_game_session:
+            # LMU provides an additional `gamePhase` field when the race
+            # hasn’t actually started yet.  We treat "BEFORE" and
+            # "FORMATION" as distinct sessions so callers can react.
+            game_phase = state.get("gamePhase", "").casefold()
+
+            if "before" in game_phase:
+                log(
+                    "DEBUG",
+                    f"Resolved LMU game session '{raw_game_session}' + phase '{game_phase}' to BEFORE",
+                    category="stint_tracker",
+                    action="get_game_session",
+                )
+                return GAME_SESSION.BEFORE
+            if "formation" in game_phase:
+                log(
+                    "DEBUG",
+                    f"Resolved LMU game session '{raw_game_session}' + phase '{game_phase}' to FORMATION",
+                    category="stint_tracker",
+                    action="get_game_session",
+                )
+                return GAME_SESSION.FORMATION
+
             log(
                 "DEBUG",
                 f"Resolved LMU game session '{raw_game_session}' to RACE",

@@ -51,7 +51,12 @@ from .timestamps import (
 )
 
 # Session helpers
-from .session import GAME_SESSION, _get_game_session, _maybe_refresh_game_session
+from .session import (
+    GAME_SESSION,
+    _get_game_session,
+    _maybe_refresh_game_session,
+    _store_tires_remaining_at_green_flag,
+)
 
 # LMU shared-memory helper
 from ._open_lmu_shared_memory import _open_lmu_shared_memory
@@ -98,6 +103,7 @@ __all__ = (
     "GAME_SESSION",
     "_get_game_session",
     "_maybe_refresh_game_session",
+    "_store_tires_remaining_at_green_flag",
 
     # shared memory
     "_open_lmu_shared_memory",

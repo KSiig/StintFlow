@@ -23,6 +23,7 @@ from processors.stint_tracker.helpers import (
     _get_game_session,
     GAME_SESSION,
     _maybe_refresh_game_session,
+    _store_tires_remaining_at_green_flag,
 )
 from .create_stint import create_stint
 
@@ -33,6 +34,11 @@ GAME_SESSION_TTL_SECONDS: float = 5.0
 
 _LOG_CATEGORY = "stint_tracker"
 _LOG_ACTION = "track_session"
+_TIRE_SNAPSHOT_GAME_SESSIONS = {
+    GAME_SESSION.BEFORE,
+    GAME_SESSION.FORMATION,
+    GAME_SESSION.RACE,
+}
 
 
 def track_session(
@@ -61,6 +67,7 @@ def track_session(
     current_game_session: GAME_SESSION = _get_game_session()
     last_game_session_refresh_at: float = time.monotonic()
     previous_pit_state: PitState | None = None
+    tire_snapshot_sessions_recorded: set[GAME_SESSION] = set()
 
     if current_game_session == GAME_SESSION.PRACTICE:
         practice_baseline_time = _get_practice_baseline_time(session_id)
@@ -70,6 +77,10 @@ def track_session(
     if current_game_session != GAME_SESSION.UNKNOWN:
         log("INFO", f"Detected initial game session: {current_game_session.name}",
             category=_LOG_CATEGORY, action=_LOG_ACTION)
+
+    if current_game_session in _TIRE_SNAPSHOT_GAME_SESSIONS and not dry_run:
+        _store_tires_remaining_at_green_flag(session_id)
+        tire_snapshot_sessions_recorded.add(current_game_session)
 
     log("INFO", f"Tracking session {session_id} ({'dry run' if dry_run else 'live'})",
         category=_LOG_CATEGORY, action=_LOG_ACTION)
@@ -101,6 +112,13 @@ def track_session(
             pit_state,
             GAME_SESSION_TTL_SECONDS,
         )
+
+        if (
+            current_game_session in _TIRE_SNAPSHOT_GAME_SESSIONS
+            and current_game_session not in tire_snapshot_sessions_recorded
+        ):
+            _store_tires_remaining_at_green_flag(session_id)
+            tire_snapshot_sessions_recorded.add(current_game_session)
 
         if not player_info or current_game_session == GAME_SESSION.QUALIFYING:
             time.sleep(1.0 / POLLING_FREQUENCY)

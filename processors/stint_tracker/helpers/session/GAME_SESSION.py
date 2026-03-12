@@ -13,6 +13,8 @@ class GAME_SESSION(Enum):
 
     PRACTICE = "practice"
     QUALIFYING = "qualifying"
+    BEFORE = "before"
+    FORMATION = "formation"
     RACE = "race"
     MENU = "menu"
     UNKNOWN = "unknown"
