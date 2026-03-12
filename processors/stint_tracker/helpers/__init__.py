@@ -50,6 +50,9 @@ from .timestamps import (
     _get_practice_baseline_time,
 )
 
+# Session helpers
+from .session import GAME_SESSION, _get_game_session, _maybe_refresh_game_session
+
 # LMU shared-memory helper
 from ._open_lmu_shared_memory import _open_lmu_shared_memory
 
@@ -90,6 +93,11 @@ __all__ = (
     "_hhmmss_to_seconds",
     "_seconds_to_hhmmss",
     "_get_practice_baseline_time",
+
+    # session
+    "GAME_SESSION",
+    "_get_game_session",
+    "_maybe_refresh_game_session",
 
     # shared memory
     "_open_lmu_shared_memory",

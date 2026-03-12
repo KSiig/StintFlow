@@ -14,9 +14,7 @@ def _create_buttons(self) -> None:
     self.clone_btn = ConfigButton(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg", width="equal")
     self.create_session_btn = ConfigButton(ConfigLabels.BTN_NEW_SESSION, width="fill")
 
-    self.practice_cb = QCheckBox(text="Practice")
     self.lbl_info = QLabel()
-    self.practice_cb.setFont(get_fonts(FONT.input_field))
     self.lbl_info.setFont(get_fonts(FONT.header_input))
     self.lbl_info.setObjectName("InfoLabel")
     self.lbl_info.hide()

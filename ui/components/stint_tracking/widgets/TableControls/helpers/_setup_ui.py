@@ -56,7 +56,6 @@ def _setup_ui(self) -> None:
     self.tracking_btn.setObjectName("TrackButton")
     self.tracking_btn.clicked.connect(self.config_options._toggle_track)
     tracking_controls_layout.addWidget(self.tracking_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
-    tracking_controls_layout.addWidget(self.config_options.practice_cb, alignment=Qt.AlignmentFlag.AlignHCenter)
     layout.addLayout(tracking_controls_layout)
 
     self.config_options.tracker_started.connect(lambda: self._apply_tracking_state(True))

@@ -5,7 +5,7 @@ Independent process that monitors LMU game state and creates stint records
 when pit stops are detected. Runs continuously until stopped by the UI.
 
 Usage:
-    python run.py --session-id <id> --drivers <names> [--practice]
+    python run.py --session-id <id> --drivers <names>
 
 Additional options:
     --agent-name    custom name for this tracker instance
@@ -53,7 +53,6 @@ def main() -> None:
                 None,
                 session_id=args.session_id,
                 drivers=args.drivers,
-                is_practice=args.practice,
                 agent_name=agent_name,
                 dry_run=True,
             )
@@ -65,7 +64,6 @@ def main() -> None:
                     lmu_scoring=lmu.scoring,
                     session_id=args.session_id,
                     drivers=args.drivers,
-                    is_practice=args.practice,
                     agent_name=agent_name,
                     dry_run=False,
                 )
