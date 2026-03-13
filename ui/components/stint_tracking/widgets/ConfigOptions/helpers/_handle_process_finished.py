@@ -10,4 +10,5 @@ def _handle_process_finished(self, exit_code, exit_status) -> None:
 
     log('WARNING', f'Stint tracker exited: code={exit_code}, status={exit_status}', category='config_options', action='process_finished')
     self._revert_tracking_state()
+    self.tracker_stopped.emit()
     self.p = None

@@ -51,12 +51,11 @@ def _setup_ui(self) -> None:
     self.agent_overview.selection_model = self.config_options.selection_model
     layout.addWidget(self.agent_overview)
     layout.setAlignment(self.agent_overview, Qt.AlignmentFlag.AlignHCenter)
-    self.agent_overview._load_agents()
 
     if getattr(self.config_options.selection_model, 'sessionChanged', None):
         self.config_options.selection_model.sessionChanged.connect(self.agent_overview._load_agents)
 
 
-    self.config_options.tracker_started.connect(lambda: self._apply_tracking_state(True))
-    self.config_options.tracker_stopped.connect(lambda: self._apply_tracking_state(False))
+    self.config_options.tracker_started.connect(self._on_tracker_started)
+    self.config_options.tracker_stopped.connect(self._on_tracker_stopped)
     self._apply_tracking_state(self.config_options._tracking_active)

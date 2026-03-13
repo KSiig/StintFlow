@@ -24,6 +24,7 @@ from .helpers import (
     _revert_tracking_state,
     _save_config,
     _setup_ui,
+    _shutdown_tracking,
     _show_info_lbl,
     _start_process,
     _toggle_edit,
@@ -58,6 +59,7 @@ class ConfigOptions(QWidget):
     _handle_process_error = _handle_process_error
     _handle_process_finished = _handle_process_finished
     _revert_tracking_state = _revert_tracking_state
+    _shutdown_tracking = _shutdown_tracking
 
     def __init__(self, models: ModelContainer):
         super().__init__()
@@ -83,9 +85,10 @@ class ConfigOptions(QWidget):
         self._refresh_labels()
 
     def closeEvent(self, event):
-        if self.p and self.p.state() == QProcess.ProcessState.Running:
-            self.p.kill()
-            self.p.waitForFinished()
+        try:
+            self._shutdown_tracking()
+        except Exception:
+            pass
         super().closeEvent(event)
 
     def _open_popup(self, title: str, message: str, buttons: list[str], type: str = "info"):

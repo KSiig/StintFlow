@@ -15,6 +15,7 @@ from ._reset_info_lbl import _reset_info_lbl
 from ._revert_tracking_state import _revert_tracking_state
 from ._save_config import _save_config
 from ._setup_ui import _setup_ui
+from ._shutdown_tracking import _shutdown_tracking
 from ._show_info_lbl import _show_info_lbl
 from ._start_process import _start_process
 from ._toggle_edit import _toggle_edit
@@ -38,6 +39,7 @@ __all__ = [
     '_revert_tracking_state',
     '_save_config',
     '_setup_ui',
+    '_shutdown_tracking',
     '_show_info_lbl',
     '_start_process',
     '_toggle_edit',
