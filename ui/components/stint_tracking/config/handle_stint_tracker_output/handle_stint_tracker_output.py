@@ -50,5 +50,9 @@ def handle_stint_tracker_output(
             if "[database:register_agent]" in stdout and "agent already exists" in stdout.lower():
                 if on_registration_conflict:
                     on_registration_conflict()
+            if "[database:set_tires_remaining_at_green_flag]" in stdout and "set tires remaining at green flag" in stdout.lower():
+                # Reuse on_stint_created callback to trigger UI update after setting tires_remaining_at_green_flag
+                if on_stint_created:
+                    on_stint_created()
     except Exception as exc:
         log_exception(exc, f"Failed to parse output: {stdout}", category="config_options", action="handle_output")

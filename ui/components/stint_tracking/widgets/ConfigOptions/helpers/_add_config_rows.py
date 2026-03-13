@@ -15,6 +15,7 @@ def _add_config_rows(self, layout: QVBoxLayout) -> None:
         ("tires", "Starting tires"),
         ("length", "Race length"),
         ("start_time", "Start time"),
+        ("tires_remaining_at_green_flag", "Tires at green flag"),
     ]:
         card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
         self.inputs[field_id] = card.get_input_field()

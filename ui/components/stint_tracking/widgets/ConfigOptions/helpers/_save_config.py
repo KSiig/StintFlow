@@ -18,6 +18,7 @@ def _save_config(self) -> None:
         update_session(
             str(self.selection_model.session_id),
             name=self.inputs['session_name'].text(),
+            tires_remaining_at_green_flag=int(self.inputs['tires_remaining_at_green_flag'].text()),
         )
 
         drivers = [line_edit.text() for line_edit in self.driver_inputs]

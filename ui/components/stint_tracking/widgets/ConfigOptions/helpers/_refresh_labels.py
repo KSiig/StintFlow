@@ -34,5 +34,6 @@ def _refresh_labels(self) -> None:
 
         if self.session:
             self.inputs['session_name'].setText(self.session.get('name', ''))
+            self.inputs['tires_remaining_at_green_flag'].setText(str(self.session.get('tires_remaining_at_green_flag', self.event.get('tires', ''))))
     except Exception as e:
         log_exception(e, 'Failed to refresh configuration labels', category='config_options', action='refresh_labels')
