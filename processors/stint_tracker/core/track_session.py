@@ -101,6 +101,9 @@ def track_session(
 
         # --- player/session info -----------------------------------------
         player_info = _get_player_info(lmu_telemetry, lmu_scoring, drivers)
+        if not player_info or current_game_session == GAME_SESSION.QUALIFYING:
+            time.sleep(1.0 / POLLING_FREQUENCY)
+            continue
 
         player_vehicle, player_scoring, driver_name = player_info
         pit_state = _get_pit_state(player_scoring)
@@ -119,11 +122,6 @@ def track_session(
         ):
             _store_tires_remaining_at_green_flag(session_id)
             tire_snapshot_sessions_recorded.add(current_game_session)
-
-        if not player_info or current_game_session == GAME_SESSION.QUALIFYING:
-            time.sleep(1.0 / POLLING_FREQUENCY)
-            continue
-
 
         # Capture tire state when coming into pits
         if pit_state == PitState.COMING_IN and not pit_stop_in_progress:
