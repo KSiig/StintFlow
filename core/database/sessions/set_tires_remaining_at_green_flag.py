@@ -7,7 +7,7 @@ This helper will overwrite the value on each call; callers should enforce
 from bson.objectid import ObjectId
 from pymongo.errors import PyMongoError
 
-from core.errors import log
+from core.errors import log, log_exception
 
 from ..connection import get_sessions_collection
 
@@ -55,17 +55,17 @@ def set_tires_remaining_at_green_flag(session_id: str, tires_remaining: int) -> 
         return False
 
     except PyMongoError as e:
-        log(
-            'ERROR',
-            f'Database error saving green-flag tire snapshot for session {session_id}: {e}',
+        log_exception(
+            e,
+            f'Database error saving green-flag tire snapshot for session {session_id}',
             category='database',
             action='set_tires_remaining_at_green_flag',
         )
         return False
     except Exception as e:
-        log(
-            'ERROR',
-            f'Failed to save green-flag tire snapshot for session {session_id}: {e}',
+        log_exception(
+            e,
+            f'Failed to save green-flag tire snapshot for session {session_id}',
             category='database',
             action='set_tires_remaining_at_green_flag',
         )

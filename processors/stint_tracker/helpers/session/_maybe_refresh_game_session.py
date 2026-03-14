@@ -42,7 +42,7 @@ def _maybe_refresh_game_session(
         return current, last_refresh_at
 
     refreshed = _get_game_session()
-    new_refresh_at = now
+    new_refresh_at = time.monotonic()
 
     if refreshed != GAME_SESSION.UNKNOWN:
         if refreshed != current:

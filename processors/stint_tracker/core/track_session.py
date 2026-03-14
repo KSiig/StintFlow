@@ -80,8 +80,8 @@ def track_session(
             category=_LOG_CATEGORY, action=_LOG_ACTION)
 
     if current_game_session in _TIRE_SNAPSHOT_GAME_SESSIONS and not dry_run:
-        _store_tires_remaining_at_green_flag(session_id)
-        tire_snapshot_sessions_recorded.add(current_game_session)
+        if _store_tires_remaining_at_green_flag(session_id):
+            tire_snapshot_sessions_recorded.add(current_game_session)
 
     log("INFO", f"Tracking session {session_id} ({'dry run' if dry_run else 'live'})",
         category=_LOG_CATEGORY, action=_LOG_ACTION)
@@ -127,6 +127,7 @@ def track_session(
 
         # Detect transition to PRACTICE session
         if previous_game_session != GAME_SESSION.PRACTICE and current_game_session == GAME_SESSION.PRACTICE:
+            tracking_enabled = False
             practice_baseline_time = _get_practice_baseline_time(session_id)
             log("INFO", f"Transitioned to PRACTICE session. Reloaded baseline time: {practice_baseline_time}",
                 category=_LOG_CATEGORY, action=_LOG_ACTION)
@@ -138,8 +139,8 @@ def track_session(
             current_game_session in _TIRE_SNAPSHOT_GAME_SESSIONS
             and current_game_session not in tire_snapshot_sessions_recorded
         ):
-            _store_tires_remaining_at_green_flag(session_id)
-            tire_snapshot_sessions_recorded.add(current_game_session)
+            if _store_tires_remaining_at_green_flag(session_id):
+                tire_snapshot_sessions_recorded.add(current_game_session)
 
         # Capture tire state when coming into pits
         if pit_state == PitState.COMING_IN and not pit_stop_in_progress:

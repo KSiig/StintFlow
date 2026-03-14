@@ -33,6 +33,7 @@ def _refresh_labels(self) -> None:
             self.inputs['start_time'].setText(self.event.get('start_time', ''))
 
         if self.session:
+            self.inputs['session_name'].setText(self.session.get('name', ''))
             tires_remaining = self.session.get('tires_remaining_at_green_flag')
             if tires_remaining is None:
                 tires_remaining = self.event.get('tires', '') or ''

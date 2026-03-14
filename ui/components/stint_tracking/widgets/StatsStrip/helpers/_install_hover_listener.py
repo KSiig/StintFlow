@@ -12,7 +12,7 @@ class _HoverFilter(QObject):
         super().__init__(stats_strip)
         self._stats_strip = stats_strip
 
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
         if event.type() in {QEvent.Type.Enter, QEvent.Type.HoverEnter}:
             self._stats_strip._set_scrollbar_visibility(True)
         elif event.type() in {QEvent.Type.Leave, QEvent.Type.HoverLeave}:
