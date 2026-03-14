@@ -2,20 +2,15 @@
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QAbstractItemView,
     QFrame,
     QHBoxLayout,
     QLabel,
     QSizePolicy,
-    QTableView,
     QWidget,
 )
-from PyQt6.QtGui import QFontMetrics
 
 from ui.models import ModelContainer
-from ui.utilities import FONT, get_fonts
 from core.errors import log
-from ...constants import COLUMN_WIDTHS, VERTICAL_HEADER_WIDTH, VERTICAL_HEADER_LABEL
 
 from .helpers import (
     _create_table,

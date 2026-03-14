@@ -25,7 +25,6 @@ def _setup_ui(self, models) -> None:
         left_col.setSpacing(12)
 
         self.config_options = ConfigOptions(models)
-        self.config_options.stint_created.connect(self.table_model.update_data)
         self.config_options.tracker_started.connect(self._on_tracker_started)
         self.config_options.tracker_stopped.connect(self._on_tracker_stopped)
         left_col.addWidget(self.config_options)
@@ -71,6 +70,7 @@ def _setup_ui(self, models) -> None:
             auto_update=True,
             allow_editors=True,
         )
+        self.config_options.stint_created.connect(self.stint_table.refresh_table)
 
         self.stats_strip = StatsStrip(self.models)
         top_row_layout.addWidget(self.stats_strip, 1)
