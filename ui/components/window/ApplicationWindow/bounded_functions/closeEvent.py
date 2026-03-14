@@ -14,7 +14,7 @@ def closeEvent(self, event: QCloseEvent) -> None:
         if tracker_view is not None and tracker_view.config_options is not None:
             tracker_view.config_options._shutdown_tracking()
     except Exception as exc:
-        log_exception(exc, 'DEBUG', f'Exception during tracker shutdown',
+        log_exception(exc, 'Exception during tracker shutdown',
             category='application_window', action='close_event')
 
     QMainWindow.closeEvent(self, event)

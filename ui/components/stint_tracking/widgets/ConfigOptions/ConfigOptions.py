@@ -89,7 +89,7 @@ class ConfigOptions(QWidget):
         try:
             self._shutdown_tracking()
         except Exception as e:
-            log_exception(e, 'ERROR', f'Error in ConfigOptions.closeEvent during _shutdown_tracking',
+            log_exception(e, 'Error in ConfigOptions.closeEvent during _shutdown_tracking',
                 category='ui', action='ConfigOptions.closeEvent')
         super().closeEvent(event)
 
