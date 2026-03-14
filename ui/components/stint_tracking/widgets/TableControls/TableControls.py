@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from PyQt6.QtWidgets import QWidget
 
-from .helpers import _apply_tracking_state, _setup_ui
+from .helpers import (
+  _apply_tracking_state, _setup_ui, _on_tracker_started, _on_tracker_stopped
+)
 from ui.utilities.load_style import load_style
 
 
@@ -20,6 +22,8 @@ class TableControls(QWidget):
 
     _setup_ui = _setup_ui
     _apply_tracking_state = _apply_tracking_state
+    _on_tracker_started = _on_tracker_started
+    _on_tracker_stopped = _on_tracker_stopped
 
     def __init__(self, config_options, on_toggle_left_column: callable) -> None:
         # config_options is not typed strictly to avoid a circular import

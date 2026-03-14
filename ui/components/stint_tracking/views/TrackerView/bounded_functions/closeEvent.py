@@ -5,6 +5,7 @@ def closeEvent(self, event) -> None:
     """Disconnect signals on close to avoid stray callbacks."""
     try:
         if self.config_options:
+            self.config_options._shutdown_tracking()
             self.config_options.stint_created.disconnect(self.table_model.update_data)
     except Exception:
         pass

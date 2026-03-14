@@ -15,7 +15,6 @@ def _start_process(self) -> None:
         self.p.errorOccurred.connect(self._handle_process_error)
         self.p.finished.connect(self._handle_process_finished)
 
-        is_practice = self.practice_cb.isChecked()
         program, process_args = get_stint_tracker_command()
         process_args += [
             '--session-id', str(self.selection_model.session_id),
@@ -38,9 +37,6 @@ def _start_process(self) -> None:
             agent_name = None
 
         self.agent_name = agent_name
-
-        if is_practice:
-            process_args.append('--practice')
 
         self.p.start(program, process_args)
         if not self.p.waitForStarted():

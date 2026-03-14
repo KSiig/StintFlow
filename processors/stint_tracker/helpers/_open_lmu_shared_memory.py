@@ -12,7 +12,7 @@ import mmap
 from typing import Iterator
 
 from pyLMUSharedMemory import lmu_data
-from core.errors import log_exception
+from core.errors import log, log_exception
 
 # shared-memory tag constant simplifies mmap call and documents purpose
 LMU_TAG = lmu_data.LMUConstants.LMU_SHARED_MEMORY_FILE
@@ -30,15 +30,32 @@ def _open_lmu_shared_memory() -> Iterator["lmu_data.LMUObjectOut"]:
         OSError: Propagated after being logged when the underlying
             memory-mapping operation fails.
     """
+    shared_mem = None
+    lmu = None
+
     try:
-        with mmap.mmap(
+        shared_mem = mmap.mmap(
             fileno=0,
             length=ctypes.sizeof(lmu_data.LMUObjectOut),
             tagname=LMU_TAG,
-        ) as shared_mem:
-            lmu = lmu_data.LMUObjectOut.from_buffer(shared_mem)
-            yield lmu
+        )
+        lmu = lmu_data.LMUObjectOut.from_buffer(shared_mem)
+        yield lmu
     except Exception as e:  # pragma: no cover - platform-specific failures
         log_exception(e, "Failed to open LMU shared memory",
                       category="stint_tracker", action="open_lmu_shared_memory")
         raise
+    finally:
+        if lmu is not None:
+            del lmu
+
+        if shared_mem is not None:
+            try:
+                shared_mem.close()
+            except BufferError as e:  # pragma: no cover - cleanup edge case
+                log(
+                    "WARNING",
+                    f"LMU shared memory cleanup deferred: {e}",
+                    category="stint_tracker",
+                    action="open_lmu_shared_memory",
+                )

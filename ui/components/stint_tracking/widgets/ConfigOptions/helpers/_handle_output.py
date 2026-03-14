@@ -24,6 +24,5 @@ def _handle_output(self, stdout: str) -> None:
         on_stint_created=lambda: self.stint_created.emit(),
         on_return_to_garage=lambda: self._show_info_lbl("Please return to garage!"),
         on_player_in_garage=self._reset_info_lbl,
-        on_no_active_vehicles=self._handle_no_active_vehicles,
         on_registration_conflict=self._handle_agent_registration_conflict,
     )

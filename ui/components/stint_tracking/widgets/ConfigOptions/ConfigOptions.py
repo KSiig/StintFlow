@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QWidget
 from ui.components.common import PopUp
 from ui.models import ModelContainer
 from ui.utilities.load_style import load_style
+from core.errors import log_exception
 
 from .helpers import (
     _add_config_rows,
@@ -13,9 +14,7 @@ from .helpers import (
     _create_button_layout,
     _create_buttons,
     _create_session,
-    _flash_taskbar,
     _handle_agent_registration_conflict,
-    _handle_no_active_vehicles,
     _handle_output,
     _handle_process_error,
     _handle_process_finished,
@@ -26,6 +25,7 @@ from .helpers import (
     _revert_tracking_state,
     _save_config,
     _setup_ui,
+    _shutdown_tracking,
     _show_info_lbl,
     _start_process,
     _toggle_edit,
@@ -57,11 +57,10 @@ class ConfigOptions(QWidget):
     _show_info_lbl = _show_info_lbl
     _reset_info_lbl = _reset_info_lbl
     _handle_agent_registration_conflict = _handle_agent_registration_conflict
-    _handle_no_active_vehicles = _handle_no_active_vehicles
-    _flash_taskbar = _flash_taskbar
     _handle_process_error = _handle_process_error
     _handle_process_finished = _handle_process_finished
     _revert_tracking_state = _revert_tracking_state
+    _shutdown_tracking = _shutdown_tracking
 
     def __init__(self, models: ModelContainer):
         super().__init__()
@@ -87,9 +86,11 @@ class ConfigOptions(QWidget):
         self._refresh_labels()
 
     def closeEvent(self, event):
-        if self.p and self.p.state() == QProcess.ProcessState.Running:
-            self.p.kill()
-            self.p.waitForFinished()
+        try:
+            self._shutdown_tracking()
+        except Exception as e:
+            log_exception(e, 'Error in ConfigOptions.closeEvent during _shutdown_tracking',
+                category='ui', action='ConfigOptions.closeEvent')
         super().closeEvent(event)
 
     def _open_popup(self, title: str, message: str, buttons: list[str], type: str = "info"):

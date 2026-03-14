@@ -1,7 +1,6 @@
 import argparse
 
 # help-text constants -------------------------------------------------------
-PRACTICE_HELP = "Practice mode - requires player to return to garage before tracking"
 DRYRUN_HELP = (
     "Run the tracker loop without reading LMU memory. "
     "Heartbeats and cleanup still occur."
@@ -25,12 +24,6 @@ def _make_parser() -> argparse.ArgumentParser:
         nargs="+",
         required=True,
         help="List of driver names for this session"
-    )
-
-    parser.add_argument(
-        "--practice",
-        action="store_true",
-        help=PRACTICE_HELP
     )
 
     parser.add_argument(

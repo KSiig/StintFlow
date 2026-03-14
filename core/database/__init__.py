@@ -14,6 +14,7 @@ from .teams.get_team import get_team
 from .events.update_event import update_event
 from .events.delete_strategy import delete_strategy
 from .sessions.update_session import update_session
+from .sessions.set_tires_remaining_at_green_flag import set_tires_remaining_at_green_flag
 from .strategies.update_strategy import update_strategy
 from .stints.get_latest_stint import get_latest_stint
 from .stints.update_stint import update_stint
@@ -52,6 +53,7 @@ __all__ = [
     'get_team',
     'update_event',
     'update_session',
+    'set_tires_remaining_at_green_flag',
     'update_strategy',
     'update_stint',
     'update_team_drivers',

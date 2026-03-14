@@ -23,6 +23,7 @@ from .bounded_functions._setup_mouse_tracking import _setup_mouse_tracking
 from .bounded_functions._setup_window_properties import _setup_window_properties
 from .bounded_functions._show_loading import show_loading
 from .bounded_functions._start_initialization import _start_initialization
+from .bounded_functions.closeEvent import closeEvent
 from .bounded_functions.event_filter import eventFilter
 from .bounded_functions.show_settings import show_settings
 
@@ -47,6 +48,7 @@ class ApplicationWindow(QMainWindow):
     mousePressEvent = mousePressEvent
     mouseReleaseEvent = mouseReleaseEvent
     changeEvent = changeEvent
+    closeEvent = closeEvent
     show_settings = show_settings
 
     def __init__(self) -> None:

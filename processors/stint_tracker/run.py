@@ -5,7 +5,7 @@ Independent process that monitors LMU game state and creates stint records
 when pit stops are detected. Runs continuously until stopped by the UI.
 
 Usage:
-    python run.py --session-id <id> --drivers <names> [--practice]
+    python run.py --session-id <id> --drivers <names>
 
 Additional options:
     --agent-name    custom name for this tracker instance
@@ -13,6 +13,7 @@ Additional options:
 """
 
 import sys
+import time
 from pathlib import Path
 
 # insert project root to sys.path early so submodules can be imported
@@ -27,6 +28,9 @@ from processors.stint_tracker.helpers import (
     _unregister_tracker_agent,
     _open_lmu_shared_memory,
 )
+
+
+SHARED_MEMORY_RETRY_DELAY_SECONDS = 2.0
 
 
 def main() -> None:
@@ -53,22 +57,34 @@ def main() -> None:
                 None,
                 session_id=args.session_id,
                 drivers=args.drivers,
-                is_practice=args.practice,
                 agent_name=agent_name,
                 dry_run=True,
             )
         else:
-            # open shared memory safely with context manager
-            with _open_lmu_shared_memory() as lmu:
-                track_session(
-                    lmu_telemetry=lmu.telemetry,
-                    lmu_scoring=lmu.scoring,
-                    session_id=args.session_id,
-                    drivers=args.drivers,
-                    is_practice=args.practice,
-                    agent_name=agent_name,
-                    dry_run=False,
-                )
+            # wait for LMU shared memory to become available instead of aborting
+            while True:
+                try:
+                    with _open_lmu_shared_memory() as lmu:
+                        track_session(
+                            lmu_telemetry=lmu.telemetry,
+                            lmu_scoring=lmu.scoring,
+                            session_id=args.session_id,
+                            drivers=args.drivers,
+                            agent_name=agent_name,
+                            dry_run=False,
+                        )
+                    break
+                except OSError as e:
+                    log(
+                        "WARNING",
+                        (
+                            "LMU shared memory unavailable; "
+                            f"retrying in {SHARED_MEMORY_RETRY_DELAY_SECONDS:.0f}s: {e}"
+                        ),
+                        category="stint_tracker",
+                        action="main",
+                    )
+                    time.sleep(SHARED_MEMORY_RETRY_DELAY_SECONDS)
 
     except KeyboardInterrupt:
         log('INFO', 'Stint tracker stopped by user',
