@@ -20,6 +20,7 @@ from .helpers import (
     _handle_process_finished,
     _handle_stderr,
     _handle_stdout,
+    _flash_taskbar,
     _refresh_labels,
     _reset_info_lbl,
     _revert_tracking_state,
@@ -45,6 +46,7 @@ class ConfigOptions(QWidget):
     _add_config_rows = _add_config_rows
     _create_button_layout = _create_button_layout
     _refresh_labels = _refresh_labels
+    _flash_taskbar = _flash_taskbar
     _toggle_edit = _toggle_edit
     _save_config = _save_config
     _clone_event = _clone_event
