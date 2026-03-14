@@ -24,6 +24,9 @@ def set_tires_remaining_at_green_flag(session_id: str, tires_remaining: int) -> 
     if isinstance(tires_remaining, bool) or not isinstance(tires_remaining, int):
         raise ValueError("tires_remaining must be an integer")
 
+    if tires_remaining < 0:
+        raise ValueError("tires_remaining must be a non-negative integer")
+
     try:
         session_obj_id = ObjectId(session_id)
         sessions_col = get_sessions_collection()

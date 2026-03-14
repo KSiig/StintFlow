@@ -68,6 +68,7 @@ def track_session(
     last_game_session_refresh_at: float = time.monotonic()
     previous_pit_state: PitState | None = None
     tire_snapshot_sessions_recorded: set[GAME_SESSION] = set()
+    previous_game_session: GAME_SESSION = GAME_SESSION.UNKNOWN
 
     if current_game_session == GAME_SESSION.PRACTICE:
         practice_baseline_time = _get_practice_baseline_time(session_id)
@@ -101,7 +102,9 @@ def track_session(
 
         # --- player/session info -----------------------------------------
         player_info = _get_player_info(lmu_telemetry, lmu_scoring, drivers)
-        if not player_info or current_game_session == GAME_SESSION.QUALIFYING:
+        if not player_info:
+            log("DEBUG", "No player info found in LMU memory; retrying",
+                category=_LOG_CATEGORY, action=_LOG_ACTION)
             time.sleep(1.0 / POLLING_FREQUENCY)
             continue
 
@@ -115,6 +118,21 @@ def track_session(
             pit_state,
             GAME_SESSION_TTL_SECONDS,
         )
+
+        if current_game_session == GAME_SESSION.QUALIFYING:
+            log("DEBUG", "Qualifying session detected; stint tracking disabled",
+                category=_LOG_CATEGORY, action=_LOG_ACTION)
+            time.sleep(1.0 / POLLING_FREQUENCY)
+            continue
+
+        # Detect transition to PRACTICE session
+        if previous_game_session != GAME_SESSION.PRACTICE and current_game_session == GAME_SESSION.PRACTICE:
+            practice_baseline_time = _get_practice_baseline_time(session_id)
+            log("INFO", f"Transitioned to PRACTICE session. Reloaded baseline time: {practice_baseline_time}",
+                category=_LOG_CATEGORY, action=_LOG_ACTION)
+
+        # Update previous_game_session for next loop
+        previous_game_session = current_game_session
 
         if (
             current_game_session in _TIRE_SNAPSHOT_GAME_SESSIONS
@@ -148,7 +166,6 @@ def track_session(
             pit_stop_in_progress = True
             garage_time_snapshot = _calculate_remaining_time(lmu_scoring)
 
-        # Detect pit stop completion and create stint
         # Detect pit stop completion and create stint
         if not pit_stop_in_progress and pit_state == PitState.LEAVING:
             log("INFO", f"Driver {tracked_driver_name} leaving pits - creating stint",

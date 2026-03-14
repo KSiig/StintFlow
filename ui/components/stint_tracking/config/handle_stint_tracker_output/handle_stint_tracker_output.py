@@ -13,7 +13,6 @@ Callbacks:
   to garage.
 - ``on_player_in_garage``: called when the player has been detected in
   the garage.
-- ``on_no_active_vehicles``: fired when the tracker cannot find any
   active vehicles in the session.
 - ``on_registration_conflict``: executed when the tracker reports an
   agent-name collision.

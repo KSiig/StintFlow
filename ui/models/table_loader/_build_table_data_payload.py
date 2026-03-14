@@ -17,10 +17,15 @@ from ui.models.stint_helpers import get_default_tire_dict
 from ui.models.table_constants import NO_TIRE_CHANGE
 from ui.models.table_processors import convert_stints_to_table, count_tire_changes
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ui.models.SelectionModel import SelectionModel
+
 
 def _build_table_data_payload(
-    selection_model,
-    pit_time_parser: Callable[[dict[str, Any]], Any] = None,
+    selection_model: SelectionModel,
+    pit_time_parser: Callable[[dict[str, Any]], Any] | None = None,
 ) -> dict[str, Any] | None:
     """Load event + stint data and return a normalized table payload."""
     if not selection_model.event_id or not selection_model.session_id:
@@ -54,7 +59,7 @@ def _build_table_data_payload(
 
     stints = get_stints(selection_model.session_id)
     if pit_time_parser is None:
-        stints = sorted(stints, key=lambda stint: stint.get("pit_time", None) or 0, reverse=True)
+        stints = sorted(stints, key=lambda stint: stint.get("pit_end_time", None) or 0, reverse=True)
     else:
         stints = sorted(stints, key=pit_time_parser, reverse=True)
 
@@ -70,6 +75,8 @@ def _build_table_data_payload(
 
     index = 0 if last_tire_change is NO_TIRE_CHANGE else 1
     while len(tires) < len(rows):
+        # Alternate tire-change status for generated rows; invert because
+        # get_default_tire_dict expects whether tires were changed on entry
         tires_changed = bool(index % 2)
         tires.append(get_default_tire_dict(not tires_changed))
         index += 1

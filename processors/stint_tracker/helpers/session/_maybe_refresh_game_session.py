@@ -6,7 +6,6 @@ main loop and centralises the logging of session changes.
 """
 
 import time
-from typing import Tuple
 
 from core.errors import log
 from .GAME_SESSION import GAME_SESSION
@@ -20,7 +19,7 @@ def _maybe_refresh_game_session(
     prev_pit_state: PitState | None,
     cur_pit_state: PitState,
     ttl_seconds: float = 5.0,
-) -> Tuple[GAME_SESSION, float]:
+) -> tuple[GAME_SESSION, float]:
     """Return an updated session and refresh timestamp.
 
     The session is refreshed if either the cached value is older than

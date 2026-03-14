@@ -21,7 +21,8 @@ def _animate_left_column(self, is_visible: bool, duration: int = 100) -> None:
     )
     self._left_column_expanded_width = expanded_width
 
-    start_width = max(container.width(), container.maximumWidth(), 0)
+    # Use the actual visible width; maximumWidth() may be QWIDGETSIZE_MAX
+    start_width = start_width = container.width() if container.width() > 0 else expanded_width
     end_width = expanded_width if is_visible else 0
 
     if is_visible:
@@ -33,7 +34,7 @@ def _animate_left_column(self, is_visible: bool, duration: int = 100) -> None:
     animation.setStartValue(start_width)
     animation.setEndValue(end_width)
 
-    def _on_value_changed(value) -> None:
+    def _on_value_changed(value: int) -> None:
         width = int(value)
         container.setMinimumWidth(width)
         container.setMaximumWidth(width)

@@ -28,5 +28,10 @@ def _install_hover_listener(self) -> None:
 
     self._hover_filter = _HoverFilter(self)
 
-    for widget in (self._frame, self.scroll_area.viewport(), self.scroll_area.horizontalScrollBar()):
+    widgets = [self._frame]
+    if self.scroll_area:
+        widgets.append(self.scroll_area.viewport())
+        widgets.append(self.scroll_area.horizontalScrollBar())
+
+    for widget in widgets:
         widget.installEventFilter(self._hover_filter)

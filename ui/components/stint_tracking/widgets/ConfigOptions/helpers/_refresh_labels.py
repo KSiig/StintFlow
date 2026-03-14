@@ -33,7 +33,9 @@ def _refresh_labels(self) -> None:
             self.inputs['start_time'].setText(self.event.get('start_time', ''))
 
         if self.session:
-            self.inputs['session_name'].setText(self.session.get('name', ''))
-            self.inputs['tires_remaining_at_green_flag'].setText(str(self.session.get('tires_remaining_at_green_flag', self.event.get('tires', ''))))
+            tires_remaining = self.session.get('tires_remaining_at_green_flag')
+            if tires_remaining is None:
+                tires_remaining = self.event.get('tires', '') or ''
+            self.inputs['tires_remaining_at_green_flag'].setText(str(tires_remaining))
     except Exception as e:
         log_exception(e, 'Failed to refresh configuration labels', category='config_options', action='refresh_labels')

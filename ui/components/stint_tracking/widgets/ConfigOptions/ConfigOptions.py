@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QWidget
 from ui.components.common import PopUp
 from ui.models import ModelContainer
 from ui.utilities.load_style import load_style
+from core.errors import log
 
 from .helpers import (
     _add_config_rows,
@@ -87,8 +88,9 @@ class ConfigOptions(QWidget):
     def closeEvent(self, event):
         try:
             self._shutdown_tracking()
-        except Exception:
-            pass
+        except Exception as e:
+            log('ERROR', f'Error in ConfigOptions.closeEvent during _shutdown_tracking: {e}',
+                category='ui', action='ConfigOptions.closeEvent')
         super().closeEvent(event)
 
     def _open_popup(self, title: str, message: str, buttons: list[str], type: str = "info"):

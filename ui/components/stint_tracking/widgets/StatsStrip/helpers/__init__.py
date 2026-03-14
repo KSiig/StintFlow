@@ -15,6 +15,7 @@ from ._setup_ui import _setup_ui
 from ._set_values import _set_values
 
 __all__ = [
+    '_fade_scrollbar',
     '_get_avg_stint_time',
     '_get_driver_stats',
     '_get_longest_stint',

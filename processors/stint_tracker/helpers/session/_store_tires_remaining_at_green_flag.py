@@ -39,4 +39,10 @@ def _store_tires_remaining_at_green_flag(session_id: str) -> None:
         )
         return
 
-    set_tires_remaining_at_green_flag(session_id, new_tires)
+    if not set_tires_remaining_at_green_flag(session_id, new_tires):
+        log(
+            'WARNING',
+            f'Failed to persist green-flag tire count for session {session_id}',
+            category='stint_tracker',
+            action='store_tires_remaining_at_green_flag',
+        )

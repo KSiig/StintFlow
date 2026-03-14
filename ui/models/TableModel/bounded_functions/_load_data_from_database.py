@@ -27,7 +27,7 @@ def _load_data_from_database(self) -> None:
 
     try:
         self._event_tire_count = int(total_tires)
-    except Exception:
+    except (ValueError, TypeError):
         self._event_tire_count = int(DEFAULT_TIRE_COUNT)
 
     stints = payload["stints"]

@@ -9,6 +9,7 @@ from pymongo.errors import PyMongoError
 
 from ..connection import get_sessions_collection
 from core.errors import log
+from .set_tires_remaining_at_green_flag import set_tires_remaining_at_green_flag
 
 
 def update_session(session_id: str, name: str = None, tires_remaining_at_green_flag: int = None) -> bool:
@@ -42,7 +43,17 @@ def update_session(session_id: str, name: str = None, tires_remaining_at_green_f
         if name is not None:
             update_doc["$set"]["name"] = name
         if tires_remaining_at_green_flag is not None:
-            update_doc["$set"]["tires_remaining_at_green_flag"] = tires_remaining_at_green_flag
+            try:
+                # Validate and cast tires_remaining_at_green_flag
+                if isinstance(tires_remaining_at_green_flag, bool) or not isinstance(tires_remaining_at_green_flag, int):
+                    tires_remaining_at_green_flag = int(tires_remaining_at_green_flag)
+                if tires_remaining_at_green_flag < 0:
+                    raise ValueError("tires_remaining_at_green_flag must be a non-negative integer")
+
+                update_doc["$set"]["tires_remaining_at_green_flag"] = tires_remaining_at_green_flag
+            except ValueError as e:
+                log('ERROR', f'Invalid tires_remaining_at_green_flag: {e}', category='database', action='update_session')
+                raise
         
         # Update database
         sessions_col = get_sessions_collection()

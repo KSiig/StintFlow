@@ -55,7 +55,6 @@ def _setup_ui(self) -> None:
     if getattr(self.config_options.selection_model, 'sessionChanged', None):
         self.config_options.selection_model.sessionChanged.connect(self.agent_overview._load_agents)
 
-
     self.config_options.tracker_started.connect(self._on_tracker_started)
     self.config_options.tracker_stopped.connect(self._on_tracker_stopped)
     self._apply_tracking_state(self.config_options._tracking_active)
