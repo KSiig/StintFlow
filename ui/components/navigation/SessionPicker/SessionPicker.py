@@ -11,6 +11,7 @@ from .bounded_functions import reload
 from .helpers import (
     _add_combo_icon,
     _apply_selection_from_model,
+    _can_change_selection,
     _create_combo_box,
     _create_layout,
     _load_events,
@@ -32,6 +33,7 @@ class SessionPicker(QWidget):
     _populate_initial_data = _populate_initial_data
     _load_events = _load_events
     _apply_selection_from_model = _apply_selection_from_model
+    _can_change_selection = _can_change_selection
     _populate_sessions = _populate_sessions
     _on_event_changed = _on_event_changed
     _on_session_changed = _on_session_changed

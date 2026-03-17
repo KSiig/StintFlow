@@ -10,6 +10,10 @@ from core.errors import log_exception
 
 from .helpers import (
     _add_config_rows,
+    _apply_form_state,
+    _can_switch_views,
+    _cancel_changes,
+    _capture_form_state,
     _clone_event,
     _create_button_layout,
     _create_buttons,
@@ -18,6 +22,7 @@ from .helpers import (
     _handle_output,
     _handle_process_error,
     _handle_process_finished,
+    _handle_save_shortcut,
     _handle_stderr,
     _handle_stdout,
     _flash_taskbar,
@@ -44,7 +49,12 @@ class ConfigOptions(QWidget):
     _setup_ui = _setup_ui
     _create_buttons = _create_buttons
     _add_config_rows = _add_config_rows
+    _apply_form_state = _apply_form_state
+    _can_switch_views = _can_switch_views
+    _cancel_changes = _cancel_changes
+    _capture_form_state = _capture_form_state
     _create_button_layout = _create_button_layout
+    _handle_save_shortcut = _handle_save_shortcut
     _refresh_labels = _refresh_labels
     _flash_taskbar = _flash_taskbar
     _toggle_edit = _toggle_edit
@@ -78,9 +88,13 @@ class ConfigOptions(QWidget):
         self.p: QProcess | None = None
         self._tracking_active = False
         self.agent_name = None
+        self._committed_form_state: dict[str, str | list[str]] | None = None
+        self._has_unsaved_form_changes = False
+        self._is_restoring_form_state = False
 
         load_style('resources/styles/stint_tracking/tracker/config_options.qss', widget=self)
 
+        self.selection_model.view_change_guard = self._can_switch_views
         self.selection_model.eventChanged.connect(self._refresh_labels)
         self.selection_model.sessionChanged.connect(self._refresh_labels)
 
@@ -89,6 +103,7 @@ class ConfigOptions(QWidget):
 
     def closeEvent(self, event):
         try:
+            self.selection_model.view_change_guard = None
             self._shutdown_tracking()
         except Exception as e:
             log_exception(e, 'Error in ConfigOptions.closeEvent during _shutdown_tracking',
