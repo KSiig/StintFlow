@@ -22,6 +22,7 @@ from .helpers import (
     _handle_output,
     _handle_process_error,
     _handle_process_finished,
+    _handle_save_shortcut,
     _handle_stderr,
     _handle_stdout,
     _flash_taskbar,
@@ -53,6 +54,7 @@ class ConfigOptions(QWidget):
     _cancel_changes = _cancel_changes
     _capture_form_state = _capture_form_state
     _create_button_layout = _create_button_layout
+    _handle_save_shortcut = _handle_save_shortcut
     _refresh_labels = _refresh_labels
     _flash_taskbar = _flash_taskbar
     _toggle_edit = _toggle_edit

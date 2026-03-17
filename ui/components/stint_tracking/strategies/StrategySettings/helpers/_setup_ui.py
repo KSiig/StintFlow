@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
 
 from ui.components.common.ConfigButton import ConfigButton
@@ -55,6 +57,10 @@ def _setup_ui(self) -> None:
 
     self._create_labeled_input_rows(frame_layout)
     self._set_inputs()
+
+    self.save_shortcut = QShortcut(QKeySequence.StandardKey.Save, self)
+    self.save_shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+    self.save_shortcut.activated.connect(self._handle_save_shortcut)
 
     frame_layout.addStretch()
 

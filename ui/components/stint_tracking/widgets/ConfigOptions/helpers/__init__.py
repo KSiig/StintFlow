@@ -12,6 +12,7 @@ from ._handle_agent_registration_conflict import _handle_agent_registration_conf
 from ._handle_output import _handle_output
 from ._handle_process_error import _handle_process_error
 from ._handle_process_finished import _handle_process_finished
+from ._handle_save_shortcut import _handle_save_shortcut
 from ._handle_stderr import _handle_stderr
 from ._handle_stdout import _handle_stdout
 from ._refresh_labels import _refresh_labels
@@ -40,6 +41,7 @@ __all__ = [
     '_handle_output',
     '_handle_process_error',
     '_handle_process_finished',
+    '_handle_save_shortcut',
     '_handle_stderr',
     '_handle_stdout',
     '_refresh_labels',

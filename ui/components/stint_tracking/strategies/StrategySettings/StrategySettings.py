@@ -11,6 +11,7 @@ from .helpers import (
     _capture_input_state,
     _create_labeled_input_rows,
     _data_changed,
+    _handle_save_shortcut,
     _on_cancel_clicked,
     _on_delete_clicked,
     _on_save_clicked,
@@ -30,6 +31,7 @@ class StrategySettings(QWidget):
     _apply_input_state = _apply_input_state
     _capture_input_state = _capture_input_state
     _create_labeled_input_rows = _create_labeled_input_rows
+    _handle_save_shortcut = _handle_save_shortcut
     _on_save_clicked = _on_save_clicked
     _on_cancel_clicked = _on_cancel_clicked
     _on_delete_clicked = _on_delete_clicked
