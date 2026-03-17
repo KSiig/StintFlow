@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+"""Helpers for managing driver name input widgets in TeamSection.
+
+This module exports `_set_driver_names`, which rebuilds the driver input row
+widgets from a list of driver names. It ensures existing widgets are cleared,
+creates a new QLineEdit for each driver, and reattaches the change signal so the
+containing TeamSection can track unsaved changes.
+
+Expected API:
+- `_set_driver_names(self, drivers: list[str]) -> None`
+    - `drivers`: list of driver name strings (can be empty).
+"""
+
 from PyQt6.QtWidgets import QLineEdit
 
 from ui.utilities import FONT, get_fonts

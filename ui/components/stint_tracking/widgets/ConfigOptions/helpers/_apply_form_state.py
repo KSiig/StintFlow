@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+"""Apply captured configuration form state to ConfigOptions widgets.
+
+This module defines the `_apply_form_state` helper used by ConfigOptions to
+restore a previously captured snapshot of the input fields. It updates all
+visible input widgets (including driver rows) while suppressing "dirty"
+change notifications, and it can optionally mark the restored state as
+committed (hiding save/cancel buttons).
+
+Expected API:
+- `_apply_form_state(self, form_state, persist_as_committed=False)`
+    - `form_state`: dict with values for keys like 'event_name', 'session_name',
+      'tires', 'length', 'start_time', 'tires_remaining_at_green_flag',
+      and 'drivers'.
+    - `persist_as_committed`: if True, the restored state becomes the new
+      baseline and unsaved-change tracking is reset.
+"""
+
 
 def _apply_form_state(self, form_state: dict[str, str | list[str]], persist_as_committed: bool = False) -> None:
     """Apply configuration values to the current form widgets."""

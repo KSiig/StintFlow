@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+"""Apply a captured input state back into the strategy settings UI.
+
+This helper is used when a strategy settings view is refreshed or when the
+user cancels edits. It updates the visible widgets, suppresses change
+notifications while restoring, and (optionally) marks the restored state as
+committed so that save/cancel buttons are hidden again.
+"""
+
 
 def _apply_input_state(self, input_state: dict[str, str | bool], persist_as_committed: bool = False) -> None:
     """Apply strategy setting values to the current input widgets."""

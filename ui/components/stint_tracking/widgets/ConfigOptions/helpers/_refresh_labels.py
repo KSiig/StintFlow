@@ -26,14 +26,18 @@ def _refresh_labels(self) -> None:
             if tires_remaining is None and self.event:
                 tires_remaining = self.event.get('tires', '') or ''
 
+        drivers = self.team.get('drivers') if self.team else []
+        if not isinstance(drivers, list):
+            drivers = []
+
         form_state = {
             'event_name': self.event.get('name', '') if self.event else '',
             'session_name': self.session.get('name', '') if self.session else '',
             'tires': str(self.event.get('tires', '')) if self.event else '',
             'length': self.event.get('length', '') if self.event else '',
             'start_time': self.event.get('start_time', '') if self.event else '',
-            'tires_remaining_at_green_flag': str(tires_remaining or ''),
-            'drivers': self.team.get('drivers', []) if self.team else [],
+            'tires_remaining_at_green_flag': '' if tires_remaining is None else str(tires_remaining),
+            'drivers': drivers,
         }
         self._apply_form_state(form_state, persist_as_committed=True)
     except Exception as e:
