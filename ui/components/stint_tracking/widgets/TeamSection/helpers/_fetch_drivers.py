@@ -8,7 +8,7 @@ def _fetch_drivers(self) -> None:
     """Fetch driver names from LMU and populate inputs."""
     team = fetch_team_from_lmu()
     if team:
-        self._set_driver_names(team, read_only=True)
+        self._set_driver_names(team)
         self.changed.emit()
         return
 

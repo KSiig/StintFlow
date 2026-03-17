@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QLineEdit
 from ui.utilities import FONT, get_fonts
 
 
-def _set_driver_names(self, drivers: list[str], read_only: bool = False) -> None:
+def _set_driver_names(self, drivers: list[str]) -> None:
     """Replace driver inputs with the provided driver names."""
     self._clear_drivers()
     self.drivers = list(drivers)
@@ -14,6 +14,5 @@ def _set_driver_names(self, drivers: list[str], read_only: bool = False) -> None
         line_edit = QLineEdit(driver)
         line_edit.textEdited.connect(lambda _: self.changed.emit())
         line_edit.setFont(get_fonts(FONT.input_field))
-        line_edit.setReadOnly(read_only)
         self.driver_box.addWidget(line_edit)
         self.driver_inputs.append(line_edit)
