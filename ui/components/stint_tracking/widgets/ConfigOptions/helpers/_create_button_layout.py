@@ -14,6 +14,8 @@ def _create_button_layout(self) -> QHBoxLayout:
     btn_layout_save_clone = QHBoxLayout()
     btn_layout_save_clone.addWidget(self.save_btn, alignment=Qt.AlignmentFlag.AlignTop)
     self.save_btn.hide()
+    btn_layout_save_clone.addWidget(self.cancel_btn, alignment=Qt.AlignmentFlag.AlignTop)
+    self.cancel_btn.hide()
     btn_layout_save_clone.addWidget(self.clone_btn, alignment=Qt.AlignmentFlag.AlignTop)
 
     btn_tracking_layout = QVBoxLayout()

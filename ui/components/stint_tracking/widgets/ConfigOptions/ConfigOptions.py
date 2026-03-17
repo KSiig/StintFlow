@@ -10,6 +10,9 @@ from core.errors import log_exception
 
 from .helpers import (
     _add_config_rows,
+    _apply_form_state,
+    _cancel_changes,
+    _capture_form_state,
     _clone_event,
     _create_button_layout,
     _create_buttons,
@@ -44,6 +47,9 @@ class ConfigOptions(QWidget):
     _setup_ui = _setup_ui
     _create_buttons = _create_buttons
     _add_config_rows = _add_config_rows
+    _apply_form_state = _apply_form_state
+    _cancel_changes = _cancel_changes
+    _capture_form_state = _capture_form_state
     _create_button_layout = _create_button_layout
     _refresh_labels = _refresh_labels
     _flash_taskbar = _flash_taskbar
@@ -78,6 +84,9 @@ class ConfigOptions(QWidget):
         self.p: QProcess | None = None
         self._tracking_active = False
         self.agent_name = None
+        self._committed_form_state: dict[str, object] | None = None
+        self._has_unsaved_form_changes = False
+        self._is_restoring_form_state = False
 
         load_style('resources/styles/stint_tracking/tracker/config_options.qss', widget=self)
 

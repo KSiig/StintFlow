@@ -2,11 +2,10 @@
 
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QHBoxLayout, QLineEdit, QSizePolicy, QVBoxLayout, QWidget
-from ui.utilities import FONT, get_fonts
 from ui.components.common.ConfigButton import ConfigButton
 
 from ...config import ConfigLayout, create_config_label
-from .helpers import _add_row, _clear_drivers, _fetch_drivers, _load_team, _remove_row
+from .helpers import _add_row, _clear_drivers, _fetch_drivers, _load_team, _remove_row, _set_driver_names
 
 
 class TeamSection(QWidget):
@@ -19,6 +18,7 @@ class TeamSection(QWidget):
     _fetch_drivers = _fetch_drivers
     _load_team = _load_team
     _remove_row = _remove_row
+    _set_driver_names = _set_driver_names
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)

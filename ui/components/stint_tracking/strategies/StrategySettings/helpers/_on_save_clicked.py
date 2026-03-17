@@ -11,7 +11,6 @@ from ui.models.stint_helpers import sanitize_stints
 def _on_save_clicked(self) -> None:
     """Persist strategy updates and refresh the model state."""
     try:
-        self.save_btn.hide()
         input_widget = self.inputs.get("mean_stint_time")
         if input_widget is None:
             log(
@@ -69,6 +68,10 @@ def _on_save_clicked(self) -> None:
 
         update_strategy(strategy=self.strategy)
         self.strategy_updated.emit(self.strategy)
+        self._committed_input_state = self._capture_input_state()
+        self._has_unsaved_input_changes = False
+        self.save_btn.hide()
+        self.cancel_btn.hide()
 
         log(
             'INFO',

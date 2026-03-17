@@ -3,6 +3,7 @@ from ._clear_drivers import _clear_drivers
 from ._fetch_drivers import _fetch_drivers
 from ._load_team import _load_team
 from ._remove_row import _remove_row
+from ._set_driver_names import _set_driver_names
 
 __all__ = [
     '_add_row',
@@ -10,4 +11,5 @@ __all__ = [
     '_fetch_drivers',
     '_load_team',
     '_remove_row',
+    '_set_driver_names',
 ]

@@ -38,6 +38,13 @@ def _setup_ui(self) -> None:
     self.save_btn.hide()
     self.save_btn.clicked.connect(self._on_save_clicked)
 
+    self.cancel_btn = ConfigButton(
+        ConfigLabels.BTN_CANCEL,
+        width="content",
+    )
+    self.cancel_btn.hide()
+    self.cancel_btn.clicked.connect(self._on_cancel_clicked)
+
     self.delete_btn = ConfigButton(
         "",
         icon_path="resources/icons/race_config/trash.svg",
@@ -52,6 +59,7 @@ def _setup_ui(self) -> None:
     frame_layout.addStretch()
 
     btn_row.addWidget(self.save_btn)
+    btn_row.addWidget(self.cancel_btn)
     btn_row.addStretch()
     btn_row.addWidget(self.delete_btn)
     frame_layout.addLayout(btn_row)

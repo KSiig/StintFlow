@@ -10,6 +10,7 @@ from ....config import ConfigLabels
 def _create_buttons(self) -> None:
     """Instantiate and wire all action buttons."""
     self.save_btn = ConfigButton(ConfigLabels.BTN_SAVE, icon_path="resources/icons/race_config/square-pen.svg", width="equal")
+    self.cancel_btn = ConfigButton(ConfigLabels.BTN_CANCEL, width="equal")
     self.clone_btn = ConfigButton(ConfigLabels.BTN_CLONE, icon_path="resources/icons/race_config/copy.svg", width="equal")
     self.create_session_btn = ConfigButton(ConfigLabels.BTN_NEW_SESSION, width="fill")
 
@@ -19,5 +20,6 @@ def _create_buttons(self) -> None:
     self.lbl_info.hide()
 
     self.save_btn.clicked.connect(self._save_config)
+    self.cancel_btn.clicked.connect(self._cancel_changes)
     self.clone_btn.clicked.connect(self._clone_event)
     self.create_session_btn.clicked.connect(self._create_session)

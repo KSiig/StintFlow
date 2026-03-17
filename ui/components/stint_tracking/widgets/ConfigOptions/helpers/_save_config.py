@@ -27,7 +27,10 @@ def _save_config(self) -> None:
             self.drivers = drivers
 
         self.table_model.update_data()
+        self._committed_form_state = self._capture_form_state()
+        self._has_unsaved_form_changes = False
         self.save_btn.hide()
+        self.cancel_btn.hide()
 
         log('INFO', 'Configuration saved successfully', category='config_options', action='save_config')
 

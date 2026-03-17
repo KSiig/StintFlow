@@ -33,6 +33,6 @@ def _create_labeled_input_rows(self, layout: QVBoxLayout) -> None:
     layout.addWidget(header)
 
     lock_cb = QCheckBox()
-    lock_cb.checkStateChanged.connect(lambda: _on_text_changed(self))
+    lock_cb.checkStateChanged.connect(lambda _: _on_text_changed(self))
     self.inputs["lock_completed_stints"] = lock_cb
     layout.addWidget(lock_cb)
