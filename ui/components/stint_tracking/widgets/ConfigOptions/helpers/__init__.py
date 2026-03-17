@@ -1,5 +1,6 @@
 from ._add_config_rows import _add_config_rows
 from ._apply_form_state import _apply_form_state
+from ._can_switch_views import _can_switch_views
 from ._cancel_changes import _cancel_changes
 from ._capture_form_state import _capture_form_state
 from ._clone_event import _clone_event
@@ -27,6 +28,7 @@ from ._toggle_track import _toggle_track
 __all__ = [
     '_add_config_rows',
     '_apply_form_state',
+    '_can_switch_views',
     '_cancel_changes',
     '_capture_form_state',
     '_clone_event',

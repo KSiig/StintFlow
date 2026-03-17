@@ -9,6 +9,9 @@ def _switch_to_settings(self) -> None:
     if self.models and self.models.navigation_model:
         settings_widget = self.models.navigation_model.widgets.get(SettingsView)
         if settings_widget:
+            if not self._can_switch_menu_item(settings_widget):
+                return
+
             self.models.navigation_model.set_active_widget(settings_widget)
             item_config: MenuItemConfig | None = self._menu_items.get(SettingsView)
             if item_config:

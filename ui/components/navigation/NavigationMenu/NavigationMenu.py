@@ -9,6 +9,7 @@ from ui.utilities.load_style import load_style
 
 from .helpers import (
     _add_title_and_icon,
+    _can_switch_menu_item,
     _create_layout,
     _create_menu_section,
     _set_active_menu_item,
@@ -25,6 +26,7 @@ class NavigationMenu(QWidget):
     _create_layout = _create_layout
     _update_event_selection = _update_event_selection
     _add_title_and_icon = _add_title_and_icon
+    _can_switch_menu_item = _can_switch_menu_item
     _switch_to_tracker = _switch_to_tracker
     _switch_to_strategies = _switch_to_strategies
     _switch_to_settings = _switch_to_settings

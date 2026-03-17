@@ -6,6 +6,16 @@ def _on_event_changed(self) -> None:
     event_id = self.events.currentData()
     event_name = self.events.currentText()
 
+    if not self._can_change_selection():
+        self.events.blockSignals(True)
+        self.sessions.blockSignals(True)
+        try:
+            self._apply_selection_from_model()
+        finally:
+            self.sessions.blockSignals(False)
+            self.events.blockSignals(False)
+        return
+
     if self.selection_model:
         self.selection_model.set_event(event_id, event_name)
 

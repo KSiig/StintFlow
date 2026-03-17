@@ -11,6 +11,7 @@ from core.errors import log_exception
 from .helpers import (
     _add_config_rows,
     _apply_form_state,
+    _can_switch_views,
     _cancel_changes,
     _capture_form_state,
     _clone_event,
@@ -48,6 +49,7 @@ class ConfigOptions(QWidget):
     _create_buttons = _create_buttons
     _add_config_rows = _add_config_rows
     _apply_form_state = _apply_form_state
+    _can_switch_views = _can_switch_views
     _cancel_changes = _cancel_changes
     _capture_form_state = _capture_form_state
     _create_button_layout = _create_button_layout
@@ -90,6 +92,7 @@ class ConfigOptions(QWidget):
 
         load_style('resources/styles/stint_tracking/tracker/config_options.qss', widget=self)
 
+        self.selection_model.view_change_guard = self._can_switch_views
         self.selection_model.eventChanged.connect(self._refresh_labels)
         self.selection_model.sessionChanged.connect(self._refresh_labels)
 
@@ -98,6 +101,7 @@ class ConfigOptions(QWidget):
 
     def closeEvent(self, event):
         try:
+            self.selection_model.view_change_guard = None
             self._shutdown_tracking()
         except Exception as e:
             log_exception(e, 'Error in ConfigOptions.closeEvent during _shutdown_tracking',
