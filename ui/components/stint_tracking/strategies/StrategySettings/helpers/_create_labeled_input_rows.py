@@ -6,6 +6,7 @@ from ui.components.common import LabeledInputRow
 from ui.components.stint_tracking.config.config_constants import ConfigLayout
 from ui.components.stint_tracking.config import ConfigLabels
 from ui.utilities import FONT, get_fonts
+from ._on_text_changed import _on_text_changed
 
 
 def _create_labeled_input_rows(self, layout: QVBoxLayout) -> None:
@@ -14,7 +15,11 @@ def _create_labeled_input_rows(self, layout: QVBoxLayout) -> None:
         ("name", "Strategy name"),
         ("mean_stint_time", "Mean stint time"),
     ]:
-        card = LabeledInputRow(title=title, input_height=ConfigLayout.INPUT_HEIGHT)
+        card = LabeledInputRow(
+            title=title, 
+            input_height=ConfigLayout.INPUT_HEIGHT,
+            on_text_change=lambda: _on_text_changed(self)
+        )
         self.inputs[field_id] = card.get_input_field()
         layout.addWidget(card)
 
@@ -28,6 +33,6 @@ def _create_labeled_input_rows(self, layout: QVBoxLayout) -> None:
     layout.addWidget(header)
 
     lock_cb = QCheckBox()
-    lock_cb.setEnabled(False)
+    lock_cb.checkStateChanged.connect(lambda: _on_text_changed(self))
     self.inputs["lock_completed_stints"] = lock_cb
     layout.addWidget(lock_cb)

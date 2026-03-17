@@ -5,7 +5,6 @@ from ._on_save_clicked import _on_save_clicked
 from ._realign_rows import _realign_rows
 from ._set_inputs import _set_inputs
 from ._setup_ui import _setup_ui
-from ._toggle_edit import _toggle_edit
 
 __all__ = [
     '_create_labeled_input_rows',
@@ -15,5 +14,4 @@ __all__ = [
     '_realign_rows',
     '_set_inputs',
     '_setup_ui',
-    '_toggle_edit',
 ]

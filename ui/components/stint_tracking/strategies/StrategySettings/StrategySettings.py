@@ -14,7 +14,6 @@ from .helpers import (
     _realign_rows,
     _set_inputs,
     _setup_ui,
-    _toggle_edit,
 )
 
 
@@ -26,7 +25,6 @@ class StrategySettings(QWidget):
 
     _setup_ui = _setup_ui
     _create_labeled_input_rows = _create_labeled_input_rows
-    _toggle_edit = _toggle_edit
     _on_save_clicked = _on_save_clicked
     _on_delete_clicked = _on_delete_clicked
     _realign_rows = _realign_rows
