@@ -13,7 +13,4 @@ def _on_cancel_clicked(self) -> None:
     if self._committed_input_state is None:
         return
 
-    self._apply_input_state(self._committed_input_state)
-    self._has_unsaved_input_changes = False
-    self.save_btn.hide()
-    self.cancel_btn.hide()
+    self._apply_input_state(self._committed_input_state, persist_as_committed=True)

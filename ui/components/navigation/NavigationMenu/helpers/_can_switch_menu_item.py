@@ -1,7 +1,8 @@
 """Guard navigation menu switches when other views have unsaved edits."""
+from PyQt6.QtWidgets import QWidget
 
 
-def _can_switch_menu_item(self, target_widget) -> bool:
+def _can_switch_menu_item(self, target_widget: QWidget) -> bool:
     """Return whether the navigation menu may switch to the target widget."""
     if not self.models or not self.models.navigation_model:
         return True

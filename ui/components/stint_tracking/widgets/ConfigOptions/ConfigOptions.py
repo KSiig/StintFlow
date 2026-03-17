@@ -88,7 +88,7 @@ class ConfigOptions(QWidget):
         self.p: QProcess | None = None
         self._tracking_active = False
         self.agent_name = None
-        self._committed_form_state: dict[str, object] | None = None
+        self._committed_form_state: dict[str, str | list[str]] | None = None
         self._has_unsaved_form_changes = False
         self._is_restoring_form_state = False
 
