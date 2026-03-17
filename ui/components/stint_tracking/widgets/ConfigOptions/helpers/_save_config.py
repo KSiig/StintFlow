@@ -27,7 +27,11 @@ def _save_config(self) -> None:
             self.drivers = drivers
 
         self.table_model.update_data()
+        self.save_btn.hide()
 
         log('INFO', 'Configuration saved successfully', category='config_options', action='save_config')
+
+
     except Exception as e:
         log_exception(e, 'Failed to save configuration', category='config_options', action='save_config')
+        self.save_btn.hide()

@@ -16,7 +16,7 @@ class LabeledInputRow(QFrame):
 
     get_input_field = get_input_field
 
-    def __init__(self, title: str, input_height: int = None, spacing: int = None, parent=None):
+    def __init__(self, title: str, input_height: int = None, spacing: int = None, parent=None, on_text_change=None):
         super().__init__(parent)
 
         load_style('resources/styles/common/labeled_input_row.qss', widget=self)
@@ -45,9 +45,10 @@ class LabeledInputRow(QFrame):
             self.input_field.setFont(get_fonts(FONT.input_field))
         except Exception:
             pass
-        self.input_field.setReadOnly(True)
         self.input_field.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.input_field.setContentsMargins(0, 0, 0, 0)
+        if on_text_change is not None:
+            self.input_field.textEdited.connect(on_text_change)
 
         main_box.addWidget(title_label)
         main_box.addWidget(self.input_field, stretch=1)

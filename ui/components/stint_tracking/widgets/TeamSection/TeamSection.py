@@ -5,7 +5,7 @@ from ui.utilities import FONT, get_fonts
 from ui.components.common.ConfigButton import ConfigButton
 
 from ...config import ConfigLayout, create_config_label
-from .helpers import _add_row, _clear_drivers, _fetch_drivers, _load_team, _remove_row, _set_active
+from .helpers import _add_row, _clear_drivers, _fetch_drivers, _load_team, _remove_row
 
 
 class TeamSection(QWidget):
@@ -16,13 +16,13 @@ class TeamSection(QWidget):
     _fetch_drivers = _fetch_drivers
     _load_team = _load_team
     _remove_row = _remove_row
-    _set_active = _set_active
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, on_change=None):
         super().__init__(parent)
         self.setObjectName("DriverNames")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.setContentsMargins(0, 0, 0, 0)
+        self.on_change = on_change
 
         title_row = QHBoxLayout()
         title_row.setContentsMargins(0, 0, 0, 0)

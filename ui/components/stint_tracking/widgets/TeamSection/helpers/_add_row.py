@@ -9,9 +9,11 @@ def _add_row(self) -> None:
     """Add a new driver input row up to six entries."""
     if len(self.driver_inputs) < 6:
         line_edit = QLineEdit()
+        line_edit.textEdited.connect(lambda: self.on_change() if self.on_change else None)
         line_edit.setFont(get_fonts(FONT.input_field))
         self.driver_box.addWidget(line_edit)
         self.driver_inputs.append(line_edit)
+        self.on_change() if self.on_change else None
         return
 
     dialog = PopUp(

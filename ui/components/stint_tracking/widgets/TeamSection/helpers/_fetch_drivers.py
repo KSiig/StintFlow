@@ -15,10 +15,12 @@ def _fetch_drivers(self) -> None:
         self.drivers = team
         for driver in self.drivers:
             line_edit = QLineEdit(driver)
+            line_edit.textEdited.connect(lambda: self.on_change() if self.on_change else None)
             line_edit.setFont(get_fonts(FONT.input_field))
             line_edit.setReadOnly(True)
             self.driver_box.addWidget(line_edit)
             self.driver_inputs.append(line_edit)
+            self.on_change() if self.on_change else None
         return
 
     dialog = PopUp(
