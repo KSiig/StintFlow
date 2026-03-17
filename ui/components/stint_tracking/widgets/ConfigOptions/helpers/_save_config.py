@@ -34,4 +34,3 @@ def _save_config(self) -> None:
 
     except Exception as e:
         log_exception(e, 'Failed to save configuration', category='config_options', action='save_config')
-        self.save_btn.hide()

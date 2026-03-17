@@ -16,10 +16,10 @@ def _create_labeled_input_rows(self, layout: QVBoxLayout) -> None:
         ("mean_stint_time", "Mean stint time"),
     ]:
         card = LabeledInputRow(
-            title=title, 
+            title=title,
             input_height=ConfigLayout.INPUT_HEIGHT,
-            on_text_change=lambda: _on_text_changed(self)
         )
+        card.textEditedByUser.connect(lambda _: _on_text_changed(self))
         self.inputs[field_id] = card.get_input_field()
         layout.addWidget(card)
 

@@ -18,6 +18,6 @@ def _create_buttons(self) -> None:
     self.lbl_info.setObjectName("InfoLabel")
     self.lbl_info.hide()
 
-    self.save_btn.clicked.connect(lambda: self._save_config())
+    self.save_btn.clicked.connect(self._save_config)
     self.clone_btn.clicked.connect(self._clone_event)
     self.create_session_btn.clicked.connect(self._create_session)

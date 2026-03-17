@@ -1,5 +1,6 @@
 """Driver names configuration section."""
 
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QHBoxLayout, QLineEdit, QSizePolicy, QVBoxLayout, QWidget
 from ui.utilities import FONT, get_fonts
 from ui.components.common.ConfigButton import ConfigButton
@@ -11,18 +12,19 @@ from .helpers import _add_row, _clear_drivers, _fetch_drivers, _load_team, _remo
 class TeamSection(QWidget):
     """Widget for driver name inputs with add/remove controls."""
 
+    changed = pyqtSignal()
+
     _add_row = _add_row
     _clear_drivers = _clear_drivers
     _fetch_drivers = _fetch_drivers
     _load_team = _load_team
     _remove_row = _remove_row
 
-    def __init__(self, parent=None, on_change=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("DriverNames")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.setContentsMargins(0, 0, 0, 0)
-        self.on_change = on_change
 
         title_row = QHBoxLayout()
         title_row.setContentsMargins(0, 0, 0, 0)

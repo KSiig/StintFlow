@@ -19,14 +19,15 @@ def _add_config_rows(self, layout: QVBoxLayout) -> None:
         ("tires_remaining_at_green_flag", "Tires at green flag"),
     ]:
         card = LabeledInputRow(
-            title=title, 
-            input_height=ConfigLayout.INPUT_HEIGHT, 
-            on_text_change=lambda: _on_text_changed(self)
+            title=title,
+            input_height=ConfigLayout.INPUT_HEIGHT,
         )
+        card.textEditedByUser.connect(lambda _: _on_text_changed(self))
         self.inputs[field_id] = card.get_input_field()
         layout.addWidget(card)
 
-    self.team_section = TeamSection(on_change=lambda: _on_text_changed(self))
+    self.team_section = TeamSection()
+    self.team_section.changed.connect(lambda: _on_text_changed(self))
     self.driver_inputs = self.team_section.get_driver_inputs()
     self.drivers = self.team_section.get_driver_names()
     layout.addWidget(self.team_section)

@@ -15,7 +15,7 @@ def _load_team(self) -> None:
         self.drivers = team.get('drivers', [])
         for driver in self.drivers:
             line_edit = QLineEdit(driver)
-            line_edit.textEdited.connect(lambda: self.on_change() if self.on_change else None)
+            line_edit.textEdited.connect(lambda _: self.changed.emit())
             line_edit.setFont(get_fonts(FONT.input_field))
             self.driver_box.addWidget(line_edit)
             self.driver_inputs.append(line_edit)

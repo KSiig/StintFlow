@@ -2,8 +2,8 @@
 Reusable frame containing a label and single-line input field.
 """
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QLabel, QFrame, QLineEdit, QSizePolicy, QVBoxLayout
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QLabel, QFrame, QLineEdit, QSizePolicy, QVBoxLayout, QWidget
 
 from ui.utilities import FONT, get_fonts
 from ui.utilities.load_style import load_style
@@ -14,9 +14,17 @@ from .bounded_functions import get_input_field
 class LabeledInputRow(QFrame):
     """Frame containing a label and a `QLineEdit` input."""
 
+    textEditedByUser = pyqtSignal(str)
+
     get_input_field = get_input_field
 
-    def __init__(self, title: str, input_height: int = None, spacing: int = None, parent=None, on_text_change=None):
+    def __init__(
+        self,
+        title: str,
+        input_height: int | None = None,
+        spacing: int | None = None,
+        parent: QWidget | None = None,
+    ) -> None:
         super().__init__(parent)
 
         load_style('resources/styles/common/labeled_input_row.qss', widget=self)
@@ -47,8 +55,7 @@ class LabeledInputRow(QFrame):
             pass
         self.input_field.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.input_field.setContentsMargins(0, 0, 0, 0)
-        if on_text_change is not None:
-            self.input_field.textEdited.connect(on_text_change)
+        self.input_field.textEdited.connect(lambda text: self.textEditedByUser.emit(text))
 
         main_box.addWidget(title_label)
         main_box.addWidget(self.input_field, stretch=1)
