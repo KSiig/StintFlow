@@ -22,7 +22,7 @@ QPushButton#TrackButton:disabled {
 }
 /* --- Buttons --- */
 QPushButton {
-  background-color: #1D2A2C;
+  background-color: #141e31;
   border: 1px solid #273b4f;
   border-radius: 4px;
   color: #FFFFFF;
@@ -30,7 +30,7 @@ QPushButton {
 }
 
 QPushButton:hover {
-  background-color: #263638;
+  background-color: #101a2e;
   border: 1px solid #455a64;
 }
 
@@ -39,7 +39,7 @@ QPushButton:pressed {
 }
 
 QPushButton:focus {
-  border: 1px solid #05fd7e;
+  border: 1px solid #565a63;
 }
 
 QPushButton:disabled {

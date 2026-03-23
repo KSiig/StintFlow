@@ -16,11 +16,11 @@ def _create_button_layout(self) -> QHBoxLayout:
     self.save_btn.hide()
     btn_layout_save_clone.addWidget(self.cancel_btn, alignment=Qt.AlignmentFlag.AlignTop)
     self.cancel_btn.hide()
-    btn_layout_save_clone.addWidget(self.clone_btn, alignment=Qt.AlignmentFlag.AlignTop)
+    # btn_layout_save_clone.addWidget(self.clone_btn, alignment=Qt.AlignmentFlag.AlignTop)
 
     btn_tracking_layout = QVBoxLayout()
     btn_tracking_layout.setSpacing(8)
-    btn_tracking_layout.addWidget(self.create_session_btn, alignment=Qt.AlignmentFlag.AlignTop)
+    # btn_tracking_layout.addWidget(self.create_session_btn, alignment=Qt.AlignmentFlag.AlignTop)
     btn_tracking_layout.addWidget(self.lbl_info, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
     btn_tracking_layout.addStretch()
 

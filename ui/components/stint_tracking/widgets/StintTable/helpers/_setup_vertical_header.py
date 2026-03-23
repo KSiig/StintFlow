@@ -12,13 +12,10 @@ def _setup_vertical_header(self, table: QTableView) -> None:
     """Configure vertical header appearance and corner widget."""
     vh = table.verticalHeader()
 
-    font_table_cell = get_fonts(FONT.table_cell)
-    font_table_header = get_fonts(FONT.table_header)
-
     vh.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-    font_metrics = QFontMetrics(font_table_cell)
+    font_metrics = QFontMetrics(self.font_table_cell)
     row_height = font_metrics.height() + self.ROW_PADDING_VERTICAL
     vh.setDefaultSectionSize(row_height)
 
-    self._setup_corner_button(table, vh, font_table_header)
+    self._setup_corner_button(table, vh, self.font_table_header)

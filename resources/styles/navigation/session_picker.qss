@@ -40,9 +40,9 @@ QPushButton#ComboBoxPopupItem:hover {
 /* Container frame */
 QFrame#ComboBoxes {
   border-top: 1px solid #374151;
-  background-color: #101f23;
+  background-color: #0c1327;
 }
 
 QWidget#StintSelection {
-  background-color: #101f23;
+  background-color: #0c1327;
 }

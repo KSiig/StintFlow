@@ -40,6 +40,7 @@ def _setup_ui(self) -> None:
 
     header = QLabel("Connected agents", container)
     header.setObjectName("AgentOverviewPopupHeader")
+    header.setFont(self.font_header)
     layout.addWidget(header)
 
     scroll = QScrollArea(container)

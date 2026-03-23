@@ -1,13 +1,3 @@
-#Setting {
-  background-color: transparent;
-}
-
-/* --- Labels --- */
-QLabel#SettingTitle {
-  color: #FFFFFF;
-  background-color: transparent;
-}
-
 /* --- Input Fields --- */
 QLineEdit {
   border-radius: 6px;

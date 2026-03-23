@@ -23,7 +23,7 @@ def create_editor(self, parent, option, index):
 
     dropdown = DropdownButton(items=self.items, current_value=str(index.data()) or "", sort_items=False, parent=editor)
     dropdown.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    dropdown.btn.setFont(get_fonts(FONT.table_cell))
+    dropdown.btn.setFont(get_fonts(FONT.text_ui))
     dropdown.btn.setStyleSheet("text-align: left; padding-left: 8px;")
 
     current_text = str(index.data())

@@ -6,6 +6,7 @@ from ui.components.common.ConfigButton import ConfigButton
 
 from ...config import ConfigLayout, create_config_label
 from .helpers import _add_row, _clear_drivers, _fetch_drivers, _load_team, _remove_row, _set_driver_names
+from ui.utilities.load_style import load_style
 
 
 class TeamSection(QWidget):
@@ -22,6 +23,7 @@ class TeamSection(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        load_style('resources/styles/stint_tracking/team_section.qss', widget=self)
         self.setObjectName("DriverNames")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.setContentsMargins(0, 0, 0, 0)

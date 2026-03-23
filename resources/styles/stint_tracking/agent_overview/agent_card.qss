@@ -1,5 +1,5 @@
 QFrame#AgentCard {
-  background-color: #1b262c;
+  background-color: #141e31;
   border: none;
 }
 

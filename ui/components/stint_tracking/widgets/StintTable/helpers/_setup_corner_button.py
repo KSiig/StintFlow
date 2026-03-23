@@ -19,7 +19,7 @@ def _setup_corner_button(self, table: QTableView, vh, font_table_header) -> None
     corner_replacement.setObjectName("StintTableCornerReplacement")
     corner_height = vh.defaultSectionSize() - self.CORNER_HEIGHT_ADJUSTMENT
     corner_replacement.setFixedSize(VERTICAL_HEADER_WIDTH, corner_height)
-    corner_replacement.setStyleSheet("QWidget { background-color: #101f23; border: none; }")
+    corner_replacement.setStyleSheet("QWidget { background-color: #0c1327; border: none; }")
 
     corner_layout = QHBoxLayout(corner_replacement)
     corner_layout.setContentsMargins(self.CORNER_PADDING_LEFT, 0, self.CORNER_PADDING_RIGHT, 0)

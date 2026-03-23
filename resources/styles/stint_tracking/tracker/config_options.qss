@@ -4,7 +4,7 @@
 
 /* --- Frame Container --- */
 QFrame#ConfigOptions {
-  background-color: #101f23;
+  background-color: #0c1327;
   padding: 8px;
   border: 1px solid #1e2939;
   border-radius: 8px;
@@ -14,7 +14,7 @@ QFrame#ConfigOptions > QFrame,
 QFrame#ConfigOptions > QLabel,
 QFrame#Setting,
 QLabel {
-  background-color: #101f23;
+  background-color: #0c1327;
 }
 
 QFrame#ConfigOptions > QLabel#InfoLabel {

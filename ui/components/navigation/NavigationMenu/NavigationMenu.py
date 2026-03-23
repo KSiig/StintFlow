@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QWidget
 
 from ui.models import ModelContainer
 from ui.utilities.load_style import load_style
+from ui.utilities import FONT, get_fonts
 
 from .helpers import (
     _add_title_and_icon,
@@ -40,6 +41,7 @@ class NavigationMenu(QWidget):
         self._active_menu_item = None
 
         load_style('resources/styles/navigation/navigation_menu.qss', widget=self)
+        self.font_menu_item = get_fonts(FONT.text_body_bold)
         self._create_layout()
 
         if self.models and self.models.selection_model:

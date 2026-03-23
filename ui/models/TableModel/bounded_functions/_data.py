@@ -27,7 +27,7 @@ def data(self, index, role: int = Qt.ItemDataRole.DisplayRole):  # type: ignore[
             return QColor("#281F23")
 
     if role == Qt.ItemDataRole.FontRole:
-        return get_fonts(FONT.text_table_cell)
+        return get_fonts(FONT.text_ui)
 
     if role == Qt.ItemDataRole.TextAlignmentRole:
         return Qt.AlignmentFlag.AlignVCenter
