@@ -15,6 +15,6 @@ class AgentOverviewPopup(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent, Qt.WindowType.Popup)
-        self.font_header = get_fonts(FONT.text_body_bold)
+        self.font_header = get_fonts(FONT.text_ui_bold)
         self._setup_ui()
 
