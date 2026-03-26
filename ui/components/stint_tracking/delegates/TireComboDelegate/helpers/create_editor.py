@@ -7,6 +7,7 @@ from ui.components.common.ConfigButton import ConfigButton
 from ui.components.stint_tracking.delegates.TireComboDelegate.TirePopup import TirePopup
 from ui.models.table_constants import ColumnIndex
 from ui.models.TableRoles import TableRoles
+from ui.utilities import FONT, get_fonts
 
 
 def create_editor(self, parent, option, index):
@@ -25,6 +26,7 @@ def create_editor(self, parent, option, index):
     btn = ConfigButton(parent=editor, width="content")
     btn.setObjectName("TirePicker")
     btn.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+    btn.setFont(get_fonts(FONT.text_ui))
     self._update_button_text(btn, index)
     layout.addWidget(btn)
 

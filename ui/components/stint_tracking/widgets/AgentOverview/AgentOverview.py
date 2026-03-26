@@ -34,6 +34,6 @@ class AgentOverview(QFrame):
         self._empty_agent_reads = 0
         self._popup = AgentOverviewPopup(self)
 
-        self.font_summary = get_fonts(FONT.text_label)
+        self.font_summary = get_fonts(FONT.text_body)
         load_style('resources/styles/stint_tracking/agent_overview/agent_overview.qss', widget=self)
         self._setup_ui()

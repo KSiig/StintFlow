@@ -9,6 +9,7 @@ def _remove_row(self) -> None:
         line_edit = self.driver_inputs.pop()
         self.driver_box.removeWidget(line_edit)
         line_edit.deleteLater()
+        self.changed.emit()
         return
 
     dialog = PopUp(

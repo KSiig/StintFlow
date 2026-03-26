@@ -31,8 +31,8 @@ def _create_table(self, focus: bool):
     vh = table.verticalHeader()
     vh.setStyleSheet(
         f"QHeaderView::section {{ "
-        f"font-family: {get_fonts(FONT.table_cell).family()}; "
-        f"font-size: {get_fonts(FONT.table_cell).pointSize()}pt; "
+        f"font-family: {self.font_table_cell.family()}; "
+        f"font-size: {self.font_table_cell.pointSize()}pt; "
         f"padding-left: {self.VERTICAL_HEADER_PADDING_LEFT}px; "
         f"}}"
     )

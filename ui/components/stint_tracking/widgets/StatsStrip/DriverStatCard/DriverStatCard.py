@@ -37,10 +37,10 @@ class DriverStatCard(QFrame):
         self.progress_bar = None
         self.total_time_label = None
 
-        self.initials_font = get_fonts(FONT.text_label_bold)
-        self.driver_name_font = get_fonts(FONT.text_label_bold)
-        self.stint_count_font = get_fonts(FONT.text_caption)
-        self.total_time_font = get_fonts(FONT.text_caption)
+        self.initials_font = get_fonts(FONT.text_body_bold)
+        self.driver_name_font = get_fonts(FONT.text_body_bold)
+        self.stint_count_font = get_fonts(FONT.text_label)
+        self.total_time_font = get_fonts(FONT.text_label)
 
         self._setup_ui()
         self.set_driver_stats(driver_name, stint_count, total_time_text, progress_value)

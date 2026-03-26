@@ -30,7 +30,7 @@ class StatsCard(QFrame):
         load_style('resources/styles/stint_tracking/tracker/stats_card.qss', widget=self)
         self.setObjectName("StatsCard")
 
-        self.font_title = get_fonts(FONT.text_label)
+        self.font_title = get_fonts(FONT.text_body)
         self.font_value = get_fonts(FONT.text_ui)
 
         self.title = title

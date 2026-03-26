@@ -4,7 +4,7 @@
 
 /* --- Frame Container --- */
 QFrame#StintTableFrame {
-  background-color: #101f23;
+  background-color: #0c1327;
   padding: 8px;
   border: 1px solid #1e2939;
   border-radius: 8px;
@@ -12,14 +12,14 @@ QFrame#StintTableFrame {
 
 QFrame#StintTableFrame > QAbstractButton, 
 QFrame#StintTableFrame > QLabel {
-  background-color: #101f23;
+  background-color: #0c1327;
   border: none;
 }
 
 /* --- Table View --- */
 QTableView {
   border: none;
-  background-color: #101f23;
+  background-color: #0c1327;
   gridline-color: transparent;
   show-decoration-selected: 0;
   selection-background-color: #1a2d35;
@@ -51,18 +51,18 @@ QTableView::item:focus {
 }
 
 QTableView::corner {
-  background-color: #101f23;
+  background-color: #0c1327;
   border: none;
 }
 
 /* --- Header View --- */
 QHeaderView {
-  background-color: #101f23;
+  background-color: #0c1327;
   border: none;
 }
 
 QHeaderView::section {
-  background-color: #101f23;
+  background-color: #0c1327;
   color: #FFFFFF;
   border: none;
   padding: 4px;
@@ -84,7 +84,7 @@ QHeaderView::section:pressed {
 /* --- Custom Header Elements --- */
 #StintTableCornerHeaderLabel, 
 #StintTableCornerHeader {
-  background-color: #101f23;
+  background-color: #0c1327;
   border: none;
 }
 

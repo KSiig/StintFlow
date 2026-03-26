@@ -6,9 +6,11 @@ from PyQt6.QtWidgets import QWidget
 
 from ui.models import ModelContainer
 from ui.utilities.load_style import load_style
+from ui.utilities import FONT, get_fonts
 
 from .helpers import (
     _add_title_and_icon,
+    _can_switch_menu_item,
     _create_layout,
     _create_menu_section,
     _set_active_menu_item,
@@ -25,6 +27,7 @@ class NavigationMenu(QWidget):
     _create_layout = _create_layout
     _update_event_selection = _update_event_selection
     _add_title_and_icon = _add_title_and_icon
+    _can_switch_menu_item = _can_switch_menu_item
     _switch_to_tracker = _switch_to_tracker
     _switch_to_strategies = _switch_to_strategies
     _switch_to_settings = _switch_to_settings
@@ -38,6 +41,7 @@ class NavigationMenu(QWidget):
         self._active_menu_item = None
 
         load_style('resources/styles/navigation/navigation_menu.qss', widget=self)
+        self.font_menu_item = get_fonts(FONT.text_body_bold)
         self._create_layout()
 
         if self.models and self.models.selection_model:

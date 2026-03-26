@@ -10,11 +10,11 @@ QLabel#SettingTitle {
 
 /* --- Input Fields --- */
 QLineEdit {
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 8px 16px 8px 12px;
   border: 1px solid #364153;
   color: #FFFFFF;
-  background-color: #1d2a2c;
+  background-color: #141e31;
 }
 
 QLineEdit:hover {
@@ -22,8 +22,7 @@ QLineEdit:hover {
 }
 
 QLineEdit:focus {
-  border: 1px solid #05fd7e;
-  background-color: #1e2f32;
+  border: 1px solid #565a63;
 }
 
 QLineEdit:disabled {

@@ -17,8 +17,8 @@ class AgentCard(QFrame):
     def __init__(self, agent: dict) -> None:
         super().__init__()
         load_style('resources/styles/stint_tracking/agent_overview/agent_card.qss', widget=self)
-        self.font_name = get_fonts(FONT.text_label_bold)
-        self.font_status = get_fonts(FONT.text_caption)
+        self.font_name = get_fonts(FONT.text_body_bold)
+        self.font_status = get_fonts(FONT.text_label_bold)
         self.font_timestamps = get_fonts(FONT.text_label)
 
         self.setObjectName('AgentCard')

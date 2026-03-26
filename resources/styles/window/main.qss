@@ -2,7 +2,7 @@
    Color Palette
    ============================================================ */
 /* Background: #04080B (dark navy) */
-/* Widget background: #101F23 (light navy) */
+/* Widget background: #0c1327 (light navy) */
 /* Text: #D1D5DC (light gray) */
 /* Secondary: #828282 (medium gray) */
 /* Accent: #1E2A33 (hover state) */
@@ -13,7 +13,7 @@
    Base Styles
    ============================================================ */
 QMainWindow, QWidget {
-  background-color: #0a1416;
+  background-color: #020618;
   color: #D1D5DC;
 }
 
@@ -25,7 +25,7 @@ QMainWindow, QWidget {
    Scroll Bars
    ============================================================ */
 QScrollBar:vertical {
-  background-color: #101f23;
+  background-color: #0c1327;
   width: 12px;
   border: none;
   border-radius: 6px;
@@ -56,7 +56,7 @@ QScrollBar::sub-page:vertical {
 }
 
 QScrollBar:horizontal {
-  background-color: #101f23;
+  background-color: #0c1327;
   height: 12px;
   border: none;
   border-radius: 6px;

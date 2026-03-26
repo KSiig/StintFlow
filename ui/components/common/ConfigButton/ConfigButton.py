@@ -29,7 +29,7 @@ class ConfigButton(QPushButton):
         icon_color: str = "#FFFFFF",
         width: int | str = "content",
         parent=None,
-        font = FONT.text_body_sm,
+        font = FONT.text_body,
         padding_height = 4,
         padding_width = 0,
     ) -> None:

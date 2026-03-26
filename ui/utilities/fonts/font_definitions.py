@@ -12,7 +12,9 @@ class FONT(Enum):
     text_label_bold = {"point_size": 9, "weight": QFont.Weight.DemiBold}
     text_body_sm = {"point_size": 9.75, "weight": QFont.Weight.Normal}
     text_body = {"point_size": 10.5, "weight": QFont.Weight.Normal}
+    text_body_bold = {"point_size": 10.5, "weight": QFont.Weight.DemiBold}
     text_ui = {"point_size": 12, "weight": QFont.Weight.Medium}
+    text_ui_bold = {"point_size": 12, "weight": QFont.Weight.DemiBold}
     text_title_sm = {"point_size": 13.5, "weight": QFont.Weight.DemiBold}
     text_title = {"point_size": 15, "weight": QFont.Weight.DemiBold}
     text_heading = {"point_size": 18, "weight": QFont.Weight.DemiBold}

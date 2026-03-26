@@ -68,6 +68,10 @@ def _on_save_clicked(self) -> None:
 
         update_strategy(strategy=self.strategy)
         self.strategy_updated.emit(self.strategy)
+        self._committed_input_state = self._capture_input_state()
+        self._has_unsaved_input_changes = False
+        self.save_btn.hide()
+        self.cancel_btn.hide()
 
         log(
             'INFO',
@@ -84,4 +88,3 @@ def _on_save_clicked(self) -> None:
             action='save_clicked',
         )
 
-    self._toggle_edit()

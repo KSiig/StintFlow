@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 
 from ui.models import ModelContainer
 from core.errors import log
+from ui.utilities import get_fonts, FONT
 
 from .helpers import (
     _create_table,
@@ -61,6 +62,9 @@ class StintTable(QWidget):
         self.table_model = models.table_model
         self._column_count = 0
         self._load_stylesheet()
+
+        self.font_table_cell = get_fonts(FONT.text_body)
+        self.font_table_header = get_fonts(FONT.text_body_bold)
 
         self.table = self._create_table(focus)
 

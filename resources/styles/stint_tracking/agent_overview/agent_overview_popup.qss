@@ -5,18 +5,16 @@ QWidget#AgentOverviewPopup {
 }
 
 QFrame#AgentOverviewPopupContainer {
-  background-color: #1b262c;
+  background-color: #141e31;
   border: 1px solid #334e68;
   border-radius: 8px;
 }
 
 QLabel#AgentOverviewPopupHeader {
   color: #ffffff;
-  font-weight: bold;
-  font-size: 13px;
 }
 
 QScrollArea#AgentOverviewPopupScroll {
   border: none;
-  background-color: #1b262c;
+  background-color: #141e31;
 }

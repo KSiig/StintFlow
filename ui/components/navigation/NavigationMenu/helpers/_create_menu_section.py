@@ -26,7 +26,7 @@ def _create_menu_section(self, label: str, icon_path: str = None) -> QVBoxLayout
         text_label = QLabel(label)
         text_label.setObjectName("NavMenuSectionLabel")
         text_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        text_label.setFont(get_fonts(FONT.menu_section))
+        text_label.setFont(self.font_menu_item)
         header_layout.addWidget(text_label)
         header_layout.addStretch()
 
@@ -36,7 +36,7 @@ def _create_menu_section(self, label: str, icon_path: str = None) -> QVBoxLayout
         section_label = QLabel(label)
         section_label.setObjectName("NavMenuSectionLabel")
         section_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        section_label.setFont(get_fonts(FONT.menu_section))
+        section_label.setFont(self.font_menu_item)
         section_label.setContentsMargins(MENU_SPACING, 0, 0, 8)
         layout.setSpacing(8)
         layout.addWidget(section_label)

@@ -36,6 +36,7 @@ class ConfigLabels:
     
     BTN_EDIT = "Edit"
     BTN_SAVE = "Save"
+    BTN_CANCEL = "Cancel"
     BTN_CLONE = "Clone"
     BTN_NEW_SESSION = "+ New session"
     BTN_START_TRACK = "Start tracking"
